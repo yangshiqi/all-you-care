@@ -30,13 +30,15 @@ export const RecentIssues = () => {
   );
 
   return (
-    <section className="py-16 bg-secondary">
+    <section className="py-16 bg-secondary/50 paper-texture border-t-4 border-b-4 border-primary">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <h2 className="text-2xl font-bold">{t('recentIssues.title')}</h2>
-            <div className="flex items-center gap-4">
-              <label htmlFor="filter" className="text-sm text-muted-foreground">
+          <div className="text-center mb-12">
+            <div className="inline-block vintage-border bg-card px-8 py-4 mb-6">
+              <h2 className="text-4xl font-bold text-primary">{t('recentIssues.title')}</h2>
+            </div>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+              <label htmlFor="filter" className="text-sm text-muted-foreground uppercase tracking-wider monospace">
                 {t('recentIssues.filterLabel')}
               </label>
               <Input
@@ -45,29 +47,29 @@ export const RecentIssues = () => {
                 placeholder={t('recentIssues.filterPlaceholder')}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="max-w-xs"
+                className="max-w-xs border-2 border-border bg-background"
               />
+              <Link to="/issues" className="text-sm hover:underline whitespace-nowrap font-bold uppercase tracking-wider">
+                {t('recentIssues.seeAll')} →
+              </Link>
             </div>
-            <Link to="/issues" className="text-sm hover:underline whitespace-nowrap">
-              {t('recentIssues.seeAll')}
-            </Link>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1 bg-card vintage-border p-4">
             {filteredIssues.map((issue, index) => (
               <Link
                 key={index}
                 to={`/issues/${issue.slug}`}
-                className="flex items-center gap-4 p-4 bg-background hover:bg-muted/50 transition-colors rounded-lg group"
+                className="flex items-center gap-4 p-3 border-b-2 border-dotted border-border last:border-0 hover:bg-background transition-colors group"
               >
-                <div className="w-2 h-2 rounded-full bg-muted-foreground flex-shrink-0" />
-                <div className="text-sm text-muted-foreground w-16 flex-shrink-0">
+                <div className="text-sm text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider monospace font-bold">
                   {issue.date}
                 </div>
+                <div className="w-1 h-1 bg-primary flex-shrink-0" />
                 <div className="flex-1">
-                  <h3 className="font-medium">{issue.title}</h3>
+                  <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">{issue.title}</h3>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
               </Link>
             ))}
           </div>
