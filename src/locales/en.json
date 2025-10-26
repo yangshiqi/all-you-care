@@ -1,0 +1,40 @@
+{
+  "siteTitle": "AINews - Daily AI Roundup for Engineers",
+  "siteDescription": "How over 80k top AI Engineers keep up with AI news, every weekday. We summarize top AI discords, reddits, and X/Twitter.",
+  "nav": {
+    "subscribe": "subscribe",
+    "issues": "issues",
+    "tags": "tags",
+    "search": "Search (Cmd+K)"
+  },
+  "hero": {
+    "title": "AINews",
+    "byLine": "by smol.ai",
+    "subtitle": "How over 80k top AI Engineers keep up, every weekday.",
+    "description": "We summarize top AI discords + AI reddits + AI X/Twitters, and send you a roundup each day!",
+    "emailPlaceholder": "your@work.email",
+    "firstNamePlaceholder": "First Name",
+    "lastNamePlaceholder": "Last Name",
+    "ctaButton": "Solve my AI overload",
+    "privacyText": "We respect your privacy.",
+    "signupLink": "Full signup link here.",
+    "testimonial1": "Highest-leverage 45 mins I spend everyday",
+    "testimonial1Author": "Soumith",
+    "testimonial2": "best AI newsletter atm",
+    "testimonial2Note": "I'm not sure that enough people subscribe",
+    "testimonial2Author": "Andrej",
+    "testimonial3": "genuinely incredible",
+    "testimonial3Author": "Chris",
+    "testimonial4": "surprisingly decent",
+    "testimonial4Author": "Hamel",
+    "customNote": "You can pay for a customizable version here. Thanks to Pieter Levels for the Lex Fridman feature!",
+    "toastTitle": "Thanks for subscribing!",
+    "toastDescription": "Please check your email to confirm your subscription."
+  },
+  "recentIssues": {
+    "title": "Last 30 days in AI",
+    "filterLabel": "Filter titles:",
+    "filterPlaceholder": ".*(?!not much).*$",
+    "seeAll": "See all issues"
+  }
+}

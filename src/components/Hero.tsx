@@ -2,18 +2,20 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export const Hero = () => {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Thanks for subscribing!",
-      description: "Please check your email to confirm your subscription.",
+      title: t('hero.toastTitle'),
+      description: t('hero.toastDescription'),
     });
     setEmail("");
     setFirstName("");
@@ -27,15 +29,15 @@ export const Hero = () => {
           {/* Left column - Title and form */}
           <div>
             <div className="bg-primary text-primary-foreground p-8 md:p-12 mb-8 inline-block">
-              <h1 className="text-5xl md:text-7xl font-bold leading-none">AINews</h1>
+              <h1 className="text-5xl md:text-7xl font-bold leading-none">{t('hero.title')}</h1>
             </div>
-            <p className="text-sm text-muted-foreground mb-2">by smol.ai</p>
-            <p className="text-lg mb-8">How over 80k top AI Engineers keep up, every weekday.</p>
+            <p className="text-sm text-muted-foreground mb-2">{t('hero.byLine')}</p>
+            <p className="text-lg mb-8">{t('hero.subtitle')}</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 type="email"
-                placeholder="your@work.email"
+                placeholder={t('hero.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -43,52 +45,52 @@ export const Hero = () => {
               />
               <Input
                 type="text"
-                placeholder="First Name"
+                placeholder={t('hero.firstNamePlaceholder')}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 className="bg-background"
               />
               <Input
                 type="text"
-                placeholder="Last Name"
+                placeholder={t('hero.lastNamePlaceholder')}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="bg-background"
               />
               <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                Solve my AI overload
+                {t('hero.ctaButton')}
               </Button>
             </form>
 
             <p className="text-xs text-muted-foreground mt-4">
-              We respect your privacy. <a href="/subscribe" className="underline">Full signup link here.</a>
+              {t('hero.privacyText')} <a href="/subscribe" className="underline">{t('hero.signupLink')}</a>
             </p>
           </div>
 
           {/* Right column - Description and testimonials */}
           <div className="space-y-6">
             <p className="text-lg">
-              We summarize top AI discords + AI reddits + AI X/Twitters, and send you a roundup each day!
+              {t('hero.description')}
             </p>
 
             <blockquote className="italic text-muted-foreground border-l-2 border-border pl-4">
-              "Highest-leverage 45 mins I spend everyday" - <span className="font-medium">Soumith</span>
+              "{t('hero.testimonial1')}" - <span className="font-medium">{t('hero.testimonial1Author')}</span>
             </blockquote>
 
             <blockquote className="italic text-muted-foreground border-l-2 border-border pl-4">
-              "best AI newsletter atm" and "I'm not sure that enough people subscribe" - <span className="font-medium">Andrej</span>
+              "{t('hero.testimonial2')}" {t('hero.testimonial2Note') && `and "${t('hero.testimonial2Note')}"`} - <span className="font-medium">{t('hero.testimonial2Author')}</span>
             </blockquote>
 
             <blockquote className="italic text-muted-foreground border-l-2 border-border pl-4">
-              "genuinely incredible" - <span className="font-medium">Chris</span>
+              "{t('hero.testimonial3')}" - <span className="font-medium">{t('hero.testimonial3Author')}</span>
             </blockquote>
 
             <blockquote className="italic text-muted-foreground border-l-2 border-border pl-4">
-              "surprisingly decent" - <span className="font-medium">Hamel</span>
+              "{t('hero.testimonial4')}" - <span className="font-medium">{t('hero.testimonial4Author')}</span>
             </blockquote>
 
             <p className="text-sm italic text-muted-foreground">
-              You can pay for a customizable version here. Thanks to Pieter Levels for the Lex Fridman feature!
+              {t('hero.customNote')}
             </p>
           </div>
         </div>

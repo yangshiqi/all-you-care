@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Input } from "./ui/input";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface Issue {
   date: string;
@@ -22,6 +23,7 @@ const mockIssues: Issue[] = [
 
 export const RecentIssues = () => {
   const [filter, setFilter] = useState("");
+  const { t } = useTranslation();
 
   const filteredIssues = mockIssues.filter((issue) =>
     issue.title.toLowerCase().includes(filter.toLowerCase())
@@ -32,22 +34,22 @@ export const RecentIssues = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <h2 className="text-2xl font-bold">Last 30 days in AI</h2>
+            <h2 className="text-2xl font-bold">{t('recentIssues.title')}</h2>
             <div className="flex items-center gap-4">
               <label htmlFor="filter" className="text-sm text-muted-foreground">
-                Filter titles:
+                {t('recentIssues.filterLabel')}
               </label>
               <Input
                 id="filter"
                 type="text"
-                placeholder=".*(?!not much).*$"
+                placeholder={t('recentIssues.filterPlaceholder')}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="max-w-xs"
               />
             </div>
             <Link to="/issues" className="text-sm hover:underline whitespace-nowrap">
-              See all issues
+              {t('recentIssues.seeAll')}
             </Link>
           </div>
 
