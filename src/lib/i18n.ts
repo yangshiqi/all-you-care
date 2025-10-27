@@ -63,6 +63,14 @@ i18n
             "filterLabel": "Filter titles:",
             "filterPlaceholder": ".*(?!not much).*$",
             "seeAll": "See all issues"
+          },
+          "issueDetail": {
+            "backToIssues": "Back to Issues",
+            "skipToMain": "Skip to Main",
+            "showTags": "show/hide tags",
+            "hideTags": "show/hide tags",
+            "tableOfContents": "Table of Contents",
+            "backToTop": "Back to Top"
           }
         }
       },
@@ -105,6 +113,14 @@ i18n
             "filterLabel": "筛选标题：",
             "filterPlaceholder": ".*(?!not much).*$",
             "seeAll": "查看所有往期"
+          },
+          "issueDetail": {
+            "backToIssues": "返回期刊列表",
+            "skipToMain": "跳转到主要内容",
+            "showTags": "显示/隐藏标签",
+            "hideTags": "显示/隐藏标签",
+            "tableOfContents": "目录",
+            "backToTop": "返回顶部"
           }
         }
       },

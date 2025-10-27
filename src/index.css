@@ -101,4 +101,16 @@ All colors MUST be HSL.
       radial-gradient(circle at 80% 80%, transparent 0%, hsl(var(--foreground) / 0.02) 100%);
     pointer-events: none;
   }
+  
+  .prose-vintage h3 {
+    @apply text-xl font-bold text-primary mt-6 mb-3 uppercase tracking-wide;
+  }
+  
+  .prose-vintage p {
+    @apply mb-4 text-foreground;
+  }
+  
+  .prose-vintage strong {
+    @apply text-primary font-bold;
+  }
 }
