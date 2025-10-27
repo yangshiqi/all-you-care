@@ -140,7 +140,7 @@ const IssueDetail = () => {
           </div>
 
           {/* Main Content with Sidebar */}
-          <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-8 max-w-4xl mx-auto">
             {/* Table of Contents Sidebar */}
             <aside className="lg:w-64 flex-shrink-0">
               
