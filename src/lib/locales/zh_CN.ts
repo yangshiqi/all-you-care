@@ -12,7 +12,7 @@ export const zh_CN = {
       "title": "AINews",
       "byLine": "由 allyoucare.ai 出品",
       "subtitle": "每一个顶尖 AI 工程师都应该有的资讯获取方式",
-      "description": "我们汇总顶级AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
+      "description": "汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
       "emailPlaceholder": "你的工作邮箱",
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",

@@ -92,9 +92,6 @@ export const Hero = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="text-center mb-4">
-                <span className="text-sm uppercase tracking-widest text-muted-foreground">━━━ Testimonials ━━━</span>
-              </div>
               
               <blockquote className="bg-card vintage-border p-4 relative">
                 <div className="absolute top-2 left-2 text-4xl text-primary opacity-30">&ldquo;</div>

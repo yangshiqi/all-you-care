@@ -9,6 +9,11 @@ export interface IssueSummary {
   tags: string[]
 }
 
+export interface TagSummary {
+  name: string
+  total: number
+}
+
 /**
  * 从 Supabase 获取所有 AI 内容
  */
@@ -192,4 +197,29 @@ export function extractTagsFromContent(tags: string | null | undefined): string[
 
   // 如果无法解析，返回默认标签
   return ['ai', 'technology'];
+}
+
+/**
+ * 从 n8n_ai_tags 表获取所有标签及数量
+ */
+export async function getAllTags(): Promise<TagSummary[]> {
+  try {
+    const { data, error } = await supabase
+      .from('n8n-ai-tags')
+      .select('name, total')
+      .order('total', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching tags:', error)
+      throw new Error(`Failed to fetch tags: ${error.message}`)
+    }
+
+    return (data || []).map((row: any) => ({
+      name: String(row.name),
+      total: Number(row.total) || 0,
+    }))
+  } catch (error) {
+    console.error('Error in getAllTags:', error)
+    throw error
+  }
 }

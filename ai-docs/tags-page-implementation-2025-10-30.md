@@ -27,12 +27,11 @@
 
 ## 实现细节
 
-### generateStaticParams 函数
-为了解决 `output: 'export'` 配置下的构建要求，实现了 `generateStaticParams` 函数：
-- 从 Supabase 获取所有内容
-- 使用 `extractTagsFromContent` 提取所有标签
-- 使用 `Set` 去重，收集所有唯一的标签
-- 对标签进行 URL 编码后返回，确保特殊字符正确处理
+### 标签数据源调整（n8n_ai_tags）
+- 新增 API：`getAllTags()`，从 `n8n_ai_tags` 表读取 `name/total`
+- `/tags` 页面改为直接展示该表数据（含数量），按 `total` 降序
+- `/tags/[tag]` 的 `generateStaticParams` 改为基于 `getAllTags()` 返回的 `name` 生成参数
+- 仍保留标签页内的 URL 编码/解码逻辑，保证链接安全
 
 ### URL 编码处理
 所有标签链接都使用 `encodeURIComponent` 进行编码，确保：

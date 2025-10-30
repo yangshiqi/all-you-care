@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { getAllAiContents, extractTagsFromContent } from "@/lib/api";
+import { getAllTags } from "@/lib/api";
 import { TranslatedText } from "./TranslatedText";
 
 interface TagInfo {
@@ -22,27 +22,8 @@ export const TagsList = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAllAiContents(i18n.language);
-        
-        // 收集所有标签及其计数
-        const tagMap = new Map<string, number>();
-        data.forEach(item => {
-          const itemTags = extractTagsFromContent(item.tags);
-          itemTags.forEach(tag => {
-            const count = tagMap.get(tag) || 0;
-            tagMap.set(tag, count + 1);
-          });
-        });
-        
-        // 转换为数组并按计数排序
-        const tagsArray: TagInfo[] = Array.from(tagMap.entries()).map(([name, count]) => ({
-          name,
-          count
-        }));
-        
-        // 按计数降序排序
-        tagsArray.sort((a, b) => b.count - a.count);
-        
+        const data = await getAllTags();
+        const tagsArray: TagInfo[] = data.map(row => ({ name: row.name, count: row.total }));
         setTags(tagsArray);
       } catch (err) {
         console.error('Error fetching tags:', err);
