@@ -1,77 +1,153 @@
-import { useState } from "react";
-import { Input } from "./ui/input";
-import { ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
+"use client";
+
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-
-interface Issue {
-  date: string;
-  title: string;
-  slug: string;
-}
-
-const mockIssues: Issue[] = [
-  { date: "Oct 24", title: "not much happened today", slug: "25-10-24-not-much" },
-  { date: "Oct 23", title: "not much happened today", slug: "24-10-23-not-much" },
-  { date: "Oct 22", title: "not much happened today", slug: "23-10-22-not-much" },
-  { date: "Oct 21", title: "ChatGPT Atlas: OpenAI's AI Browser", slug: "22-10-21-chatgpt-atlas" },
-  { date: "Oct 20", title: "Anthropic raises $4B from Amazon", slug: "21-10-20-anthropic-amazon" },
-  { date: "Oct 19", title: "Google announces Gemini 2.0", slug: "20-10-19-gemini-2" },
-  { date: "Oct 18", title: "Meta releases Llama 3.2", slug: "19-10-18-llama-3-2" },
-  { date: "Oct 17", title: "OpenAI DevDay announcements", slug: "18-10-17-devday" },
-];
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { TranslatedText } from "./TranslatedText";
+import { getIssueSummaries, IssueSummary } from "@/lib/api";
 
 export const RecentIssues = () => {
+  const { t, i18n } = useTranslation();
   const [filter, setFilter] = useState("");
-  const { t } = useTranslation();
+  const [issues, setIssues] = useState<IssueSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredIssues = mockIssues.filter((issue) =>
+  // 从 Supabase 获取数据
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getIssueSummaries(5, i18n.language);
+        setIssues(data);
+      } catch (err) {
+        console.error('Error fetching issues:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch issues');
+        // 如果 Supabase 连接失败，使用备用数据
+        setIssues([
+          {
+            id: "fallback-1",
+            title: "AI breakthroughs in multimodal learning",
+            date: "Dec 19, 2024",
+            summary: "Major advances in vision-language models and their applications",
+            tags: ["multimodal", "vision", "language", "breakthrough"]
+          },
+          {
+            id: "fallback-2",
+            title: "New open source models released",
+            date: "Dec 17, 2024",
+            summary: "Several organizations released new open source AI models",
+            tags: ["open-source", "models", "release"]
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, []);
+
+  const filteredIssues = issues.filter(issue => 
     issue.title.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
-    <section className="py-16 bg-secondary/50 paper-texture border-t-4 border-b-4 border-primary">
+    <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <div className="inline-block vintage-border bg-card px-8 py-4 mb-6">
-              <h2 className="text-4xl font-bold text-primary">{t('recentIssues.title')}</h2>
-            </div>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              <label htmlFor="filter" className="text-sm text-muted-foreground uppercase tracking-wider monospace">
-                {t('recentIssues.filterLabel')}
-              </label>
-              <Input
-                id="filter"
-                type="text"
-                placeholder={t('recentIssues.filterPlaceholder')}
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="max-w-xs border-2 border-border bg-background"
-              />
-              <Link to="/issues" className="text-sm hover:underline whitespace-nowrap font-bold uppercase tracking-wider">
-                {t('recentIssues.seeAll')} →
-              </Link>
-            </div>
+            <h2 className="text-4xl font-bold text-primary mb-4 vintage-border bg-card px-8 py-4 inline-block">
+              <TranslatedText>{t('recentIssues.title')}</TranslatedText>
+            </h2>
           </div>
 
-          <div className="space-y-1 bg-card vintage-border p-4">
-            {filteredIssues.map((issue, index) => (
-              <Link
-                key={index}
-                to={`/issues/${issue.slug}`}
-                className="flex items-center gap-4 p-3 border-b-2 border-dotted border-border last:border-0 hover:bg-background transition-colors group"
-              >
-                <div className="text-sm text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider monospace font-bold">
-                  {issue.date}
-                </div>
-                <div className="w-1 h-1 bg-primary flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">{issue.title}</h3>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+          {/*<div className="mb-8">
+            <label htmlFor="filter" className="block text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+              <TranslatedText>{t('recentIssues.filterLabel')}</TranslatedText>
+            </label>
+            <Input
+              id="filter"
+              type="text"
+              placeholder={t('recentIssues.filterPlaceholder')}
+              value={filter}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilter(e.target.value)}
+              className="bg-background border-2 border-border"
+              suppressHydrationWarning
+            />
+          </div>*/}
+
+          <div className="space-y-6">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-4 text-muted-foreground">
+                  <TranslatedText>{t('common.loading')}</TranslatedText>
+                </p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-destructive mb-4">
+                  <TranslatedText>{t('common.error')}: {error}</TranslatedText>
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  <TranslatedText>{t('recentIssues.fallbackMessage')}</TranslatedText>
+                </p>
+              </div>
+            ) : filteredIssues.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  <TranslatedText>{t('recentIssues.noResults')}</TranslatedText>
+                </p>
+              </div>
+            ) : (
+              filteredIssues.map((issue) => (
+                <article key={issue.id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-primary mb-2">
+                        <Link 
+                          href={`/issues/${issue.id}`}
+                          className="hover:text-primary/80 transition-colors"
+                        >
+                          {issue.title}
+                        </Link>
+                      </h3>
+                      <p className="text-sm text-muted-foreground uppercase tracking-wider monospace">
+                        {issue.date}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-foreground mb-4 leading-relaxed">
+                    {issue.summary}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {issue.tags.map((tag: string) => (
+                      <Link
+                        key={tag}
+                        href={`/tags/${tag}`}
+                        className="px-3 py-1 text-xs bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
+                      >
+                        {tag}
+                      </Link>
+                    ))}
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+
+          <div className="text-center mt-12">
+            <Button asChild className="vintage-border bg-primary text-primary-foreground px-8 py-3 font-bold uppercase tracking-wider hover:bg-primary/90">
+              <Link href="/issues">
+                <TranslatedText>{t('recentIssues.seeAll')}</TranslatedText>
               </Link>
-            ))}
+            </Button>
           </div>
         </div>
       </div>
