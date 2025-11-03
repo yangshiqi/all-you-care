@@ -1,3 +1,24 @@
+## 2025-01-XX
+- feat(content): 在获取 issues 详情页信息时，从 Supabase 中获取的 content 数据只提取 `<body>` 标签内的内容（不包括 body 标签本身）。
+- refactor(html): 新增 `extractBodyContent` 函数用于从 HTML 中提取 body 标签内的内容。
+- fix(parsing): 优化 `formatHtmlContent` 函数，确保只处理 body 标签内的 HTML 内容，提升内容解析的准确性。
+- feat(filter): 新增 `removeTagsSection` 函数，从 content 中过滤掉 tags 相关的 section。
+  - 自动移除包含 `class="tags"` 的容器元素（div, section, aside 等）
+  - 自动移除包含 `id="tags"` 或 `id="tag"` 的元素
+  - 自动移除包含 `class="tag"` 的单个标签元素
+  - 自动移除包含"相关标签"或"Related Tags"文本的 section 元素（如 `<section><h2>相关标签</h2></section>` 或 `<section><h2>Related Tags</h2></section>`）
+  - 支持循环处理嵌套的 tags 结构，确保完全移除所有相关元素
+- feat(style): 大幅增强 issues 详情页的内容展示样式，提升可读性和视觉层次。
+  - **标题样式**: h2 添加左侧边框强调，h3 添加背景色块突出显示，h4 优化颜色和字重
+  - **文章卡片**: article 标签添加背景色、左侧边框和悬停效果，增强内容区块的视觉识别
+  - **标签系统**: 为 `.tags` 和 `.tag` 添加完整样式，包括悬停交互效果
+  - **摘要样式**: `.summary` 类添加背景和边框，突出显示重要摘要内容
+  - **列表增强**: 优化 ul/ol 样式，标记颜色与主题色统一
+  - **链接优化**: 添加下划线和悬停背景高亮效果，提升交互体验
+  - **引用样式**: blockquote 添加左侧边框和背景，增强引用内容的识别度
+  - **代码样式**: code 和 pre 标签添加背景、边框和圆角，提升代码展示效果
+  - **保持风格**: 所有样式均使用现有配色方案（primary, secondary, border 等 CSS 变量），完美契合复古报纸风格
+
 ## 2025-10-30
 - feat(tags): 新增按标签访问功能 `/tags/[tag]`，支持根据标签筛选包含该标签的内容。
 - feat(tags): 新增所有标签列表页面 `/tags`，展示所有可用标签及其文章数量统计。

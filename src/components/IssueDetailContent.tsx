@@ -51,7 +51,7 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
 
       {/* Header */}
       <div className="mb-12 text-center">
-        <div className="inline-block vintage-border bg-card px-8 py-6 mb-4">
+        <div className="inline-block vintage-border1 bg-card px-8 py-6 mb-4">
           <div className="text-sm text-muted-foreground uppercase tracking-widest monospace mb-2">
             {issue.date}
           </div>
@@ -125,7 +125,7 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
           <div className="space-y-12">
             {issue.sections.map(section => (
               <section key={section.id} id={section.id} className="scroll-mt-4">
-                <div className="vintage-border bg-card p-8">
+                <div className="vintage-border1 bg-card p-1">
                   <div className="flex items-center gap-4 mb-6 pb-4 border-b-4 border-primary">
                     <div className="w-2 h-2 bg-primary" />
                     <h2 className="text-3xl font-bold text-primary uppercase tracking-wider">
