@@ -1,3 +1,104 @@
+## 2025-01-XX - 添加 subscription_type 字段到 HubSpot 订阅
+
+### ✨ 新功能
+- **用户分类标识**: 在 HubSpot 联系人中添加 `subscription_type` 字段，固定值为 `ainews`
+- **便于筛选**: 可以在 HubSpot 中轻松筛选和识别从 AINews 表单提交的用户
+
+### 🔧 技术改进
+- **创建联系人**: 创建新联系人时自动设置 `subscription_type` 为 `ainews`
+- **更新联系人**: 更新现有联系人时也会更新 `subscription_type` 字段
+- **字段同步**: 在搜索联系人时也包含 `subscription_type` 字段
+
+### 📝 修改文件
+- `src/app/api/subscribe/route.ts` - 在创建和更新联系人时添加 `subscription_type` 字段
+- `allaboutproject.md` - 更新文档说明字段映射
+- `changelog.md` - 更新变更记录
+
+## 2025-01-XX - HubSpot 邮件订阅集成
+
+### 🎉 重大更新
+- **HubSpot 集成**: 完成与 HubSpot CRM 的邮件订阅功能集成
+- **自动化订阅**: 用户提交表单后自动添加到 HubSpot 联系人列表
+- **联系人管理**: 支持创建新联系人和更新现有联系人信息
+
+### ✨ 新功能
+- **API 路由**: 新增 `/api/subscribe` API 端点处理订阅请求
+- **表单提交**: Hero 组件表单现在会将数据提交到 HubSpot
+- **加载状态**: 提交过程中显示加载状态，防止重复提交
+- **错误处理**: 完善的错误处理和用户友好的错误提示
+- **多语言支持**: 成功/错误消息支持中英文切换
+
+### 🔧 技术改进
+- **HubSpot Contacts API**: 使用 HubSpot CRM v3 API 进行联系人管理
+- **错误处理**: 自动处理联系人已存在的情况（409错误），更新联系人信息
+- **数据验证**: 服务端验证邮箱格式和必填字段
+- **类型安全**: 完整的 TypeScript 类型定义
+
+### 📧 HubSpot 功能
+- **创建联系人**: 自动创建新的 HubSpot 联系人
+- **更新联系人**: 如果联系人已存在，自动更新联系人信息
+- **字段映射**: 
+  - `email` → HubSpot `email` 字段
+  - `firstName` → HubSpot `firstname` 字段
+  - `lastName` → HubSpot `lastname` 字段
+  - `subscription_type` → HubSpot `subscription_type` 字段（固定值：`ainews`）
+
+### 📝 修改文件
+- `src/app/api/subscribe/route.ts` - 新增 HubSpot 订阅 API 路由
+- `src/components/Hero.tsx` - 更新表单提交逻辑，集成 API 调用
+- `src/lib/locales/en.ts` - 添加订阅相关的英文翻译
+- `src/lib/locales/zh_CN.ts` - 添加订阅相关的中文翻译
+- `allaboutproject.md` - 更新项目文档，添加 HubSpot 集成说明
+
+### ⚙️ 环境配置
+需要在环境变量中配置 HubSpot Access Token:
+```bash
+HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
+```
+
+### 📚 文档更新
+- 在 `allaboutproject.md` 中添加了完整的 HubSpot 集成文档
+- 包含 API 使用说明、环境配置和获取 Access Token 的步骤
+
+## 2025-01-XX - Issues 列表页分页功能
+
+### 🎉 重大更新
+- **分页功能**: 为 issues 列表页添加完整的分页功能，默认每页显示 10 条记录
+- **SEO 友好**: 使用服务端渲染(SSR)和 URL 参数实现 SEO 友好的分页
+- **URL 变化**: 翻页时 URL 会变化（例如 `/issues?page=2`），便于搜索引擎索引和用户分享
+
+### ✨ 新功能
+- **服务端分页**: 在服务端获取分页数据，提升首屏加载速度和 SEO 表现
+- **分页组件**: 集成现有的 Pagination 组件，提供完整的分页导航
+- **动态元数据**: 根据当前页码动态生成页面标题和元数据
+- **多语言支持**: 分页相关的文本支持中英文切换
+
+### 🔧 技术改进
+- **API 层**: 新增 `getAllAiContentsPaginated()` 函数，支持分页查询
+- **服务端组件**: 将 `issues/page.tsx` 改为服务端组件，接收 `searchParams` 处理分页
+- **数据传递**: `IssuesList` 组件改为接收初始数据作为 props，保持客户端交互能力
+- **类型安全**: 新增 `PaginatedResult<T>` 接口，提供完整的类型定义
+
+### 📊 分页特性
+- **默认显示**: 每页默认显示 10 条记录
+- **URL 参数**: 使用 `?page=N` 格式的 URL 参数
+- **总数统计**: 显示总记录数和当前页范围
+- **页码导航**: 智能显示页码（最多显示 5 个页码，超出显示省略号）
+- **上一页/下一页**: 提供便捷的导航按钮
+
+### 🎨 用户体验
+- **快速加载**: 服务端渲染确保内容立即可见
+- **URL 可分享**: 每个分页都有独立的 URL，便于分享和收藏
+- **SEO 优化**: 搜索引擎可以抓取所有分页内容
+- **响应式设计**: 分页组件完美适配移动端和桌面端
+
+### 📝 修改文件
+- `src/lib/api.ts` - 新增分页查询函数和类型定义
+- `src/app/issues/page.tsx` - 改为服务端组件，处理分页参数
+- `src/components/IssuesList.tsx` - 接收分页数据作为 props，集成 Pagination 组件
+- `src/lib/locales/en.ts` - 添加分页相关英文翻译
+- `src/lib/locales/zh_CN.ts` - 添加分页相关中文翻译
+
 ## 2025-01-XX
 - feat(content): 在获取 issues 详情页信息时，从 Supabase 中获取的 content 数据只提取 `<body>` 标签内的内容（不包括 body 标签本身）。
 - refactor(html): 新增 `extractBodyContent` 函数用于从 HTML 中提取 body 标签内的内容。

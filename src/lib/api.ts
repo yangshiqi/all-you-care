@@ -15,6 +15,91 @@ export interface TagSummary {
 }
 
 /**
+ * 分页结果接口
+ */
+export interface PaginatedResult<T> {
+  data: T[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+/**
+ * 从 Supabase 获取所有 AI 内容（支持分页）
+ */
+export async function getAllAiContentsPaginated(
+  page: number = 1,
+  pageSize: number = 10,
+  i18nLang?: string
+): Promise<PaginatedResult<IssueSummary>> {
+  try {
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+
+    // 计算偏移量
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    // 构建查询 - 先获取总数
+    let countQuery = supabase
+      .from('n8n-ai-contents')
+      .select('*', { count: 'exact', head: true })
+
+    if (dbLang) {
+      countQuery = countQuery.eq('lang', dbLang)
+    }
+
+    const { count, error: countError } = await countQuery
+
+    if (countError) {
+      console.error('Error counting AI contents:', countError)
+      throw new Error(`Failed to count AI contents: ${countError.message}`)
+    }
+
+    const total = count || 0
+    const totalPages = Math.ceil(total / pageSize)
+
+    // 获取分页数据
+    let dataQuery = supabase
+      .from('n8n-ai-contents')
+      .select('id, title, summary, created_at, tags, lang')
+      .order('created_at', { ascending: false })
+      .range(from, to)
+
+    if (dbLang) {
+      dataQuery = dataQuery.eq('lang', dbLang)
+    }
+
+    const { data, error } = await dataQuery
+
+    if (error) {
+      console.error('Error fetching AI contents:', error)
+      throw new Error(`Failed to fetch AI contents: ${error.message}`)
+    }
+
+    // 转换为 IssueSummary 格式
+    const formattedData: IssueSummary[] = (data || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      date: formatDate(item.created_at),
+      tags: extractTagsFromContent(item.tags)
+    }))
+
+    return {
+      data: formattedData,
+      total,
+      page,
+      pageSize,
+      totalPages
+    }
+  } catch (error) {
+    console.error('Error in getAllAiContentsPaginated:', error)
+    throw error
+  }
+}
+
+/**
  * 从 Supabase 获取所有 AI 内容
  */
 export async function getAllAiContents(i18nLang?: string): Promise<N8nAiContent[]> {
@@ -214,7 +299,7 @@ export async function getAllTags(): Promise<TagSummary[]> {
       throw new Error(`Failed to fetch tags: ${error.message}`)
     }
 
-    return (data || []).map((row: any) => ({
+    return (data || []).map((row: { name: unknown; total: unknown }) => ({
       name: String(row.name),
       total: Number(row.total) || 0,
     }))

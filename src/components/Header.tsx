@@ -57,7 +57,7 @@ export const Header = () => {
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-4">
+        {/*<div className="flex items-center gap-4">
           <LanguageSwitcher />
           <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors border-2 border-border px-3 py-1 hover:border-primary">
             <Search className="w-4 h-4" />
@@ -65,7 +65,7 @@ export const Header = () => {
               {t('nav.search')}
             </TranslatedText>
           </button>
-        </div>
+        </div>*/}
       </div>
     </header>
   );

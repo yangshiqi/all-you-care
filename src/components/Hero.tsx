@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { TranslatedText } from "./TranslatedText";
@@ -11,18 +12,55 @@ export const Hero = () => {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: t('hero.toastTitle'),
-      description: t('hero.toastDescription'),
-    });
-    setEmail("");
-    setFirstName("");
-    setLastName("");
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || t('hero.subscribeError'));
+      }
+
+      // 跳转到成功页面，通过 URL 参数传递邮箱
+      const successUrl = `/subscribe/success?email=${encodeURIComponent(email)}`;
+      router.push(successUrl);
+    } catch (error) {
+      console.error('Subscribe error:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : t('hero.subscribeError');
+      
+      toast({
+        title: t('hero.errorTitle'),
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,7 +93,7 @@ export const Hero = () => {
                 className="bg-background border-2 border-border"
                 suppressHydrationWarning
               />
-              <Input
+              {/*<Input
                 type="text"
                 placeholder={t('hero.firstNamePlaceholder')}
                 value={firstName}
@@ -70,9 +108,17 @@ export const Hero = () => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
                 className="bg-background border-2 border-border"
                 suppressHydrationWarning
-              />
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider shadow-none border-2 border-primary">
-                <TranslatedText>{t('hero.ctaButton')}</TranslatedText>
+              />*/}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider py-6 text-lg shadow-lg hover:shadow-xl border-4 border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {isSubmitting ? (
+                  <TranslatedText>{t('hero.submitting')}</TranslatedText>
+                ) : (
+                  <TranslatedText>{t('hero.ctaButton')}</TranslatedText>
+                )}
               </Button>
             </form>
 

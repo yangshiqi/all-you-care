@@ -1,7 +1,7 @@
 export const en = {
   translation: {
-    "siteTitle": "AINews - Daily AI Roundup for Engineers",
-    "siteDescription": "How over 80k top AI Engineers keep up with AI news, every weekday. We summarize top AI discords, reddits, and X/Twitter.",
+    "siteTitle": "AINews - Daily AI Roundup for Everyone",
+    "siteDescription": "How top AI Engineers and AI enthusiasts keep up with AI news, every weekday. We summarize top AI Discords, Reddits, and X/Twitter.",
     "nav": {
       "subscribe": "subscribe",
       "issues": "issues",
@@ -27,7 +27,21 @@ export const en = {
       "testimonial3Author": "David Liu",
       "customNote": "This version is a tribute to news.smol.ai, thanks for its inspiration!",
       "toastTitle": "Thanks for subscribing!",
-      "toastDescription": "Please check your email to confirm your subscription."
+      "toastDescription": "You have been successfully added to our mailing list!",
+      "submitting": "Submitting...",
+      "errorTitle": "Subscription Failed",
+      "subscribeError": "Failed to subscribe. Please try again later."
+    },
+    "subscribeSuccess": {
+      "title": "Subscription Successful!",
+      "subtitle": "Thank you for subscribing to AINews",
+      "messageTitle": "You're all set!",
+      "message": "You have been successfully added to our mailing list. We'll send you the latest AI news and updates directly to your inbox.",
+      "emailLabel": "Registered Email",
+      "nextSteps": "What's next? Check your email inbox for a confirmation message and start receiving daily AI news updates.",
+      "backToHome": "Back to Home",
+      "viewIssues": "View All Issues",
+      "additionalInfo": "If you have any questions or need to update your subscription preferences, please contact us."
     },
     "recentIssues": {
       "title": "Important events in AI recently happened",
@@ -45,7 +59,13 @@ export const en = {
       "noResults": "No issues found matching your search criteria.",
       "clearFilters": "Clear filters",
       "fallbackMessage": "Showing cached content while connecting to database...",
-      "backToHome": "Back to Home"
+      "backToHome": "Back to Home",
+      "pagination": {
+        "showing": "Showing {{start}} to {{end}} of {{total}} issues",
+        "page": "Page {{page}} of {{totalPages}}",
+        "previous": "Previous",
+        "next": "Next"
+      }
     },
     "common": {
       "loading": "Loading...",

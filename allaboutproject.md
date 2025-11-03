@@ -51,7 +51,7 @@ ainews/
 
 ### 路由配置
 - **首页**: `/` - 展示最新AI资讯和订阅功能
-- **期刊列表**: `/issues` - 所有期刊的列表页面
+- **期刊列表**: `/issues` - 所有期刊的列表页面（支持分页，URL格式：`/issues?page=N`）
 - **期刊详情**: `/issues/[slug]` - 动态期刊详情页
 - **演示页面**: `/issues-demo` - 期刊访问演示
 - **测试页面**: `/test` - SSR功能测试
@@ -173,7 +173,9 @@ interface IssueSummary {
 ```
 
 ### 数据获取策略
-- **客户端获取**: 使用 React Query 进行数据管理
+- **服务端获取**: Issues 列表页使用服务端渲染(SSR)获取分页数据，提升 SEO 和首屏性能
+- **客户端获取**: 首页等页面使用客户端数据获取，支持实时更新
+- **分页支持**: Issues 列表页支持分页查询，默认每页 10 条记录
 - **错误处理**: 自动降级到备用数据
 - **加载状态**: 优雅的加载和错误提示
 - **缓存机制**: 客户端缓存和 Next.js 缓存
@@ -231,7 +233,7 @@ npm run lint   # 代码检查
 
 ### 长期目标
 - ✅ 集成真实数据源 (Supabase)
-- 🔄 用户订阅系统
+- ✅ 用户订阅系统 (HubSpot 集成)
 - 🔄 内容管理系统
 - 🔄 性能监控
 
@@ -305,6 +307,63 @@ out/
 - **环境变量**: 需要设置 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - **网站URL**: 可选设置 `NEXT_PUBLIC_SITE_URL` 用于sitemap生成
 - **日志级别**: 通过 `LOG_LEVEL` 环境变量控制日志详细程度
+
+## 📧 HubSpot 邮件订阅集成
+
+### 功能特性
+- **自动化订阅**: 用户提交表单后自动添加到 HubSpot 联系人列表
+- **联系人管理**: 自动创建新联系人或更新现有联系人信息
+- **错误处理**: 完善的错误处理和用户反馈机制
+- **加载状态**: 提交过程中显示加载状态，防止重复提交
+- **多语言支持**: 成功/错误消息支持中英文切换
+
+### API 路由
+- **端点**: `/api/subscribe`
+- **方法**: POST
+- **请求体**:
+  ```json
+  {
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe"
+  }
+  ```
+- **响应**: 
+  ```json
+  {
+    "success": true,
+    "message": "Successfully subscribed to HubSpot",
+    "contactId": "contact-id"
+  }
+  ```
+
+### 环境配置
+需要在环境变量中配置 HubSpot Access Token:
+```bash
+HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
+```
+
+### HubSpot API 说明
+- **创建联系人**: 使用 HubSpot Contacts API 创建新联系人
+- **更新联系人**: 如果联系人已存在（409错误），自动更新联系人信息
+- **字段映射**:
+  - `email` → HubSpot `email` 字段
+  - `firstName` → HubSpot `firstname` 字段
+  - `lastName` → HubSpot `lastname` 字段
+  - `subscription_type` → HubSpot `subscription_type` 字段（固定值：`ainews`，用于标识从 AINews 表单提交的用户）
+
+### 获取 HubSpot Access Token
+1. 登录 HubSpot 账户
+2. 进入 Settings → Integrations → Private Apps
+3. 创建新的 Private App
+4. 授予 `crm.objects.contacts.read` 和 `crm.objects.contacts.write` 权限
+5. 复制生成的 Access Token
+
+### 使用示例
+前端组件 (`src/components/Hero.tsx`) 已集成订阅功能：
+- 表单提交时自动调用 `/api/subscribe` API
+- 显示加载状态和成功/错误提示
+- 提交成功后清空表单字段
 
 ## 🏆 项目亮点
 

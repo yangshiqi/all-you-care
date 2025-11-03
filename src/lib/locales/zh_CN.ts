@@ -1,7 +1,7 @@
 export const zh_CN = {
   translation: {
     "siteTitle": "AINews - AI工程师每日资讯精选",
-    "siteDescription": "超过8万顶尖AI工程师每个工作日获取AI新闻的方式。我们汇总顶级AI Discord、Reddit和X/Twitter内容。",
+    "siteDescription": "顶尖AI工程师和AI爱好者每个工作日获取AI新闻的方式，我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
     "nav": {
       "subscribe": "订阅",
       "issues": "往期内容",
@@ -17,7 +17,7 @@ export const zh_CN = {
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",
       "ctaButton": "解决我的AI信息过载",
-      "privacyText": "我们尊重并保护您的隐私。",
+      "privacyText": "我们尊重并保护您的隐私，不会将您的 email 泄露给任何第三方。",
       "testimonial1": "在AI领域，每天都有新突破。这个平台帮我快速筛选真正重要的信息",
       "testimonial1Author": "Alex Chen",
       "testimonial2": "信息过载是AI工程师最大的挑战",
@@ -27,7 +27,21 @@ export const zh_CN = {
       "testimonial3Author": "David Liu",
       "customNote": "此中文版是对 news.smol.ai 的致敬，感谢其启发！",
       "toastTitle": "感谢订阅！",
-      "toastDescription": "请查看您的邮箱以确认订阅。"
+      "toastDescription": "您已成功加入我们的邮件订阅列表！",
+      "submitting": "提交中...",
+      "errorTitle": "订阅失败",
+      "subscribeError": "订阅失败，请稍后重试。"
+    },
+    "subscribeSuccess": {
+      "title": "订阅成功！",
+      "subtitle": "感谢您订阅 AINews",
+      "messageTitle": "一切就绪！",
+      "message": "您已成功加入我们的邮件订阅列表。我们将直接向您的邮箱发送最新的AI新闻和更新。",
+      "emailLabel": "注册邮箱",
+      "nextSteps": "接下来做什么？请查看您的邮箱收件箱，确认订阅消息，然后开始接收每日AI新闻更新。",
+      "backToHome": "返回首页",
+      "viewIssues": "查看所有期刊",
+      "additionalInfo": "如果您有任何问题或需要更新订阅偏好，请联系我们。"
     },
     "recentIssues": {
       "title": "AI行业最近发生的重要事件",
@@ -45,7 +59,13 @@ export const zh_CN = {
       "noResults": "没有找到匹配搜索条件的内容",
       "clearFilters": "清除筛选",
       "fallbackMessage": "正在连接数据库，显示缓存内容...",
-      "backToHome": "返回首页"
+      "backToHome": "返回首页",
+      "pagination": {
+        "showing": "显示第 {{start}} 到 {{end}} 条，共 {{total}} 条",
+        "page": "第 {{page}} 页，共 {{totalPages}} 页",
+        "previous": "上一页",
+        "next": "下一页"
+      }
     },
     "common": {
       "loading": "加载中...",

@@ -1,69 +1,82 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { getAllAiContents, IssueSummary, extractTagsFromContent } from "@/lib/api";
+import { IssueSummary, getAllAiContentsPaginated } from "@/lib/api";
 import { TranslatedText } from "./TranslatedText";
+import { Pagination } from "./Pagination";
 
-export const IssuesList = () => {
+interface IssuesListProps {
+  initialIssues: IssueSummary[];
+  initialTotal: number;
+  initialPage: number;
+  initialPageSize: number;
+  initialTotalPages: number;
+}
+
+export const IssuesList = ({
+  initialIssues,
+  initialTotal,
+  initialPage,
+  initialPageSize,
+  initialTotalPages
+}: IssuesListProps) => {
   const { t, i18n } = useTranslation();
+  const searchParams = useSearchParams();
   const [filter, setFilter] = useState("");
-  const [issues, setIssues] = useState<IssueSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [issues, setIssues] = useState<IssueSummary[]>(initialIssues);
+  const [total, setTotal] = useState(initialTotal);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [pageSize] = useState(initialPageSize);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [loading, setLoading] = useState(false);
+  const [currentLang, setCurrentLang] = useState<string>('en'); // 追踪当前语言
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // 标记是否为初始加载
 
-  // 从 Supabase 获取数据
+  // 加载指定页的数据
+  const loadPageData = useCallback(async (page: number, lang?: string) => {
+    try {
+      setLoading(true);
+      const langToUse = lang || i18n.language;
+      const result = await getAllAiContentsPaginated(page, pageSize, langToUse);
+      setIssues(result.data);
+      setTotal(result.total);
+      setTotalPages(result.totalPages);
+      setCurrentPage(result.page);
+      setCurrentLang(langToUse);
+      setIsInitialLoad(false);
+    } catch (error) {
+      console.error('Error loading page data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [i18n.language, pageSize]);
+
+  // 组件挂载时，根据当前语言加载数据
   useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getAllAiContents(i18n.language);
-        
-        // 转换为 IssueSummary 格式
-        const formattedIssues: IssueSummary[] = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          summary: item.summary,
-          date: new Date(item.created_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-          }),
-          tags: extractTagsFromContent(item.tags) // 使用 tags 字段而不是 summary
-        }));
-        
-        setIssues(formattedIssues);
-      } catch (err) {
-        console.error('Error fetching issues:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch issues');
-        // 如果 Supabase 连接失败，使用备用数据
-        setIssues([
-          {
-            id: "fallback-1",
-            title: "AI breakthroughs in multimodal learning",
-            date: "Dec 19, 2024",
-            summary: "Major advances in vision-language models and their applications",
-            tags: ["multimodal", "vision", "language", "breakthrough"]
-          },
-          {
-            id: "fallback-2",
-            title: "New open source models released",
-            date: "Dec 17, 2024",
-            summary: "Several organizations released new open source AI models",
-            tags: ["open-source", "models", "release"]
-          }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // 初始加载时，或者语言变化时，重新加载数据
+    if (isInitialLoad || i18n.language !== currentLang) {
+      const pageParam = searchParams.get('page');
+      const page = pageParam ? parseInt(pageParam, 10) : 1;
+      loadPageData(page, i18n.language);
+    }
+  }, [i18n.language, currentLang, searchParams, loadPageData, isInitialLoad]);
 
-    fetchIssues();
-  }, []);
+  // 从 URL 读取页码参数（仅当语言已确定后）
+  useEffect(() => {
+    if (isInitialLoad) return; // 等待初始语言加载完成
+    
+    const pageParam = searchParams.get('page');
+    const page = pageParam ? parseInt(pageParam, 10) : 1;
+    
+    // 如果 URL 中的页码与当前状态不同，需要加载数据
+    if (page !== currentPage && page >= 1) {
+      loadPageData(page);
+    }
+  }, [searchParams, currentPage, loadPageData, isInitialLoad]);
 
 
   const filteredIssues = issues.filter(issue => 
@@ -99,24 +112,17 @@ export const IssuesList = () => {
           />
         </div>*/}
 
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="mt-4 text-muted-foreground">
+              <TranslatedText>{t('common.loading')}</TranslatedText>
+            </p>
+          </div>
+        )}
+
         <div className="space-y-6">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="mt-4 text-muted-foreground">
-                <TranslatedText>{t('common.loading')}</TranslatedText>
-              </p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-destructive mb-4">
-                <TranslatedText>{t('common.error')}: {error}</TranslatedText>
-              </p>
-              <p className="text-muted-foreground text-sm">
-                <TranslatedText>{t('issuesList.fallbackMessage')}</TranslatedText>
-              </p>
-            </div>
-          ) : filteredIssues.length === 0 ? (
+          {!loading && filteredIssues.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">
                 <TranslatedText>{t('issuesList.noResults')}</TranslatedText>
@@ -167,6 +173,17 @@ export const IssuesList = () => {
             ))
           )}
         </div>
+
+        {/* 分页组件 */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={total}
+            pageSize={pageSize}
+            baseUrl="/issues"
+          />
+        )}
 
 
         <div className="text-center mt-12">

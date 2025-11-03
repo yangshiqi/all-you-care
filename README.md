@@ -49,6 +49,32 @@ bun dev
 
 在浏览器中打开 [http://localhost:3000](http://localhost:3000) 查看结果。
 
+### 环境变量配置
+
+创建 `.env.local` 文件并配置以下环境变量：
+
+```bash
+# Supabase 配置（必需）
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# HubSpot 配置（邮件订阅功能）
+HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
+
+# 网站 URL（可选，用于 sitemap 生成）
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+#### 获取 HubSpot Access Token
+
+1. 登录 [HubSpot](https://app.hubspot.com/)
+2. 进入 **Settings** → **Integrations** → **Private Apps**
+3. 点击 **Create a private app**
+4. 在 **Scopes** 选项卡中，授予以下权限：
+   - `crm.objects.contacts.read`
+   - `crm.objects.contacts.write`
+5. 点击 **Create app** 并复制生成的 Access Token
+
 ### 构建生产版本
 
 ```bash
