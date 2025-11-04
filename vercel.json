@@ -1,11 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "out/**/*",
-      "use": "@vercel/static"
-    }
-  ],
   "headers": [
     {
       "source": "/sitemap.xml",
