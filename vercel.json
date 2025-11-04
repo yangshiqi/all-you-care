@@ -6,20 +6,6 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
-    {
-      "src": "/sitemap.xml",
-      "dest": "/out/sitemap.xml"
-    },
-    {
-      "src": "/issues/(.*)",
-      "dest": "/out/issues/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/out/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/sitemap.xml",
@@ -35,7 +21,7 @@
       ]
     },
     {
-      "source": "/issues/(.*\\.html)",
+      "source": "/issues/:path*.html",
       "headers": [
         {
           "key": "Content-Type",
