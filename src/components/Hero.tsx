@@ -3,64 +3,18 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { TranslatedText } from "./TranslatedText";
 
 export const Hero = () => {
   const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
-  const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isSubmitting) return;
-    
+  const handleSubmit = () => {
+    // Brevo 表单直接提交，只需要设置 loading 状态
     setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          firstName: firstName || undefined,
-          lastName: lastName || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || data.error || t('hero.subscribeError'));
-      }
-
-      // 跳转到成功页面，通过 URL 参数传递邮箱
-      const successUrl = `/subscribe/success?email=${encodeURIComponent(email)}`;
-      router.push(successUrl);
-    } catch (error) {
-      console.error('Subscribe error:', error);
-      
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : t('hero.subscribeError');
-      
-      toast({
-        title: t('hero.errorTitle'),
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // 表单会自动提交到 Brevo，不需要阻止默认行为
   };
 
   return (
@@ -83,43 +37,51 @@ export const Hero = () => {
               <TranslatedText>{t('hero.subtitle')}</TranslatedText>
             </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4 bg-card vintage-border p-6">
-              <Input
-                type="email"
-                placeholder={t('hero.emailPlaceholder')}
-                value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                required
-                className="bg-background border-2 border-border"
-                suppressHydrationWarning
-              />
-              {/*<Input
-                type="text"
-                placeholder={t('hero.firstNamePlaceholder')}
-                value={firstName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
-                className="bg-background border-2 border-border"
-                suppressHydrationWarning
-              />
-              <Input
-                type="text"
-                placeholder={t('hero.lastNamePlaceholder')}
-                value={lastName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
-                className="bg-background border-2 border-border"
-                suppressHydrationWarning
-              />*/}
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider py-6 text-lg shadow-lg hover:shadow-xl border-4 border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {isSubmitting ? (
-                  <TranslatedText>{t('hero.submitting')}</TranslatedText>
-                ) : (
-                  <TranslatedText>{t('hero.ctaButton')}</TranslatedText>
-                )}
-              </Button>
+            <form 
+              id="sib-form" 
+              method="POST" 
+              action="https://b55b2c6e.sibforms.com/serve/MUIFAHuOyh65aKbiM6NPvJkuuVI5o9cGpU496vUXU8PMUZoJiWW2iiuy4XMywAqh5O-Hch3-mCwotaiAm_Bg0ptFkErJkUaBTzgCoQErH_gOBc0FseUDMipJGu72IdGtic5YZRsvZpxUpK_sjPOyecrcJi8IeXqVx-YKU-vJVkOByx9l83FqdPl_0NZlTbS-2hS_QW7EuiItjtuRpA=="
+              onSubmit={handleSubmit}
+              className="space-y-4 bg-card vintage-border p-6"
+            >
+              <div className="form__entry entry_block">
+                <div className="entry__field">
+                  <Input
+                    className="input bg-background border-2 border-border"
+                    type="email"
+                    id="EMAIL"
+                    name="EMAIL"
+                    autoComplete="email"
+                    placeholder={t('hero.emailPlaceholder')}
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                    data-required="true"
+                    required
+                    suppressHydrationWarning
+                  />
+                </div>
+                <label className="entry__error entry__error--primary" style={{fontSize: '16px', textAlign: 'left', fontFamily: 'Helvetica, sans-serif', color: '#661d1d', backgroundColor: '#ffeded', borderRadius: '3px', borderColor: '#ff4949'}}>
+                </label>
+              </div>
+              
+              <div className="sib-form-block" style={{textAlign: 'left'}}>
+                <Button 
+                  className="sib-form-block__button sib-form-block__button-with-loader w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider py-6 text-lg shadow-lg hover:shadow-xl border-4 border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                  form="sib-form" 
+                  type="submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <TranslatedText>{t('hero.submitting')}</TranslatedText>
+                  ) : (
+                    <TranslatedText>{t('hero.ctaButton')}</TranslatedText>
+                  )}
+                </Button>
+              </div>
+              
+              <input type="text" name="email_address_check" defaultValue="" className="input--hidden" style={{display: 'none'}} readOnly />
+              <input type="hidden" name="locale" value={i18n.language === 'zh_CN' ? 'zh' : 'en'} />
+              <input type="hidden" name="html_type" value="simple" />
             </form>
 
             <p className="text-xs text-muted-foreground mt-4 monospace">

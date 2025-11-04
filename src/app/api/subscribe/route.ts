@@ -7,160 +7,116 @@ interface SubscribeRequest {
 }
 
 /**
- * HubSpot API 端点：创建或更新联系人
- * 文档：https://developers.hubspot.com/docs/api/crm/contacts
+ * Brevo API 端点：创建或更新联系人
+ * 文档：https://developers.brevo.com/reference/createcontact
  */
-async function subscribeToHubSpot(data: SubscribeRequest) {
-  const accessToken = process.env.HUBSPOT_ACCESS_TOKEN;
+async function subscribeToBrevo(data: SubscribeRequest) {
+  const apiKey = process.env.BREVO_API_KEY;
   
-  if (!accessToken) {
-    throw new Error('HUBSPOT_ACCESS_TOKEN is not configured');
+  if (!apiKey) {
+    throw new Error('BREVO_API_KEY is not configured');
   }
 
-  // HubSpot Contacts API 端点
-  const hubspotUrl = 'https://api.hubapi.com/crm/v3/objects/contacts';
+  // Brevo Contacts API 端点
+  const brevoUrl = 'https://api.brevo.com/v3/contacts';
   
   // 构建请求体
-  const properties: Record<string, string> = {
+  const requestBody: {
+    email: string;
+    attributes?: Record<string, string>;
+    listIds?: number[];
+    updateEnabled?: boolean;
+  } = {
     email: data.email,
-    subscription_type: 'ainews', // 标识从 AINews 表单提交的用户
+    updateEnabled: true, // 如果联系人已存在，自动更新
   };
   
+  // 构建属性对象
+  const attributes: Record<string, string> = {};
+  
   if (data.firstName) {
-    properties.firstname = data.firstName;
+    attributes.FIRSTNAME = data.firstName;
   }
   
   if (data.lastName) {
-    properties.lastname = data.lastName;
+    attributes.LASTNAME = data.lastName;
+  }
+  
+  // 添加订阅来源标识
+  attributes.SUBSCRIPTION_SOURCE = 'ainews';
+  
+  if (Object.keys(attributes).length > 0) {
+    requestBody.attributes = attributes;
+  }
+  
+  // 如果配置了列表 ID，添加到列表中
+  const listId = process.env.BREVO_LIST_ID;
+  if (listId) {
+    const listIdNum = parseInt(listId, 10);
+    if (!isNaN(listIdNum)) {
+      requestBody.listIds = [listIdNum];
+    }
   }
 
-  const requestBody = {
-    properties,
-  };
-
   try {
-    const response = await fetch(hubspotUrl, {
+    const response = await fetch(brevoUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        'api-key': apiKey,
       },
       body: JSON.stringify(requestBody),
     });
 
-    const responseData = await response.json();
+    // 尝试解析响应为 JSON
+    let responseData: { id?: number | string; message?: string };
+    const responseText = await response.text();
+    
+    try {
+      responseData = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      // 如果响应不是 JSON，记录原始响应
+      console.error('Brevo API 返回了非 JSON 响应:', responseText);
+      responseData = { message: responseText || 'Unknown error' };
+    }
 
     if (!response.ok) {
-      // HubSpot 返回的错误处理
-      // 如果联系人已存在（409），也算是成功
-      if (response.status === 409) {
-        // 联系人已存在，尝试更新
-        return await updateHubSpotContact(data, accessToken);
+      // Brevo 返回的错误处理
+      // 如果联系人已存在（400 或 204），使用 updateEnabled: true 应该会自动更新
+      // 但如果仍然返回错误，尝试处理
+      if (response.status === 400) {
+        const errorMsg = responseData.message || responseText || '';
+        // 检查是否是联系人已存在的错误
+        if (errorMsg.toLowerCase().includes('already exists') || 
+            errorMsg.toLowerCase().includes('duplicate')) {
+          return {
+            success: true,
+            contactId: data.email,
+            message: 'Successfully subscribed to Brevo (contact already exists)',
+          };
+        }
       }
       
-      const errorMessage = responseData.message || `HubSpot API error: ${response.status}`;
+      // 204 No Content 表示成功更新
+      if (response.status === 204) {
+        return {
+          success: true,
+          contactId: data.email,
+          message: 'Successfully updated contact in Brevo',
+        };
+      }
+      
+      const errorMessage = responseData.message || responseText || `Brevo API error: ${response.status}`;
       throw new Error(errorMessage);
     }
 
     return {
       success: true,
-      contactId: responseData.id,
-      message: 'Successfully subscribed to HubSpot',
+      contactId: responseData.id || data.email,
+      message: 'Successfully subscribed to Brevo',
     };
   } catch (error) {
-    console.error('HubSpot subscription error:', error);
-    throw error;
-  }
-}
-
-/**
- * 更新现有 HubSpot 联系人
- */
-async function updateHubSpotContact(
-  data: SubscribeRequest,
-  accessToken: string
-) {
-  // 首先通过邮箱查找联系人
-  const searchUrl = 'https://api.hubapi.com/crm/v3/objects/contacts/search';
-  
-  const searchBody = {
-    filterGroups: [
-      {
-        filters: [
-          {
-            propertyName: 'email',
-            operator: 'EQ',
-            value: data.email,
-          },
-        ],
-      },
-    ],
-    properties: ['email', 'firstname', 'lastname', 'subscription_type'],
-    limit: 1,
-  };
-
-  try {
-    // 搜索联系人
-    const searchResponse = await fetch(searchUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(searchBody),
-    });
-
-    if (!searchResponse.ok) {
-      throw new Error('Failed to search for existing contact');
-    }
-
-    const searchData = await searchResponse.json();
-    
-    if (searchData.results && searchData.results.length > 0) {
-      const contactId = searchData.results[0].id;
-      
-      // 更新联系人
-      const updateUrl = `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`;
-      
-      const properties: Record<string, string> = {
-        subscription_type: 'ainews', // 更新订阅类型标识
-      };
-      
-      if (data.firstName) {
-        properties.firstname = data.firstName;
-      }
-      
-      if (data.lastName) {
-        properties.lastname = data.lastName;
-      }
-
-      const updateBody = {
-        properties,
-      };
-
-      const updateResponse = await fetch(updateUrl, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(updateBody),
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update existing contact');
-      }
-
-      return {
-        success: true,
-        contactId,
-        message: 'Successfully updated existing contact in HubSpot',
-      };
-    } else {
-      throw new Error('Contact not found for update');
-    }
-  } catch (error) {
-    console.error('HubSpot update error:', error);
+    console.error('Brevo subscription error:', error);
     throw error;
   }
 }
@@ -186,8 +142,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 调用 HubSpot API
-    const result = await subscribeToHubSpot({
+    // 调用 Brevo API
+    const result = await subscribeToBrevo({
       email: body.email.trim(),
       firstName: body.firstName?.trim(),
       lastName: body.lastName?.trim(),

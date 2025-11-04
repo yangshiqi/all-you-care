@@ -1,3 +1,230 @@
+## 2025-01-XX - 订阅成功页面支持两种状态
+
+### 🎯 功能增强
+- **双状态支持**: 订阅成功页面现在支持两种不同的状态显示
+- **状态识别**: 根据 URL 参数自动识别并显示对应的状态
+- **激活成功状态**: 新增激活成功状态的完整UI和文案
+
+### ✨ 新功能
+- **状态 1 - 待激活**: 用户提交订阅后显示，提示去邮箱激活
+- **状态 2 - 已激活**: 用户点击激活链接后显示，庆祝订阅成功
+- **智能切换**: 根据 URL 参数 `status=activated` 或 `activated=true` 自动切换状态
+- **视觉区分**: 两种状态使用不同的图标和颜色方案
+
+### 🎨 UI/UX 改进
+- **待激活状态**: 
+  - 邮箱图标 + 蓝色提示框
+  - 强调需要检查邮箱并点击激活链接
+- **已激活状态**:
+  - 对勾图标 + 绿色成功提示框
+  - 庆祝订阅激活成功，欢迎加入社区
+
+### 📝 修改文件
+- `src/app/subscribe/success/page.tsx` - 添加状态判断逻辑和两种状态的UI
+- `src/lib/locales/en.ts` - 添加激活成功状态的英文翻译
+- `src/lib/locales/zh_CN.ts` - 添加激活成功状态的中文翻译
+
+### 🌐 翻译更新
+**英文版本 - 激活成功状态**:
+- `activatedTitle`: "Subscription Activated!"
+- `activatedSubtitle`: "Welcome to AINews"
+- `activatedMessageTitle`: "You're all set!"
+- `activatedMessage`: 说明订阅已激活，将开始接收邮件
+- `activatedSuccessTitle`: "Subscription Confirmed"
+- `activatedSuccessMessage`: 感谢确认订阅，将开始接收每日摘要
+
+**中文版本 - 激活成功状态**:
+- `activatedTitle`: "订阅已激活！"
+- `activatedSubtitle`: "欢迎加入 AINews"
+- `activatedMessageTitle`: "一切就绪！"
+- `activatedMessage`: 说明订阅已激活，将开始接收邮件
+- `activatedSuccessTitle`: "订阅确认成功"
+- `activatedSuccessMessage`: 感谢确认订阅，将开始接收每日摘要
+
+### 🔄 使用方式
+- **提交后**: `/subscribe/success?email=user@example.com` (待激活状态)
+- **激活后**: `/subscribe/success?email=user@example.com&status=activated` (已激活状态)
+- **或**: `/subscribe/success?email=user@example.com&activated=true` (已激活状态)
+
+## 2025-01-XX - 订阅成功页面邮箱激活提示优化
+
+### 🎯 用户体验优化
+- **激活提示**: 订阅成功页面增加明确的邮箱激活提示
+- **视觉强调**: 添加邮箱图标和信息提示框，突出需要检查邮箱的重要性
+- **流程说明**: 明确告知用户需要点击邮箱中的激活链接才能开始接收邮件
+
+### ✨ 新功能
+- **邮箱图标**: 在成功消息卡片顶部添加邮箱图标，视觉上提醒用户检查邮箱
+- **激活提示框**: 添加醒目的信息提示框，说明激活步骤的重要性
+- **多语言支持**: 激活提示文案支持中英文切换
+
+### 🎨 UI/UX 改进
+- **视觉层次**: 使用信息提示框突出显示激活步骤
+- **图标提示**: 邮箱图标和信息图标增强视觉引导
+- **文案优化**: 更新提示文案，明确说明不激活将无法接收邮件
+
+### 📝 修改文件
+- `src/app/subscribe/success/page.tsx` - 添加邮箱图标和激活提示框
+- `src/lib/locales/en.ts` - 更新英文翻译，添加激活相关提示
+- `src/lib/locales/zh_CN.ts` - 更新中文翻译，添加激活相关提示
+
+### 🌐 翻译更新
+**英文版本**:
+- `messageTitle`: "Check your email!" - 提醒用户检查邮箱
+- `activationTitle`: "Important: Activate Your Subscription" - 激活订阅的重要性
+- `activationMessage`: 详细说明需要检查邮箱和点击激活链接
+- `additionalInfo`: 提示检查垃圾邮件文件夹
+
+**中文版本**:
+- `messageTitle`: "请查收您的邮箱！" - 提醒用户检查邮箱
+- `activationTitle`: "重要提示：激活您的订阅" - 激活订阅的重要性
+- `activationMessage`: 详细说明需要检查邮箱和点击激活链接
+- `additionalInfo`: 提示检查垃圾邮件文件夹
+
+### 🔄 用户流程
+1. 用户提交订阅表单
+2. 跳转到成功页面
+3. 看到邮箱图标和明确的激活提示
+4. 收到确认邮件并点击激活链接
+5. 开始接收订阅邮件
+
+## 2025-01-XX - Brevo 邮件确认模板定制
+
+### 🎨 视觉更新
+- **邮件模板定制**: 创建符合网站风格的 Brevo 双重确认邮件模板
+- **品牌一致性**: 邮件模板使用与网站相同的复古报纸风格和配色方案
+- **双语支持**: 提供英文和中文两个版本的确认邮件模板
+
+### ✨ 设计特性
+- **品牌标识**: 邮件顶部显示 AINews logo 和 "by allyoucare.ai" 副标题
+- **复古风格**: 使用黑色 (#171717) 作为主色调，匹配网站风格
+- **字体系统**: 使用 Inter 字体作为主字体，Courier Prime 用于次要文本
+- **按钮样式**: 确认按钮使用黑色背景 (#171717) 和白色文字 (#fafafa)，带有 2px 边框
+- **响应式设计**: 邮件模板适配移动端和桌面端显示
+
+### 📧 邮件内容
+**英文版本** (`email-templates/double-optin-confirmation.html`):
+- 标题: "Please confirm your subscription"
+- 描述: "Thank you for subscribing to AINews! We're excited to help you stay ahead of the latest AI developments."
+- 按钮: "Yes, subscribe me to this list"
+- 隐私声明: "We respect and protect your privacy."
+
+**中文版本** (`email-templates/double-optin-confirmation-zh.html`):
+- 标题: "请确认您的订阅"
+- 描述: "感谢您订阅 AINews！我们很高兴能够帮助您及时了解最新的 AI 发展动态。"
+- 按钮: "是的，订阅此列表"
+- 隐私声明: "我们尊重并保护您的隐私，不会将您的 email 泄露给任何第三方。"
+
+### 🎨 样式特点
+- **配色方案**: 
+  - 主色: #171717 (近黑色)
+  - 背景: #f5f5f5 (浅灰色)
+  - 文字: #525252 (深灰色) / #737373 (中灰色)
+  - 边框: #e5e5e5 (浅边框)
+- **字体大小**: 
+  - Logo: 32px
+  - 标题: 24px
+  - 正文: 14px / 13px
+  - 次要文本: 12px / 11px / 10px
+- **间距**: 统一使用 20px/30px/40px 的垂直间距
+
+### 📝 文件结构
+- `email-templates/double-optin-confirmation.html` - 英文版确认邮件模板
+- `email-templates/double-optin-confirmation-zh.html` - 中文版确认邮件模板
+
+### 🔧 使用说明
+1. 登录 Brevo 账户
+2. 导航至 "Email" → "Templates" 或 "Campaigns" → "Double opt-in"
+3. 创建或编辑双重确认邮件模板
+4. 将 HTML 代码复制到 Brevo 编辑器
+5. 确保 `{{ doubleoptin }}` 变量正确设置（Brevo 会自动替换）
+6. 根据用户语言设置自动选择对应的模板
+
+### 📚 文档更新
+- 在 `allaboutproject.md` 中添加邮件模板说明
+- 更新 `changelog.md` 记录此次更新
+
+## 2025-01-XX - 首页表单替换为 Brevo 原生表单
+
+### 🎉 重大更新
+- **表单替换**: 将首页邮件订阅表单替换为 Brevo 原生表单
+- **直接提交**: 表单现在直接提交到 Brevo 服务器，无需通过后端 API
+- **样式保留**: 保留网站原有的复古风格样式和 Tailwind CSS 类
+
+### ✨ 新功能
+- **Brevo 原生表单**: 使用 Brevo 提供的表单 action 直接提交
+- **多语言支持**: 根据当前语言自动设置 `locale` 字段（en/zh）
+- **防机器人**: 使用 Brevo 的 `email_address_check` 隐藏字段防止机器人提交
+
+### 🔧 技术改进
+- **表单结构**: 使用 Brevo 表单的字段名和结构
+  - `EMAIL` - 邮箱输入字段
+  - `email_address_check` - 防机器人隐藏字段
+  - `locale` - 语言设置（根据 i18n 自动设置）
+  - `html_type` - HTML 类型（固定为 simple）
+- **提交方式**: 表单直接 POST 到 Brevo 服务器
+- **样式集成**: 保留网站的 `vintage-border`、`bg-card` 等样式类
+- **响应式设计**: 保持原有的响应式布局和交互效果
+
+### 📝 修改文件
+- `src/components/Hero.tsx` - 替换表单为 Brevo 原生表单，保留网站样式
+- `changelog.md` - 记录此次表单替换
+
+### 🔄 变更说明
+- **移除**: 移除了 `/api/subscribe` API 调用
+- **保留**: 保留了表单的加载状态和网站样式
+- **兼容**: Brevo 表单会自动处理重定向和成功页面
+
+## 2025-01-XX - 迁移邮件订阅服务从 HubSpot 到 Brevo
+
+### 🎉 重大更新
+- **服务迁移**: 将邮件订阅服务从 HubSpot 迁移到 Brevo（前称 Sendinblue）
+- **API 更新**: 更新订阅 API 路由以使用 Brevo Contacts API v3
+- **功能保持**: 保持所有现有功能，包括创建/更新联系人、错误处理等
+
+### ✨ 新功能
+- **Brevo 集成**: 使用 Brevo API 进行联系人管理
+- **列表管理**: 支持将联系人添加到指定的 Brevo 邮件列表（可选）
+- **自动更新**: 通过 `updateEnabled: true` 自动处理联系人已存在的情况
+
+### 🔧 技术改进
+- **API 端点**: 从 HubSpot API 切换到 Brevo API (`https://api.brevo.com/v3/contacts`)
+- **认证方式**: 从 Bearer Token 切换到 API Key 认证
+- **字段映射**: 
+  - `firstName` → `FIRSTNAME` (Brevo 属性)
+  - `lastName` → `LASTNAME` (Brevo 属性)
+  - `SUBSCRIPTION_SOURCE` → `ainews` (标识订阅来源)
+- **错误处理**: 优化错误处理逻辑，处理 Brevo API 返回的错误响应
+
+### 📝 修改文件
+- `src/app/api/subscribe/route.ts` - 完全重写订阅逻辑，从 HubSpot 切换到 Brevo
+- `allaboutproject.md` - 更新文档，将 HubSpot 集成说明替换为 Brevo
+- `changelog.md` - 记录此次迁移
+
+### ⚙️ 环境配置变更
+**旧配置**:
+```bash
+HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
+```
+
+**新配置**:
+```bash
+BREVO_API_KEY=your-brevo-api-key
+BREVO_LIST_ID=your-list-id  # 可选
+```
+
+### 📚 文档更新
+- 更新 `allaboutproject.md` 中的邮件订阅集成章节
+- 添加 Brevo API 密钥获取说明
+- 添加 Brevo 列表 ID 获取说明
+- 更新 API 文档链接
+
+### 🔄 迁移说明
+- **向后兼容**: API 端点 `/api/subscribe` 保持不变
+- **请求格式**: 请求体格式保持不变
+- **响应格式**: 响应格式基本保持一致
+- **环境变量**: 需要更新环境变量配置
+
 ## 2025-01-XX - 添加 subscription_type 字段到 HubSpot 订阅
 
 ### ✨ 新功能

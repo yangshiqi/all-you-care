@@ -12,8 +12,12 @@ function SubscribeSuccessContent() {
   const searchParams = useSearchParams();
   const { t } = useTranslation();
 
-  // 从 URL 参数获取邮箱（如果有）
+  // 从 URL 参数获取邮箱和状态
   const email = searchParams.get("email");
+  const status = searchParams.get("status") || searchParams.get("activated");
+  
+  // 判断是否为激活成功状态
+  const isActivated = status === "activated" || status === "true" || status === "1";
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,26 +29,54 @@ function SubscribeSuccessContent() {
           <div className="text-center mb-12">
             <div className="inline-block mb-6">
               <div className="w-24 h-24 md:w-32 md:h-32 bg-primary/10 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-12 h-12 md:w-16 md:h-16 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                {isActivated ? (
+                  // 激活成功：对勾图标
+                  <svg
+                    className="w-12 h-12 md:w-16 md:h-16 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  // 待激活：邮箱图标
+                  <svg
+                    className="w-12 h-12 md:w-16 md:h-16 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                )}
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
-              <TranslatedText>{t("subscribeSuccess.title")}</TranslatedText>
+              <TranslatedText>
+                {isActivated 
+                  ? t("subscribeSuccess.activatedTitle") 
+                  : t("subscribeSuccess.title")
+                }
+              </TranslatedText>
             </h1>
             <p className="text-xl text-muted-foreground">
-              <TranslatedText>{t("subscribeSuccess.subtitle")}</TranslatedText>
+              <TranslatedText>
+                {isActivated 
+                  ? t("subscribeSuccess.activatedSubtitle") 
+                  : t("subscribeSuccess.subtitle")
+                }
+              </TranslatedText>
             </p>
           </div>
 
@@ -54,14 +86,108 @@ function SubscribeSuccessContent() {
             <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-primary"></div>
             
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-primary mb-3">
-                  <TranslatedText>{t("subscribeSuccess.messageTitle")}</TranslatedText>
-                </h2>
-                <p className="text-lg leading-relaxed text-foreground">
-                  <TranslatedText>{t("subscribeSuccess.message")}</TranslatedText>
-                </p>
-              </div>
+              {isActivated ? (
+                // 激活成功状态
+                <>
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary mb-3">
+                      <TranslatedText>{t("subscribeSuccess.activatedMessageTitle")}</TranslatedText>
+                    </h2>
+                    <p className="text-lg leading-relaxed text-foreground mb-4">
+                      <TranslatedText>{t("subscribeSuccess.activatedMessage")}</TranslatedText>
+                    </p>
+                    
+                    {/* 成功提示 */}
+                    <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-200 dark:border-green-800 p-6 rounded-lg mt-6">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          <svg
+                            className="w-6 h-6 text-green-600 dark:text-green-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-green-700 dark:text-green-400 mb-2">
+                            <TranslatedText>{t("subscribeSuccess.activatedSuccessTitle")}</TranslatedText>
+                          </h3>
+                          <p className="text-base leading-relaxed text-green-700 dark:text-green-300">
+                            <TranslatedText>{t("subscribeSuccess.activatedSuccessMessage")}</TranslatedText>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // 待激活状态
+                <>
+                  {/* 邮箱图标提示 */}
+                  <div className="text-center mb-6">
+                    <div className="inline-block w-16 h-16 md:w-20 md:h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 md:w-10 md:h-10 text-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary mb-3">
+                      <TranslatedText>{t("subscribeSuccess.messageTitle")}</TranslatedText>
+                    </h2>
+                    <p className="text-lg leading-relaxed text-foreground mb-4">
+                      <TranslatedText>{t("subscribeSuccess.message")}</TranslatedText>
+                    </p>
+                    
+                    {/* 激活提示 */}
+                    <div className="bg-primary/5 border-2 border-primary/20 p-6 rounded-lg mt-6">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          <svg
+                            className="w-6 h-6 text-primary"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-primary mb-2">
+                            <TranslatedText>{t("subscribeSuccess.activationTitle")}</TranslatedText>
+                          </h3>
+                          <p className="text-base leading-relaxed text-foreground">
+                            <TranslatedText>{t("subscribeSuccess.activationMessage")}</TranslatedText>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {email && (
                 <div className="pt-4 border-t border-border">
@@ -71,12 +197,6 @@ function SubscribeSuccessContent() {
                   <p className="text-lg font-mono text-primary break-all">{email}</p>
                 </div>
               )}
-
-              <div className="pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground">
-                  <TranslatedText>{t("subscribeSuccess.nextSteps")}</TranslatedText>
-                </p>
-              </div>
             </div>
           </div>
 
@@ -104,7 +224,12 @@ function SubscribeSuccessContent() {
           {/* 额外信息 */}
           <div className="mt-12 text-center">
             <p className="text-sm text-muted-foreground">
-              <TranslatedText>{t("subscribeSuccess.additionalInfo")}</TranslatedText>
+              <TranslatedText>
+                {isActivated 
+                  ? t("subscribeSuccess.activatedAdditionalInfo") 
+                  : t("subscribeSuccess.additionalInfo")
+                }
+              </TranslatedText>
             </p>
           </div>
         </div>

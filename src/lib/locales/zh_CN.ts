@@ -35,13 +35,21 @@ export const zh_CN = {
     "subscribeSuccess": {
       "title": "订阅成功！",
       "subtitle": "感谢您订阅 AINews",
-      "messageTitle": "一切就绪！",
-      "message": "您已成功加入我们的邮件订阅列表。我们将直接向您的邮箱发送最新的AI新闻和更新。",
+      "messageTitle": "请查收您的邮箱！",
+      "message": "我们已向您的邮箱发送了一封确认邮件。请查收您的邮箱并点击激活链接以完成订阅。",
+      "activationTitle": "重要提示：激活您的订阅",
+      "activationMessage": "要开始接收我们的AI新闻摘要，请查收您的邮箱收件箱（以及垃圾邮件文件夹）中来自 AINews 的确认邮件。点击邮件中的激活链接以确认您的订阅。在您激活订阅之前，您将不会收到任何邮件。",
       "emailLabel": "注册邮箱",
-      "nextSteps": "接下来做什么？请查看您的邮箱收件箱，确认订阅消息，然后开始接收每日AI新闻更新。",
       "backToHome": "返回首页",
       "viewIssues": "查看所有期刊",
-      "additionalInfo": "如果您有任何问题或需要更新订阅偏好，请联系我们。"
+      "additionalInfo": "如果您在几分钟内没有收到确认邮件，请检查您的垃圾邮件文件夹或联系我们寻求帮助。",
+      "activatedTitle": "订阅已激活！",
+      "activatedSubtitle": "欢迎加入 AINews",
+      "activatedMessageTitle": "一切就绪！",
+      "activatedMessage": "您的订阅已成功激活。您现在将开始接收我们的AI新闻摘要，我们会直接将内容发送到您的邮箱。",
+      "activatedSuccessTitle": "订阅确认成功",
+      "activatedSuccessMessage": "感谢您确认订阅！从现在开始，您将每天收到我们的AI新闻摘要。我们很高兴能够帮助您及时了解最新的AI发展动态。",
+      "activatedAdditionalInfo": "如果您有任何问题或需要更新订阅偏好，请联系我们。"
     },
     "recentIssues": {
       "title": "AI行业最近发生的重要事件",

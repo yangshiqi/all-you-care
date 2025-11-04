@@ -233,7 +233,7 @@ npm run lint   # 代码检查
 
 ### 长期目标
 - ✅ 集成真实数据源 (Supabase)
-- ✅ 用户订阅系统 (HubSpot 集成)
+- ✅ 用户订阅系统 (Brevo 集成)
 - 🔄 内容管理系统
 - 🔄 性能监控
 
@@ -308,62 +308,141 @@ out/
 - **网站URL**: 可选设置 `NEXT_PUBLIC_SITE_URL` 用于sitemap生成
 - **日志级别**: 通过 `LOG_LEVEL` 环境变量控制日志详细程度
 
-## 📧 HubSpot 邮件订阅集成
+## 📧 Brevo 邮件订阅集成
 
 ### 功能特性
-- **自动化订阅**: 用户提交表单后自动添加到 HubSpot 联系人列表
-- **联系人管理**: 自动创建新联系人或更新现有联系人信息
-- **错误处理**: 完善的错误处理和用户反馈机制
+- **原生表单提交**: 使用 Brevo 原生表单，直接提交到 Brevo 服务器
+- **自动化订阅**: 用户提交表单后自动添加到 Brevo 联系人列表
+- **样式保留**: 保留网站原有的复古风格样式和 Tailwind CSS 类
+- **多语言支持**: 根据当前语言自动设置 `locale` 字段（en/zh）
+- **防机器人**: 使用 Brevo 的 `email_address_check` 隐藏字段防止机器人提交
 - **加载状态**: 提交过程中显示加载状态，防止重复提交
-- **多语言支持**: 成功/错误消息支持中英文切换
 
-### API 路由
-- **端点**: `/api/subscribe`
-- **方法**: POST
-- **请求体**:
-  ```json
-  {
-    "email": "user@example.com",
-    "firstName": "John",
-    "lastName": "Doe"
-  }
-  ```
-- **响应**: 
-  ```json
-  {
-    "success": true,
-    "message": "Successfully subscribed to HubSpot",
-    "contactId": "contact-id"
-  }
-  ```
+### 表单结构
+首页邮件订阅表单 (`src/components/Hero.tsx`) 使用 Brevo 原生表单：
+- **表单 Action**: 直接 POST 到 Brevo 服务器
+- **表单字段**:
+  - `EMAIL` - 邮箱输入字段（必填）
+  - `email_address_check` - 防机器人隐藏字段
+  - `locale` - 语言设置（根据 i18n 自动设置：en/zh）
+  - `html_type` - HTML 类型（固定为 simple）
 
-### 环境配置
-需要在环境变量中配置 HubSpot Access Token:
-```bash
-HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
+### 表单配置
+```html
+<form 
+  id="sib-form" 
+  method="POST" 
+  action="https://b55b2c6e.sibforms.com/serve/..."
+  className="space-y-4 bg-card vintage-border p-6"
+>
+  <input 
+    type="email" 
+    id="EMAIL" 
+    name="EMAIL" 
+    required 
+  />
+  <input type="text" name="email_address_check" value="" style="display:none" />
+  <input type="hidden" name="locale" value="en|zh" />
+  <input type="hidden" name="html_type" value="simple" />
+</form>
 ```
 
-### HubSpot API 说明
-- **创建联系人**: 使用 HubSpot Contacts API 创建新联系人
-- **更新联系人**: 如果联系人已存在（409错误），自动更新联系人信息
-- **字段映射**:
-  - `email` → HubSpot `email` 字段
-  - `firstName` → HubSpot `firstname` 字段
-  - `lastName` → HubSpot `lastname` 字段
-  - `subscription_type` → HubSpot `subscription_type` 字段（固定值：`ainews`，用于标识从 AINews 表单提交的用户）
+### 样式集成
+表单保留了网站的所有样式类：
+- `vintage-border` - 复古边框样式
+- `bg-card` - 卡片背景
+- `bg-background` - 输入框背景
+- `border-2 border-border` - 边框样式
+- 响应式布局和交互效果
 
-### 获取 HubSpot Access Token
-1. 登录 HubSpot 账户
-2. 进入 Settings → Integrations → Private Apps
-3. 创建新的 Private App
-4. 授予 `crm.objects.contacts.read` 和 `crm.objects.contacts.write` 权限
-5. 复制生成的 Access Token
+### 后端 API（可选）
+项目仍保留 `/api/subscribe` API 路由（`src/app/api/subscribe/route.ts`），可用于其他场景的订阅功能：
+- **端点**: `/api/subscribe`
+- **方法**: POST
+- **说明**: 使用 Brevo Contacts API v3 创建或更新联系人
 
-### 使用示例
-前端组件 (`src/components/Hero.tsx`) 已集成订阅功能：
-- 表单提交时自动调用 `/api/subscribe` API
-- 显示加载状态和成功/错误提示
-- 提交成功后清空表单字段
+### 环境配置（仅后端 API 需要）
+如果使用后端 API，需要在环境变量中配置 Brevo API 密钥和可选的列表 ID:
+```bash
+BREVO_API_KEY=your-brevo-api-key
+BREVO_LIST_ID=your-list-id  # 可选，如果不设置则不添加到列表
+```
+
+### Brevo 表单设置
+1. 登录 Brevo 账户（https://www.brevo.com/）
+2. 导航至 "Forms" → "Forms"
+3. 创建或编辑表单
+4. 获取表单的 action URL
+5. 配置表单的字段和样式
+6. 设置成功/错误页面重定向
+
+### 邮件确认模板
+项目提供了定制化的双重确认邮件模板，与网站风格保持一致：
+
+**模板文件**:
+- `email-templates/double-optin-confirmation.html` - 英文版确认邮件
+- `email-templates/double-optin-confirmation-zh.html` - 中文版确认邮件
+
+**设计特点**:
+- **品牌一致性**: 使用与网站相同的复古报纸风格和配色方案
+- **配色方案**: 主色 #171717 (近黑色)，背景 #f5f5f5 (浅灰色)
+- **字体系统**: Inter 字体作为主字体，Courier Prime 用于次要文本
+- **响应式设计**: 邮件模板适配移动端和桌面端显示
+
+**使用方法**:
+1. 登录 Brevo 账户
+2. 导航至 "Email" → "Templates" 或 "Campaigns" → "Double opt-in"
+3. 创建或编辑双重确认邮件模板
+4. 将对应的 HTML 代码复制到 Brevo 编辑器
+5. 确保 `{{ doubleoptin }}` 变量正确设置（Brevo 会自动替换）
+
+### 订阅成功页面
+用户提交订阅表单后，会跳转到 `/subscribe/success` 页面。该页面支持两种状态：
+
+#### 状态 1: 提交成功，待激活
+当用户刚刚提交订阅表单时显示（默认状态，或 `status=pending`）：
+
+**页面特性**:
+- **邮箱图标**: 页面顶部显示邮箱图标，提醒用户检查邮箱
+- **激活提示框**: 醒目的信息提示框，说明需要点击邮箱中的激活链接
+- **流程说明**: 明确告知用户不激活将无法接收邮件
+- **邮箱显示**: 如果 URL 中包含 `email` 参数，会显示注册的邮箱地址
+
+**页面内容**:
+- 标题：订阅成功提示
+- 主要消息：已发送确认邮件，需要检查邮箱
+- 激活提示：重要提示用户点击邮箱中的激活链接
+- 额外信息：如果未收到邮件，建议检查垃圾邮件文件夹
+
+#### 状态 2: 激活成功，订阅完成
+当用户点击邮箱中的激活链接后显示（`status=activated` 或 `activated=true`）：
+
+**页面特性**:
+- **成功图标**: 页面顶部显示对勾图标，表示激活成功
+- **成功提示框**: 绿色背景的成功提示框，庆祝订阅激活
+- **欢迎信息**: 欢迎用户加入 AINews 社区
+- **邮箱显示**: 如果 URL 中包含 `email` 参数，会显示已激活的邮箱地址
+
+**页面内容**:
+- 标题：订阅已激活！
+- 主要消息：订阅已成功激活，将开始接收邮件
+- 成功提示：感谢确认订阅，将开始接收每日AI新闻摘要
+- 额外信息：如有问题或需要更新订阅偏好，可联系支持
+
+**URL 参数**:
+- `email`: 显示用户邮箱地址（可选）
+- `status=activated` 或 `activated=true`: 标识为激活成功状态
+- 无状态参数或 `status=pending`: 标识为待激活状态
+
+**多语言支持**: 所有提示文本都支持中英文切换
+
+### 使用说明
+- **首页表单**: 直接使用 Brevo 原生表单，无需后端 API
+- **其他场景**: 如需在其他地方集成订阅功能，可以使用 `/api/subscribe` API
+- **多语言**: 表单的 `locale` 字段会根据当前 i18n 语言自动设置
+- **样式定制**: 可以在 Brevo 后台配置表单样式，或通过 CSS 覆盖
+- **邮件模板**: 使用项目提供的定制邮件模板，保持品牌一致性
+- **成功页面**: 用户提交后会跳转到 `/subscribe/success` 页面，提示激活订阅
 
 ## 🏆 项目亮点
 

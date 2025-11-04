@@ -35,13 +35,21 @@ export const en = {
     "subscribeSuccess": {
       "title": "Subscription Successful!",
       "subtitle": "Thank you for subscribing to AINews",
-      "messageTitle": "You're all set!",
-      "message": "You have been successfully added to our mailing list. We'll send you the latest AI news and updates directly to your inbox.",
+      "messageTitle": "Check your email!",
+      "message": "We've sent a confirmation email to your inbox. Please check your email and click the activation link to complete your subscription.",
+      "activationTitle": "Important: Activate Your Subscription",
+      "activationMessage": "To start receiving our AI news digest, please check your email inbox (and spam folder) for a confirmation email from AINews. Click the activation link in that email to confirm your subscription. You won't receive any emails until you activate your subscription.",
       "emailLabel": "Registered Email",
-      "nextSteps": "What's next? Check your email inbox for a confirmation message and start receiving daily AI news updates.",
       "backToHome": "Back to Home",
       "viewIssues": "View All Issues",
-      "additionalInfo": "If you have any questions or need to update your subscription preferences, please contact us."
+      "additionalInfo": "If you don't receive the confirmation email within a few minutes, please check your spam folder or contact us for assistance.",
+      "activatedTitle": "Subscription Activated!",
+      "activatedSubtitle": "Welcome to AINews",
+      "activatedMessageTitle": "You're all set!",
+      "activatedMessage": "Your subscription has been successfully activated. You will now receive our AI news digest directly to your inbox.",
+      "activatedSuccessTitle": "Subscription Confirmed",
+      "activatedSuccessMessage": "Thank you for confirming your subscription! You'll start receiving our daily AI news roundup from now on. We're excited to help you stay ahead of the latest AI developments.",
+      "activatedAdditionalInfo": "If you have any questions or need to update your subscription preferences, please contact us."
     },
     "recentIssues": {
       "title": "Important events in AI recently happened",

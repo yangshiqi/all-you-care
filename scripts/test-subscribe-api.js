@@ -1,35 +1,43 @@
 #!/usr/bin/env node
 
 /**
- * 测试 HubSpot 订阅 API
- * 用法: node scripts/test-subscribe-api.js [email] [firstName] [lastName]
+ * 测试 Brevo 订阅 API
+ * 用法: node scripts/test-subscribe-api.js [email] [firstName] [lastName] [apiUrl]
  */
 
 // 加载环境变量
 require('dotenv').config({ path: '.env.local' });
 require('dotenv').config({ path: '.env' });
 
-const testEmail = process.argv[2] || 'test@example.com';
+const testEmail = process.argv[2] || `test${Date.now()}@example.com`;
 const firstName = process.argv[3] || 'Test';
 const lastName = process.argv[4] || 'User';
 
 async function testSubscribeAPI() {
-  console.log('🧪 测试 HubSpot 订阅 API...\n');
+  console.log('🧪 测试 Brevo 订阅 API...\n');
   console.log('测试数据:');
   console.log(`  Email: ${testEmail}`);
   console.log(`  First Name: ${firstName}`);
   console.log(`  Last Name: ${lastName}\n`);
 
   // 检查环境变量
-  const hubspotToken = process.env.HUBSPOT_ACCESS_TOKEN;
-  if (!hubspotToken) {
-    console.error('❌ 错误: 未找到 HUBSPOT_ACCESS_TOKEN 环境变量');
-    console.error('请确保在 .env.local 文件中设置了 HUBSPOT_ACCESS_TOKEN');
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  if (!brevoApiKey) {
+    console.error('❌ 错误: 未找到 BREVO_API_KEY 环境变量');
+    console.error('请确保在 .env 文件中设置了 BREVO_API_KEY');
     process.exit(1);
   }
 
-  console.log('✅ 环境变量 HUBSPOT_ACCESS_TOKEN 已配置');
-  console.log(`   Token 前10个字符: ${hubspotToken.substring(0, 10)}...\n`);
+  console.log('✅ 环境变量 BREVO_API_KEY 已配置');
+  console.log(`   API Key 前10个字符: ${brevoApiKey.substring(0, 10)}...`);
+  
+  const brevoListId = process.env.BREVO_LIST_ID;
+  if (brevoListId) {
+    console.log(`✅ BREVO_LIST_ID 已配置: ${brevoListId}`);
+  } else {
+    console.log('ℹ️  BREVO_LIST_ID 未配置（将不添加到列表）');
+  }
+  console.log('');
 
   // 测试 API 端点
   const apiUrl = process.argv[5] || 'http://localhost:3000/api/subscribe';
