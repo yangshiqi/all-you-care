@@ -214,7 +214,7 @@ npm run lint   # 代码检查
 
 ### 生产环境
 - **Vercel**: 推荐部署平台
-- **静态导出**: 支持静态站点生成
+- **服务端渲染**: 使用 Next.js SSR 架构
 - **CDN**: 全球内容分发
 - **HTTPS**: 自动SSL证书
 
@@ -253,60 +253,6 @@ npm run lint   # 代码检查
 1. 编辑 `src/lib/i18n.ts` 中的翻译资源
 2. 确保所有键值对都有对应的翻译
 3. 测试语言切换功能
-
-## 🚀 静态页面生成系统
-
-### 功能特性
-- **自动生成**: 从Supabase获取所有issue数据并生成静态HTML页面
-- **SEO优化**: 每个页面包含完整的meta标签、Open Graph和Twitter Card
-- **响应式设计**: 生成的页面完美适配移动端和桌面端
-- **增量更新**: 支持只更新有变化的页面，提高生成效率
-- **批量处理**: 支持大量数据的批量处理，避免内存溢出
-- **错误重试**: 自动重试失败的页面生成，提高成功率
-
-### 脚本命令
-```bash
-# 基础静态生成
-npm run generate-static
-
-# 高级静态生成（推荐）
-npm run generate-static-advanced
-
-# 增量更新（只更新有变化的页面）
-npm run generate-static-incremental
-
-# 强制更新所有页面
-npm run generate-static-force
-
-# 构建并生成静态页面
-npm run build-with-static-advanced
-
-# 本地预览
-npm run preview-local
-
-# 部署到Vercel
-npm run deploy-vercel
-
-# 部署到Netlify
-npm run deploy-netlify
-```
-
-### 输出结构
-```
-out/
-├── issues/           # 所有issue的静态HTML页面
-│   ├── issue-1.html
-│   ├── issue-2.html
-│   └── ...
-├── sitemap.xml       # 包含所有页面的sitemap
-├── deployment-report.txt  # 部署报告
-└── ...              # Next.js导出的其他文件
-```
-
-### 配置说明
-- **环境变量**: 需要设置 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **网站URL**: 可选设置 `NEXT_PUBLIC_SITE_URL` 用于sitemap生成
-- **日志级别**: 通过 `LOG_LEVEL` 环境变量控制日志详细程度
 
 ## 📧 Brevo 邮件订阅集成
 
@@ -448,13 +394,12 @@ BREVO_LIST_ID=your-list-id  # 可选，如果不设置则不添加到列表
 
 1. **现代化架构**: Next.js 16 + React 19最新技术栈
 2. **SEO友好**: 完整的服务端渲染和元数据优化
-3. **静态生成**: 支持完全静态的页面生成和部署
-4. **用户体验**: 复古风格与现代交互的完美结合
-5. **国际化**: 中英文无缝切换
-6. **性能优化**: 快速加载和响应式设计
-7. **可维护性**: 清晰的代码结构和完善的文档
-8. **自动化部署**: 完整的CI/CD流程支持
+3. **用户体验**: 复古风格与现代交互的完美结合
+4. **国际化**: 中英文无缝切换
+5. **性能优化**: 快速加载和响应式设计
+6. **可维护性**: 清晰的代码结构和完善的文档
+7. **自动化部署**: 完整的CI/CD流程支持
 
 ---
 
-**项目状态**: 生产就绪，支持静态生成和部署
+**项目状态**: 生产就绪，采用服务端渲染架构

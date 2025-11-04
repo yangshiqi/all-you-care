@@ -1,3 +1,46 @@
+## 2025-01-XX - 移除静态页面生成机制
+
+### 🗑️ 功能移除
+- **删除静态生成脚本**: 移除了所有静态页面生成相关的脚本文件
+- **移除静态导出配置**: 从 Next.js 配置中移除了静态导出相关配置
+- **清理相关脚本命令**: 从 package.json 中删除了所有静态生成相关的 npm 脚本
+
+### 📝 修改文件
+- **删除的文件**:
+  - `scripts/generate-static-pages.js` - 基础静态页面生成脚本
+  - `scripts/generate-static-pages-advanced.js` - 高级静态页面生成脚本
+  - `scripts/deploy-static.sh` - 静态站点部署脚本
+  - `scripts/example-usage.js` - 静态生成使用示例脚本
+- **更新的文件**:
+  - `package.json` - 移除了所有静态生成相关的脚本命令
+  - `next.config.ts` - 移除了 `output: 'export'` 和 `trailingSlash: true` 配置
+  - `allaboutproject.md` - 删除了静态页面生成系统章节和相关描述
+  - `changelog.md` - 记录此次变更
+
+### 🔄 变更说明
+项目现在完全采用服务端渲染(SSR)架构，不再支持静态页面生成和静态导出。所有页面将通过 Next.js 的服务端渲染功能提供，确保更好的动态内容支持和实时数据更新能力。
+
+### 📋 移除的脚本命令
+- `generate-static`
+- `generate-static-advanced`
+- `generate-static-incremental`
+- `generate-static-force`
+- `build-with-static`
+- `build-with-static-advanced`
+- `preview`
+- `preview-advanced`
+- `deploy`
+- `deploy-vercel`
+- `deploy-netlify`
+- `preview-local`
+- `example`
+- `vercel-build`
+
+### ⚠️ 注意事项
+- 项目现在完全依赖 Next.js SSR 架构
+- 部署时需要使用支持 Node.js 运行时的平台（如 Vercel）
+- `out/` 目录将不再用于静态导出，如有需要可以删除
+
 ## 2025-01-XX - 订阅成功页面支持两种状态
 
 ### 🎯 功能增强
