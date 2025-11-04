@@ -6,11 +6,40 @@ interface CheckEmailStatusRequest {
   limit?: number;
 }
 
+interface BrevoEmailEvent {
+  event?: string;
+  date?: string;
+  date_time?: string;
+  reason?: string;
+  tag?: string;
+  link?: string;
+  ip?: string;
+  user_agent?: string;
+  [key: string]: unknown;
+}
+
+interface BrevoEventsResponse {
+  events?: BrevoEmailEvent[];
+  [key: string]: unknown;
+}
+
+interface FormattedEmailEvent {
+  event: string;
+  eventName: string;
+  date: string;
+  reason: string | null;
+  tag: string | null;
+  link: string | null;
+  ip: string | null;
+  userAgent: string | null;
+  raw: BrevoEmailEvent;
+}
+
 /**
  * 通过 messageId 查询邮件发送状态和事件历史
  * 文档：https://developers.brevo.com/reference/gettransacemailevents
  */
-async function getEmailEvents(messageId: string, apiKey: string, limit: number = 50) {
+async function getEmailEvents(messageId: string, apiKey: string, limit: number = 50): Promise<BrevoEventsResponse> {
   // 使用正确的 Brevo API 端点
   const eventsUrl = `https://api.brevo.com/v3/smtp/statistics/events`;
   
@@ -45,7 +74,7 @@ async function getEmailEvents(messageId: string, apiKey: string, limit: number =
 /**
  * 通过邮箱地址查询邮件事件
  */
-async function getEmailEventsByEmail(email: string, apiKey: string, limit: number = 50) {
+async function getEmailEventsByEmail(email: string, apiKey: string, limit: number = 50): Promise<BrevoEventsResponse> {
   const eventsUrl = `https://api.brevo.com/v3/smtp/statistics/events`;
   
   const params = new URLSearchParams({
@@ -78,7 +107,7 @@ async function getEmailEventsByEmail(email: string, apiKey: string, limit: numbe
 /**
  * 格式化事件状态，便于理解
  */
-function formatEventStatus(event: any) {
+function formatEventStatus(event: BrevoEmailEvent): FormattedEmailEvent {
   const statusMap: Record<string, string> = {
     'bounces': '退回',
     'hardBounces': '硬退回',
@@ -94,10 +123,11 @@ function formatEventStatus(event: any) {
     'unsubscribed': '已退订',
   };
 
+  const eventType = event.event || 'unknown';
   return {
-    event: event.event || 'unknown',
-    eventName: statusMap[event.event] || event.event,
-    date: event.date || event.date_time,
+    event: eventType,
+    eventName: statusMap[eventType] || eventType,
+    date: event.date || event.date_time || '',
     reason: event.reason || null,
     tag: event.tag || null,
     link: event.link || null,
@@ -130,23 +160,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let eventsData;
+    let eventsData: BrevoEventsResponse;
     
     if (messageId) {
       console.log(`Querying email events for messageId: ${messageId}`);
       eventsData = await getEmailEvents(messageId, apiKey, limit);
-    } else if (email) {
+    } else {
+      // email is guaranteed to exist here due to the check above
       console.log(`Querying email events for email: ${email}`);
-      eventsData = await getEmailEventsByEmail(email, apiKey, limit);
+      eventsData = await getEmailEventsByEmail(email!, apiKey, limit);
     }
 
     // 格式化事件数据
-    const events = Array.isArray(eventsData.events) 
-      ? eventsData.events.map(formatEventStatus)
+    const events = Array.isArray(eventsData?.events) 
+      ? eventsData.events!.map(formatEventStatus)
       : [];
     
     // 按时间排序（最新的在前）
-    events.sort((a, b) => {
+    events.sort((a: FormattedEmailEvent, b: FormattedEmailEvent) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
       return dateB - dateA;
@@ -171,12 +202,12 @@ export async function GET(request: NextRequest) {
         } : null,
         events,
         summary: {
-          delivered: events.filter(e => e.event === 'delivered').length,
-          opened: events.filter(e => e.event === 'opened').length,
-          clicked: events.filter(e => e.event === 'clicked').length,
-          bounced: events.filter(e => e.event === 'bounces' || e.event === 'hardBounces' || e.event === 'softBounces').length,
-          complaint: events.filter(e => e.event === 'complaint').length,
-          blocked: events.filter(e => e.event === 'blocked').length,
+          delivered: events.filter((e: FormattedEmailEvent) => e.event === 'delivered').length,
+          opened: events.filter((e: FormattedEmailEvent) => e.event === 'opened').length,
+          clicked: events.filter((e: FormattedEmailEvent) => e.event === 'clicked').length,
+          bounced: events.filter((e: FormattedEmailEvent) => e.event === 'bounces' || e.event === 'hardBounces' || e.event === 'softBounces').length,
+          complaint: events.filter((e: FormattedEmailEvent) => e.event === 'complaint').length,
+          blocked: events.filter((e: FormattedEmailEvent) => e.event === 'blocked').length,
         },
       },
       { status: 200 }
@@ -219,23 +250,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let eventsData;
+    let eventsData: BrevoEventsResponse;
     
     if (messageId) {
       console.log(`Querying email events for messageId: ${messageId}`);
       eventsData = await getEmailEvents(messageId, apiKey, limit);
-    } else if (email) {
+    } else {
+      // email is guaranteed to exist here due to the check above
       console.log(`Querying email events for email: ${email}`);
-      eventsData = await getEmailEventsByEmail(email, apiKey, limit);
+      eventsData = await getEmailEventsByEmail(email!, apiKey, limit);
     }
 
     // 格式化事件数据
-    const events = Array.isArray(eventsData.events) 
-      ? eventsData.events.map(formatEventStatus)
+    const events = Array.isArray(eventsData?.events) 
+      ? eventsData.events!.map(formatEventStatus)
       : [];
     
     // 按时间排序（最新的在前）
-    events.sort((a, b) => {
+    events.sort((a: FormattedEmailEvent, b: FormattedEmailEvent) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
       return dateB - dateA;
@@ -260,12 +292,12 @@ export async function POST(request: NextRequest) {
         } : null,
         events,
         summary: {
-          delivered: events.filter(e => e.event === 'delivered').length,
-          opened: events.filter(e => e.event === 'opened').length,
-          clicked: events.filter(e => e.event === 'clicked').length,
-          bounced: events.filter(e => e.event === 'bounces' || e.event === 'hardBounces' || e.event === 'softBounces').length,
-          complaint: events.filter(e => e.event === 'complaint').length,
-          blocked: events.filter(e => e.event === 'blocked').length,
+          delivered: events.filter((e: FormattedEmailEvent) => e.event === 'delivered').length,
+          opened: events.filter((e: FormattedEmailEvent) => e.event === 'opened').length,
+          clicked: events.filter((e: FormattedEmailEvent) => e.event === 'clicked').length,
+          bounced: events.filter((e: FormattedEmailEvent) => e.event === 'bounces' || e.event === 'hardBounces' || e.event === 'softBounces').length,
+          complaint: events.filter((e: FormattedEmailEvent) => e.event === 'complaint').length,
+          blocked: events.filter((e: FormattedEmailEvent) => e.event === 'blocked').length,
         },
       },
       { status: 200 }
