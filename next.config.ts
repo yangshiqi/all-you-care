@@ -12,20 +12,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'lovable.dev',
+        hostname: 'allyoucare.ai',
         port: '',
         pathname: '/**',
-      },
-    ],
-  },
-  // 压缩配置
-  compress: true,
-  // 生产环境优化
-  poweredByHeader: false,
-  // Turbopack 根目录配置
-  turbopack: {
-    root: '/Users/ysq/Work/all-you-care',
-  },
+      }
+    ]
+  }
 };
 
 export default nextConfig;

@@ -19,19 +19,12 @@ export const metadata: Metadata = {
     siteName: "AINews",
     images: [
       {
-        url: "https://lovable.dev/opengraph-image-p98pqg.png",
+        url: "",
         width: 1200,
         height: 630,
         alt: "AINews - Daily AI Roundup for Engineers",
       },
     ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@lovable_dev",
-    title: "AINews - Daily AI Roundup for Engineers",
-    description: "How over 80k top AI Engineers keep up with AI news, every weekday.",
-    images: ["https://lovable.dev/opengraph-image-p98pqg.png"],
   },
   alternates: {
     canonical: "https://news.allyoucare.ai/",
