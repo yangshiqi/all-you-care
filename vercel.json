@@ -47,10 +47,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "out/**/*.html": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
