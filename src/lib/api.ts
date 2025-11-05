@@ -181,10 +181,10 @@ export async function getAiContentById(id: string, i18nLang?: string): Promise<N
 function mapI18nLangToDbLang(i18nLang: string | undefined): string | undefined {
   return 'zh_CN'
   
-  if (!i18nLang) return undefined
-  if (i18nLang === 'zh-CN' || i18nLang === 'zh') return 'zh_CN'
-  if (i18nLang.startsWith('en')) return 'en'
-  return undefined
+  //if (!i18nLang) return undefined
+  //if (i18nLang === 'zh-CN' || i18nLang === 'zh') return 'zh_CN'
+  //if (i18nLang.startsWith('en')) return 'en'
+  //return undefined
 }
 
 export async function getIssueSummaries(limit: number = 5, i18nLang?: string): Promise<IssueSummary[]> {
