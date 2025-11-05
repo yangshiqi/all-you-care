@@ -123,7 +123,9 @@ export const RecentIssues = () => {
                   </div>
                   
                   <p className="text-foreground mb-4 leading-relaxed">
-                    {issue.summary}
+                    <Link href={`/issues/${issue.id}`} className="hover:text-primary/80 transition-colors">
+                      {issue.summary}
+                    </Link>
                   </p>
                   
                   <div className="flex flex-wrap gap-2">

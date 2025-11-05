@@ -179,6 +179,8 @@ export async function getAiContentById(id: string, i18nLang?: string): Promise<N
  */
 // 将 i18n 语言映射到数据库中的 lang 值
 function mapI18nLangToDbLang(i18nLang: string | undefined): string | undefined {
+  return 'zh_CN'
+  
   if (!i18nLang) return undefined
   if (i18nLang === 'zh-CN' || i18nLang === 'zh') return 'zh_CN'
   if (i18nLang.startsWith('en')) return 'en'
