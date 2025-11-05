@@ -33,7 +33,7 @@ export const Hero = () => {
             <p className="text-sm text-muted-foreground mb-2 uppercase tracking-wider">
               <TranslatedText>{t('hero.byLine')}</TranslatedText>
             </p>
-            <p className="text-xl mb-8 leading-relaxed">
+            <p className="text-2xl mb-8 leading-relaxed">
               <TranslatedText>{t('hero.subtitle')}</TranslatedText>
             </p>
 

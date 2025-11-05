@@ -1,7 +1,7 @@
 export const en = {
   translation: {
-    "siteTitle": "AINews - Daily AI Roundup for Everyone",
-    "siteDescription": "How top AI Engineers and AI enthusiasts keep up with AI news, every weekday. We summarize top AI Discords, Reddits, and X/Twitter.",
+    "siteTitle": "AINews - Break Your Information Bubble",
+    "siteDescription": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI Discords, Reddits, and X/Twitter.",
     "nav": {
       "subscribe": "subscribe",
       "issues": "issues",
@@ -11,8 +11,8 @@ export const en = {
     "hero": {
       "title": "AINews",
       "byLine": "by allyoucare.ai",
-      "subtitle": "Every top AI Engineer should have a way to keep up with the latest news.",
-      "description": "We summarize top AI messages from discords, reddits, X/Twitter, hackernews, infoq, techcrunch, cncf, nvidia, meta, openai, google, microsoft, amazon, apple, etc, and send you a roundup at least every weekday!",
+      "subtitle": "Break your information bubble with quality industry news for everyone.",
+      "description": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI messages from discords, reddits, X/Twitter, hackernews, infoq, techcrunch, cncf, nvidia, meta, openai, google, microsoft, amazon, apple, etc, and send you a roundup at least every weekday!",
       "emailPlaceholder": "your@work.email",
       "firstNamePlaceholder": "First Name",
       "lastNamePlaceholder": "Last Name",

@@ -12,10 +12,10 @@ export const Header = () => {
   return (
     <header className="border-b-4 border-primary bg-card shadow-sm">
       <div className="container mx-auto px-4 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-12">
           <Link 
             href="/" 
-            className="flex items-center gap-1 group hover:opacity-80 transition-opacity"
+            className="flex items-center gap-0 group hover:opacity-80 transition-opacity"
           >
             <svg 
               width="40" 
@@ -30,25 +30,25 @@ export const Header = () => {
                 fill="currentColor"
               />
             </svg>
-            <span className="font-bold text-2xl tracking-wide text-primary">
+            <span className="font-bold text-2xl tracking-wide text-primary uppercase">
               AllYouCare.ai
             </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm">
+          <nav className="hidden md:flex items-center gap-3 text-md">
             {/*<Link 
               href="/subscribe" 
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
             >
               <TranslatedText>{t('nav.subscribe')}</TranslatedText>
             </Link>*/}
-            <span className="text-primary">❖</span>
+            <span className="text-primary text-md">❖</span>
             <Link 
               href="/issues" 
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
             >
               <TranslatedText>{t('nav.issues')}</TranslatedText>
             </Link>
-            <span className="text-primary">❖</span>
+            <span className="text-primary text-md">❖</span>
             <Link 
               href="/tags" 
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"

@@ -1,7 +1,7 @@
 export const zh_CN = {
   translation: {
-    "siteTitle": "AINews - AI工程师每日资讯精选",
-    "siteDescription": "顶尖AI工程师和AI爱好者每个工作日获取AI新闻的方式，我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
+    "siteTitle": "AINews - 打破信息茧房，获取行业资讯",
+    "siteDescription": "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
     "nav": {
       "subscribe": "订阅",
       "issues": "往期内容",
@@ -10,13 +10,13 @@ export const zh_CN = {
     },
     "hero": {
       "title": "AINews",
-      "byLine": "由 allyoucare.ai 出品",
-      "subtitle": "每一个顶尖 AI 工程师都应该有的资讯获取方式",
-      "description": "汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
-      "emailPlaceholder": "你的工作邮箱",
+      "byLine": "by allyoucare.ai",
+      "subtitle": "“每一个顶尖 AI 工程师都应该有的资讯获取方式”",
+      "description": "我们以打破每个人的信息茧房为目标，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等全网相关平台的内容，定时为您发送精选资讯！",
+      "emailPlaceholder": "你的邮箱",
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",
-      "ctaButton": "解决我的AI信息过载",
+      "ctaButton": "解决我的 AI 信息焦虑",
       "privacyText": "我们尊重并保护您的隐私，不会将您的 email 泄露给任何第三方。",
       "testimonial1": "在AI领域，每天都有新突破。这个平台帮我快速筛选真正重要的信息",
       "testimonial1Author": "Alex Chen",

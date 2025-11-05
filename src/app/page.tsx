@@ -4,19 +4,19 @@ import { RecentIssues } from "@/components/RecentIssues";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AINews - Daily AI Roundup for Engineers | AI工程师每日资讯精选",
-  description: "How over 80k top AI Engineers keep up with AI news, every weekday. We summarize top AI discords, reddits, and X/Twitter. 超过8万顶尖AI工程师每个工作日获取AI新闻的方式。",
+  title: "AINews - Break Your Information Bubble | 打破信息茧房，获取行业资讯",
+  description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety.",
   openGraph: {
-    title: "AINews - Daily AI Roundup for Engineers",
-    description: "How over 80k top AI Engineers keep up with AI news, every weekday.",
+    title: "AINews - Break Your Information Bubble",
+    description: "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety.",
     type: "website",
     locale: "en_US",
     alternateLocale: "zh_CN",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AINews - Daily AI Roundup for Engineers",
-    description: "How over 80k top AI Engineers keep up with AI news, every weekday.",
+    title: "AINews - Break Your Information Bubble",
+    description: "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety.",
   },
 };
 

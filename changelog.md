@@ -409,6 +409,52 @@ HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
 - docs: 新增 `ai-docs/supabase-lang-filter-2025-10-29.md` 记录实现细节与后续建议。
 # 更新日志
 
+## [2025-01-XX] - 移除特定标题标签
+
+### 🎯 内容清理
+- **移除特定标题**: 从HTML内容中自动移除 `<h1>AI新闻简报</h1>` 和 `<h2>AI新闻分类汇总</h2>` 及其英文变体
+- **英文变体支持**: 同时移除 "AI News Brief"、"AI News Roundup"、"AI News Summary"、"AI News Categories" 等英文标题
+
+### ✨ 功能增强
+- **自动过滤**: 在 `removeTagsSection` 函数中添加标题移除逻辑
+- **多语言支持**: 支持中文和英文标题的自动识别和移除
+- **循环处理**: 在循环处理中优先移除这些标题，确保完全清理
+
+### 📝 修改文件
+- `src/app/issues/[slug]/page.tsx` - 在 `removeTagsSection` 函数中添加标题移除逻辑
+
+### 🔧 技术实现
+- 使用正则表达式匹配 `<h1>` 和 `<h2>` 标签中的特定文本
+- 支持标签中的属性（如 `class`、`id` 等）
+- 忽略空白字符，确保匹配的准确性
+
+## [2025-01-XX] - 首页介绍文案更新：面向所有人，打破信息茧房
+
+### 🎯 定位调整
+- **目标受众扩展**: 从"AI工程师"扩展到"所有人"
+- **核心使命**: 以打破每个人的信息茧房为目标
+- **价值主张**: 强调压缩信息、节省时间、缓解焦虑
+
+### ✨ 文案更新
+**中文版本**:
+- **副标题**: "每一个顶尖 AI 工程师都应该有的资讯获取方式" → "打破信息茧房，为每个人提供优质的行业资讯"
+- **描述**: 新增"我们以打破每个人的信息茧房为目标，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑"
+
+**英文版本**:
+- **副标题**: "Every top AI Engineer should have a way to keep up with the latest news." → "Break your information bubble with quality industry news for everyone."
+- **描述**: 新增"We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety."
+
+### 📝 修改文件
+- `src/app/page.tsx` - 更新页面元数据（title、description、Open Graph、Twitter Card）
+- `src/lib/locales/zh_CN.ts` - 更新中文翻译（hero.subtitle、hero.description、siteTitle、siteDescription）
+- `src/lib/locales/en.ts` - 更新英文翻译（hero.subtitle、hero.description、siteTitle、siteDescription）
+
+### 🎨 内容特点
+- **打破信息茧房**: 突出平台的使命是帮助用户突破信息局限
+- **面向所有人**: 不再局限于AI工程师，欢迎所有对行业资讯感兴趣的用户
+- **价值主张**: 明确强调压缩信息、节省时间、缓解焦虑三大核心价值
+- **行业资讯**: 强调收集行业内的新闻，提供全面的信息覆盖
+
 ## [2025-10-29] - 推荐语内容更新
 
 ### 🎯 内容优化
