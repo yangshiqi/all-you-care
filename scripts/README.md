@@ -1,4 +1,54 @@
-# 静态页面生成脚本
+# 脚本说明
+
+本目录包含多个实用脚本，用于项目的各种自动化任务。
+
+## 脚本列表
+
+### 1. send-latest-ai-news.js - 发送最新 AI 新闻给邮件订阅者
+
+**功能**：
+- 按照给定的 campaignid，从 Brevo Campaign 中获取当前的订阅者邮件
+- 从 Supabase 的 `n8n-ai-contents` 表中，获取最后一个 `lang=zh_CN` 的记录
+- 给这些邮件发送这条记录，邮件标题为记录的 `title`，邮件内容为记录的 `content`
+
+**使用方法**：
+```bash
+# 使用默认 campaign ID (6)
+node scripts/send-latest-ai-news.js
+
+# 指定 campaign ID
+node scripts/send-latest-ai-news.js 6
+```
+
+**环境变量要求**：
+- `BREVO_API_KEY` - Brevo API 密钥（必需）
+- `BREVO_SENDER_EMAIL` - 发件人邮箱（可选，默认：yangshiqi1089@gmail.com）
+- `BREVO_SENDER_NAME` - 发件人名称（可选，默认：AINews）
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL（必需）
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase 匿名密钥（必需）
+
+**输出示例**：
+```
+📧 开始发送最新的 AI 新闻给邮件订阅者...
+📋 Campaign ID: 6
+📰 正在从 Supabase 获取最新的中文内容...
+✅ 获取到最新内容:
+   标题: AI 新闻标题
+   创建时间: 2025-01-XX
+   内容长度: 1234 字符
+📬 正在获取 Campaign 6 的订阅者邮件列表...
+✅ 找到 100 个订阅者
+📤 开始发送邮件...
+✅ Email sent successfully to user@example.com
+📊 发送结果汇总:
+   总收件人数: 100
+   ✅ 成功发送: 98
+   ❌ 发送失败: 2
+```
+
+---
+
+### 2. 静态页面生成脚本
 
 这个脚本用于为每个issue详情页生成静态HTML页面并更新sitemap.xml。
 

@@ -46,9 +46,9 @@ export const zh_CN = {
       "activatedTitle": "订阅已激活！",
       "activatedSubtitle": "欢迎加入 AINews",
       "activatedMessageTitle": "一切就绪！",
-      "activatedMessage": "您的订阅已成功激活。您现在将开始接收我们的AI新闻摘要，我们会直接将内容发送到您的邮箱。",
+      "activatedMessage": "您将开始接收我们的 AI 新闻摘要，我们会直接将内容发送到您的邮箱。",
       "activatedSuccessTitle": "订阅确认成功",
-      "activatedSuccessMessage": "感谢您确认订阅！从现在开始，您将每天收到我们的AI新闻摘要。我们很高兴能够帮助您及时了解最新的AI发展动态。",
+      "activatedSuccessMessage": "我们很高兴能够帮助您及时了解最新的AI发展动态。",
       "activatedAdditionalInfo": "如果您有任何问题或需要更新订阅偏好，请联系我们。"
     },
     "recentIssues": {

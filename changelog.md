@@ -1,3 +1,73 @@
+## 2025-01-XX - 设置网站默认语言为中文
+
+### 🎯 语言设置更新
+- **默认语言**: 将网站默认语言从英文改为中文
+- **服务端渲染**: 服务端渲染时默认使用中文
+- **HTML lang 属性**: 更新 HTML lang 属性为 `zh-CN`
+- **Open Graph**: 更新 Open Graph locale 为主语言中文
+
+### ✨ 功能特性
+- **默认中文**: 新用户访问网站时默认显示中文界面
+- **语言检测**: 保留浏览器语言检测和 localStorage 语言偏好
+- **回退语言**: 将 fallbackLng 从 'en' 改为 'zh-CN'
+- **SEO优化**: HTML lang 属性设置为中文，提升中文SEO表现
+
+### 📝 修改文件
+- `src/lib/i18n.ts` - 更新默认语言检测逻辑，服务端和客户端默认返回 'zh-CN'
+- `src/app/layout.tsx` - 更新 HTML lang 属性为 'zh-CN'，更新 Open Graph locale
+
+### 🔧 技术改进
+- **服务端默认**: 服务端渲染时返回 'zh-CN' 而不是 'en'
+- **客户端默认**: 当没有 localStorage 和浏览器语言偏好时，默认返回 'zh-CN'
+- **回退语言**: i18n fallbackLng 设置为 'zh-CN'
+- **元数据**: Open Graph locale 主语言设置为 'zh_CN'，备用语言为 'en_US'
+
+### 🌐 语言优先级
+1. localStorage 中保存的语言偏好（最高优先级）
+2. 浏览器语言设置
+3. 默认中文（zh-CN）
+
+## 2025-01-XX - 新增发送最新 AI 新闻脚本
+
+### ✨ 新功能
+- **发送最新 AI 新闻脚本**: 新增 `scripts/send-latest-ai-news.js` 脚本，用于自动发送最新的 AI 新闻给邮件订阅者
+- **自动化邮件发送**: 脚本能够从 Brevo Campaign 获取订阅者列表，从 Supabase 获取最新中文内容，并批量发送邮件
+
+### 📝 功能特性
+- **订阅者获取**: 从指定的 Brevo Campaign 获取所有订阅者邮件列表
+- **内容获取**: 从 Supabase `n8n-ai-contents` 表获取最新的 `lang=zh_CN` 记录
+- **批量发送**: 使用 Brevo Transactional Email API 批量发送个性化邮件
+- **错误处理**: 完整的错误处理和进度跟踪
+- **个性化支持**: 支持邮件内容中的占位符替换（`{{FIRSTNAME}}`, `{{LASTNAME}}`, `{{EMAIL}}`）
+
+### 📝 修改文件
+- **新增文件**:
+  - `scripts/send-latest-ai-news.js` - 主脚本文件
+  - `ai-docs/send-latest-ai-news-script.md` - 脚本实现文档
+- **更新的文件**:
+  - `scripts/README.md` - 添加新脚本的使用说明
+  - `changelog.md` - 记录此次变更
+
+### 🔧 使用方法
+```bash
+# 使用默认 campaign ID (6)
+node scripts/send-latest-ai-news.js
+
+# 指定 campaign ID
+node scripts/send-latest-ai-news.js 6
+```
+
+### 📋 环境变量要求
+- `BREVO_API_KEY` - Brevo API 密钥（必需）
+- `BREVO_SENDER_EMAIL` - 发件人邮箱（可选）
+- `BREVO_SENDER_NAME` - 发件人名称（可选）
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL（必需）
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase 匿名密钥（必需）
+
+### 📚 相关文档
+- 详细实现说明请参考 `ai-docs/send-latest-ai-news-script.md`
+- 脚本使用说明请参考 `scripts/README.md`
+
 ## 2025-01-XX - 移除静态页面生成机制
 
 ### 🗑️ 功能移除

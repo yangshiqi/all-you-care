@@ -122,9 +122,9 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
 ## 🌍 国际化系统
 
 ### 语言支持
-- **英语**: 默认语言
-- **中文**: 完整翻译支持
-- **自动检测**: 基于浏览器语言设置
+- **中文**: 默认语言
+- **英语**: 完整翻译支持
+- **自动检测**: 基于浏览器语言设置和 localStorage 偏好
 - **手动切换**: 用户可随时切换语言
 
 ### 实现方式
@@ -138,7 +138,7 @@ const resources = {
 i18n.use(initReactI18next).init({
   resources,
   lng: detectUserLanguage(),
-  fallbackLng: 'en',
+  fallbackLng: 'zh-CN', // 默认回退到中文
   react: { useSuspense: false }, // Next.js 兼容
 });
 ```

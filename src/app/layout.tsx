@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   authors: [{ name: "allyoucare.ai" }],
   openGraph: {
     type: "website",
-    locale: "en_US",
-    alternateLocale: "zh_CN",
+    locale: "zh_CN",
+    alternateLocale: "en_US",
     title: "AINews - Daily AI Roundup for Engineers",
     description: "How over 80k top AI Engineers keep up with AI news, every weekday.",
     siteName: "AINews",
@@ -52,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

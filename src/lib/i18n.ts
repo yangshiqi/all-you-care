@@ -11,9 +11,9 @@ const resources = {
 
 // 检测用户语言（基于浏览器语言或地理位置）
 const detectUserLanguage = (): string => {
-  // 在服务端渲染时，使用默认语言
+  // 在服务端渲染时，使用默认语言（中文）
   if (typeof window === 'undefined') {
-    return 'en';
+    return 'zh-CN';
   }
 
   // 首先检查 localStorage
@@ -31,8 +31,8 @@ const detectUserLanguage = (): string => {
     return 'zh-CN';
   }
   
-  // 默认返回英文
-  return 'en';
+  // 默认返回中文
+  return 'zh-CN';
 };
 
 // 初始化 i18n
@@ -41,7 +41,7 @@ i18n
   .init({
     resources,
     lng: detectUserLanguage(),
-    fallbackLng: 'en',
+    fallbackLng: 'zh-CN',
     interpolation: {
       escapeValue: false,
     },

@@ -90,19 +90,19 @@ function SubscribeSuccessContent() {
                 // 激活成功状态
                 <>
                   <div>
-                    <h2 className="text-2xl font-bold text-primary mb-3">
+                    {/*<h2 className="text-2xl font-bold text-primary mb-3">
                       <TranslatedText>{t("subscribeSuccess.activatedMessageTitle")}</TranslatedText>
-                    </h2>
+                    </h2>*/}
                     <p className="text-lg leading-relaxed text-foreground mb-4">
                       <TranslatedText>{t("subscribeSuccess.activatedMessage")}</TranslatedText>
                     </p>
                     
                     {/* 成功提示 */}
-                    <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-200 dark:border-green-800 p-6 rounded-lg mt-6">
+                    <div className="bg-primary/10 dark:bg-primary/20 border-2 border-primary/20 dark:border-primary/80 p-6 rounded-lg mt-6">
                       <div className="flex items-start gap-3">
                         <div className="flex-shrink-0 mt-1">
                           <svg
-                            className="w-6 h-6 text-green-600 dark:text-green-400"
+                            className="w-6 h-6 text-primary dark:text-primary"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -116,10 +116,10 @@ function SubscribeSuccessContent() {
                           </svg>
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-bold text-green-700 dark:text-green-400 mb-2">
+                          <h3 className="text-lg font-bold text-primary dark:text-primary mb-2">
                             <TranslatedText>{t("subscribeSuccess.activatedSuccessTitle")}</TranslatedText>
                           </h3>
-                          <p className="text-base leading-relaxed text-green-700 dark:text-green-300">
+                          <p className="text-base leading-relaxed text-primary dark:text-primary">
                             <TranslatedText>{t("subscribeSuccess.activatedSuccessMessage")}</TranslatedText>
                           </p>
                         </div>
