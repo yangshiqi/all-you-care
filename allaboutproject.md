@@ -390,6 +390,45 @@ BREVO_LIST_ID=your-list-id  # 可选，如果不设置则不添加到列表
 - **邮件模板**: 使用项目提供的定制邮件模板，保持品牌一致性
 - **成功页面**: 用户提交后会跳转到 `/subscribe/success` 页面，提示激活订阅
 
+### 自动化邮件发送（Cron Job）
+项目配置了 Vercel Cron Jobs，用于自动发送最新的 AI 新闻给邮件订阅者：
+
+**Cron 配置** (`vercel.json`):
+- **执行时间**: 每天 8:30、13:30 和 20:30（UTC 时间）
+- **API 端点**: `/api/send-latest-ai-news?campaignId=6`
+- **功能**: 自动从 Supabase 获取最新的中文内容，并发送给 Brevo Campaign 的订阅者
+
+**API 路由** (`src/app/api/send-latest-ai-news/route.ts`):
+- **方法**: GET 或 POST
+- **参数**: `campaignId` (查询参数或请求体，默认值为 6)
+- **功能**:
+  1. 从 Supabase `n8n-ai-contents` 表获取最新的 `lang=zh_CN` 记录
+  2. 从 Brevo Campaign 获取订阅者邮件列表
+  3. 使用 Brevo Transactional Email API 批量发送个性化邮件
+  4. 返回发送结果统计
+
+**Cron 表达式**:
+- `30 8 * * *` - 每天 8:30 UTC（北京时间 16:30）
+- `30 13 * * *` - 每天 13:30 UTC（北京时间 21:30）
+- `30 20 * * *` - 每天 20:30 UTC（北京时间次日 4:30）
+
+**环境变量要求**:
+- `BREVO_API_KEY` - Brevo API 密钥（必需）
+- `BREVO_SENDER_EMAIL` - 发件人邮箱（可选，默认：yangshiqi1089@gmail.com）
+- `BREVO_SENDER_NAME` - 发件人名称（可选，默认：AINews）
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL（必需）
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase 匿名密钥（必需）
+
+**手动触发**:
+可以通过访问以下 URL 手动触发邮件发送：
+```
+GET /api/send-latest-ai-news?campaignId=6
+POST /api/send-latest-ai-news
+{
+  "campaignId": 6
+}
+```
+
 ## 🏆 项目亮点
 
 1. **现代化架构**: Next.js 16 + React 19最新技术栈

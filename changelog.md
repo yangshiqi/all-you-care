@@ -1,3 +1,51 @@
+## 2025-01-XX - Vercel Cron Job 自动发送最新 AI 新闻
+
+### 🎯 功能增强
+- **自动化邮件发送**: 配置 Vercel Cron Jobs，自动在指定时间发送最新的 AI 新闻给邮件订阅者
+- **定时任务**: 每天 8:30、13:30 和 20:30（UTC 时间）自动执行
+- **API 路由**: 新增 `/api/send-latest-ai-news` API 路由，用于执行邮件发送任务
+
+### ✨ 新功能
+- **Cron 配置**: 在 `vercel.json` 中添加三个 cron job 配置
+- **API 路由**: 创建 `src/app/api/send-latest-ai-news/route.ts` API 路由
+- **功能复用**: API 路由复用了 `send-latest-ai-news.js` 脚本的所有功能
+- **手动触发**: 支持通过 GET 或 POST 请求手动触发邮件发送
+
+### 🔧 技术实现
+- **Cron 表达式**: 
+  - `30 8 * * *` - 每天 8:30 UTC
+  - `30 13 * * *` - 每天 13:30 UTC
+  - `30 20 * * *` - 每天 20:30 UTC
+- **API 功能**:
+  1. 从 Supabase 获取最新的 `lang=zh_CN` 内容
+  2. 从 Brevo Campaign 获取订阅者列表
+  3. 批量发送个性化邮件
+  4. 返回详细的发送结果统计
+
+### 📝 修改文件
+- **新增文件**:
+  - `src/app/api/send-latest-ai-news/route.ts` - Cron API 路由
+- **更新的文件**:
+  - `vercel.json` - 添加 cron jobs 配置
+  - `allaboutproject.md` - 添加自动化邮件发送说明
+  - `changelog.md` - 记录此次变更
+
+### 🔄 使用方式
+- **自动执行**: Vercel 会根据配置的时间自动执行 cron job
+- **手动触发**: 可以通过访问 `/api/send-latest-ai-news?campaignId=6` 手动触发
+- **参数配置**: 支持通过查询参数或请求体传递 `campaignId`（默认值为 6）
+
+### 📋 环境变量要求
+- `BREVO_API_KEY` - Brevo API 密钥（必需）
+- `BREVO_SENDER_EMAIL` - 发件人邮箱（可选）
+- `BREVO_SENDER_NAME` - 发件人名称（可选）
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL（必需）
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase 匿名密钥（必需）
+
+### 📚 相关文档
+- Vercel Cron Jobs 文档: https://vercel.com/docs/cron-jobs
+- API 路由实现参考了 `scripts/send-latest-ai-news.js` 脚本的逻辑
+
 ## 2025-01-XX - 设置网站默认语言为中文
 
 ### 🎯 语言设置更新
