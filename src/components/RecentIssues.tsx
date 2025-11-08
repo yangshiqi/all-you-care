@@ -151,6 +151,9 @@ export const RecentIssues = () => {
               </Link>
             </Button>
           </div>
+          <div className="text-sm italic text-muted-foreground text-center border-t border-border mt-4 pt-4 monospace opacity-50">
+              <TranslatedText>{t('recentIssues.customNote')}</TranslatedText>
+          </div>
         </div>
       </div>
     </section>

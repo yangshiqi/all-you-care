@@ -25,7 +25,6 @@ export const en = {
       "testimonial2Author": "Sarah Kim",
       "testimonial3": "No need to scroll through endless forums, the best summaries are already here",
       "testimonial3Author": "David Liu",
-      "customNote": "This version is a tribute to news.smol.ai, thanks for its inspiration!",
       "toastTitle": "Thanks for subscribing!",
       "toastDescription": "You have been successfully added to our mailing list!",
       "submitting": "Submitting...",
@@ -57,7 +56,8 @@ export const en = {
       "filterPlaceholder": ".*(?!not much).*$",
       "seeAll": "See all issues",
       "fallbackMessage": "Showing cached content while connecting to database...",
-      "noResults": "No issues found matching your filter"
+      "noResults": "No issues found matching your filter",
+      "customNote": "This version is a tribute to news.smol.ai, thanks for its inspiration!"
     },
     "issuesList": {
       "title": "All Issues",

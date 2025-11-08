@@ -25,7 +25,6 @@ export const zh_CN = {
       "testimonial2Author": "小李",
       "testimonial3": "不需要翻遍所有论坛，这里已经为我做了最好的总结",
       "testimonial3Author": "小王",
-      "customNote": "此中文版是对 news.smol.ai 的致敬，感谢其启发！",
       "toastTitle": "感谢订阅！",
       "toastDescription": "您已成功加入我们的邮件订阅列表！",
       "submitting": "提交中...",
@@ -57,7 +56,8 @@ export const zh_CN = {
       "filterPlaceholder": ".*(?!not much).*$",
       "seeAll": "查看所有往期",
       "fallbackMessage": "正在连接数据库，显示缓存内容...",
-      "noResults": "没有找到匹配筛选条件的内容"
+      "noResults": "没有找到匹配筛选条件的内容",
+      "customNote": "此中文版是对 smol.ai 的致敬，感谢其启发！"
     },
     "issuesList": {
       "title": "所有往期内容",

@@ -93,10 +93,8 @@ export const Hero = () => {
 
           {/* Right column - Description and testimonials */}
           <div className="space-y-8">
-            <div className="border-t-2 border-b-2 border-primary py-4">
-              <p className="text-xl leading-relaxed">
+            <div className="text-xl leading-relaxed">
                 <TranslatedText>{t('hero.description')}</TranslatedText>
-              </p>
             </div>
 
             <div className="space-y-6">
@@ -135,10 +133,6 @@ export const Hero = () => {
                 </footer>
               </blockquote>
             </div>
-
-            <p className="text-sm italic text-muted-foreground text-center border-t border-border pt-4 monospace">
-              <TranslatedText>{t('hero.customNote')}</TranslatedText>
-            </p>
           </div>
         </div>
       </div>
