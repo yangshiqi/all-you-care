@@ -6,33 +6,33 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AINews - Daily AI Roundup for Engineers | AI工程师每日资讯精选",
-  description: "How over 80k top AI Engineers keep up with AI news, every weekday. We summarize top AI discords, reddits, and X/Twitter. 超过8万顶尖AI工程师每个工作日获取AI新闻的方式。",
-  keywords: "AI news, artificial intelligence, AI newsletter, AI engineers, machine learning, deep learning, AI资讯, 人工智能, AI工程师",
+  title: "[AI]News - 打破信息茧房，获取行业资讯",
+  description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
+  keywords: "AI资讯, 人工智能, AI工程师, AI新闻, 机器学习, 深度学习, AI newsletter, artificial intelligence, machine learning, deep learning",
   authors: [{ name: "SnapAllx.ai" }],
   openGraph: {
     type: "website",
     locale: "zh_CN",
     alternateLocale: "en_US",
-    title: "AINews - Daily AI Roundup for Engineers",
-    description: "How over 80k top AI Engineers keep up with AI news, every weekday.",
-    siteName: "AINews",
+    title: "[AI]News - 打破信息茧房，获取行业资讯",
+    description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。",
+    siteName: "[AI]News",
     images: [
       {
         url: "",
         width: 1200,
         height: 630,
-        alt: "AINews - Daily AI Roundup for Engineers",
+        alt: "[AI]News - 打破信息茧房，获取行业资讯",
       },
     ],
   },
-  alternates: {
+  /*alternates: {
     canonical: "https://ai.snapallx.com/",
     languages: {
       "en": "https://ai.snapallx.com/?lang=en",
       "zh-CN": "https://ai.snapallx.com/",
     },
-  },
+  },*/
   robots: {
     index: true,
     follow: true,

@@ -4,19 +4,19 @@ import { RecentIssues } from "@/components/RecentIssues";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AINews - Break Your Information Bubble | 打破信息茧房，获取行业资讯",
-  description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety.",
+  title: "[AI]News - 打破信息茧房，获取行业资讯",
+  description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
   openGraph: {
-    title: "AINews - Break Your Information Bubble",
-    description: "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety.",
+    title: "[AI]News - 打破信息茧房，获取行业资讯",
+    description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。",
     type: "website",
-    locale: "en_US",
-    alternateLocale: "zh_CN",
+    locale: "zh_CN",
+    alternateLocale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AINews - Break Your Information Bubble",
-    description: "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety.",
+    title: "[AI]News - 打破信息茧房，获取行业资讯",
+    description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。",
   },
 };
 
