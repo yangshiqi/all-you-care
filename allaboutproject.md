@@ -58,6 +58,12 @@ ainews/
 - **标签列表**: `/tags` - 所有标签列表页面（包含标签使用统计）
 - **标签页面**: `/tags/[tag]` - 按标签筛选展示内容（支持SEO元数据）
 
+### 域名重定向
+- **重定向规则**: 访问 `ai.snapallx.com` 时自动重定向到首页
+- **实现方式**: 使用 Next.js 中间件 (`src/middleware.ts`) 处理域名重定向
+- **匹配规则**: 匹配所有路径（排除 API 路由和静态资源）
+- **SEO友好**: 使用标准 HTTP 重定向，搜索引擎正确处理
+
 ### 动态路由处理
 ```typescript
 // src/app/issues/[slug]/page.tsx

@@ -1,3 +1,131 @@
+## 2025-01-XX - 添加动态 sitemap.xml 生成功能
+
+### 🎯 SEO 优化
+- **动态 Sitemap**: 创建 `src/app/sitemap.ts` 文件，自动生成包含所有页面的 sitemap.xml
+- **自动更新**: sitemap 从 Supabase 动态获取数据，确保包含最新的 issues 和标签
+- **完整覆盖**: sitemap 包含首页、issues 列表页、tags 列表页、所有 issue 详情页和所有标签页面
+
+### ✨ 功能特性
+- **动态生成**: 使用 Next.js App Router 的 sitemap.ts 功能，自动映射到 `/sitemap.xml` 路由
+- **优先级设置**: 为不同页面设置合理的优先级（首页 1.0，issues 列表 0.9，tags 列表 0.8，issue 详情 0.7，标签页面 0.6）
+- **更新频率**: 设置合适的 changeFrequency（首页和 issues 列表 daily，其他页面 weekly）
+- **最后修改时间**: 根据 issue 的创建时间设置 lastModified
+
+### 📝 修改文件
+- **新增文件**:
+  - `src/app/sitemap.ts` - 动态 sitemap 生成文件
+- **更新的文件**:
+  - `public/robots.txt` - 更新 sitemap 路径为实际 URL
+  - `changelog.md` - 记录此次变更
+
+### 🔧 技术实现
+- **Next.js Sitemap**: 使用 `MetadataRoute.Sitemap` 类型定义
+- **数据获取**: 从 Supabase 获取所有 issues 和标签数据
+- **URL 编码**: 标签页面 URL 使用 `encodeURIComponent` 确保特殊字符正确处理
+- **错误处理**: 完善的错误处理，确保部分数据获取失败时不影响其他页面
+
+### 📋 Sitemap 包含的页面
+- **静态页面**:
+  - `/` - 首页（优先级 1.0）
+  - `/issues` - Issues 列表页（优先级 0.9）
+  - `/tags` - Tags 列表页（优先级 0.8）
+- **动态页面**:
+  - `/issues/[id]` - 所有 issue 详情页（优先级 0.7）
+  - `/tags/[tag]` - 所有标签页面（优先级 0.6）
+
+### 🌐 访问方式
+- **访问路径**: `https://www.snapallx.com/sitemap.xml`
+- **自动生成**: Next.js 会自动处理 `/sitemap.xml` 路由
+- **搜索引擎**: 搜索引擎可以通过 robots.txt 中的 sitemap 声明找到 sitemap
+
+### ⚙️ 环境变量
+- `NEXT_PUBLIC_SITE_URL` - 网站基础 URL（可选，默认值为 `https://www.snapallx.com`）
+
+### 📚 相关文档
+- Next.js Sitemap 文档: https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
+
+## 2025-01-XX - 添加 robots.txt 文件
+
+### 🎯 SEO 优化
+- **搜索引擎控制**: 添加 robots.txt 文件，控制搜索引擎爬虫的访问行为
+- **恶意爬虫屏蔽**: 屏蔽 ThinkChaos、SemrushBot、AhrefsBot、MJ12bot、DotBot、Rogerbot 等恶意爬虫
+- **主流搜索引擎允许**: 允许 Googlebot、Bingbot、Baiduspider、YandexBot、Twitterbot、facebookexternalhit 等主流搜索引擎爬虫
+- **AI 爬虫支持**: 允许 GPTBot、OAI-SearchBot、ChatGPT-User、ClaudeBot、Claude-Web、Google-Extended 等 AI 爬虫
+
+### ✨ 功能特性
+- **路径限制**: 限制爬虫访问 WordPress 相关路径（/wp-admin/、/wp-includes/、/wp-content/plugins/、/wp-json/）
+- **搜索路径限制**: 限制访问 /search/ 路径和带查询参数的 URL（/*?*）
+- **爬取延迟**: 为其他未明确允许的爬虫设置 10 秒的爬取延迟
+- **Sitemap 配置**: 预留 Sitemap 配置位置（当前为占位符 xxxx.xml）
+
+### 📝 修改文件
+- **新增文件**:
+  - `public/robots.txt` - 搜索引擎爬虫控制文件
+- **更新的文件**:
+  - `changelog.md` - 记录此次变更
+
+### 🔧 配置说明
+- **文件位置**: `public/robots.txt` - Next.js 会自动将其作为静态文件提供
+- **访问路径**: 网站根目录下的 `/robots.txt`
+- **更新方式**: 直接编辑 `public/robots.txt` 文件即可生效
+- **Sitemap**: 当前 Sitemap 配置为占位符，需要后续更新为实际的 sitemap.xml 路径
+
+### 📋 爬虫规则
+- **完全屏蔽**: ThinkChaos、SemrushBot、AhrefsBot、MJ12bot、DotBot、Rogerbot
+- **完全允许**: Googlebot、Bingbot、Baiduspider、YandexBot、Twitterbot、facebookexternalhit
+- **AI 爬虫允许**: GPTBot、OAI-SearchBot、ChatGPT-User、ClaudeBot、Claude-Web、Google-Extended
+- **其他爬虫**: 默认允许但设置 10 秒爬取延迟
+
+### 🚫 限制路径
+- `/wp-admin/` - WordPress 管理后台
+- `/wp-includes/` - WordPress 核心文件
+- `/wp-content/plugins/` - WordPress 插件
+- `/wp-json/` - WordPress REST API
+- `/search/` - 搜索页面
+- `/*?*` - 所有带查询参数的 URL
+
+### 📚 相关文档
+- robots.txt 规范: https://www.robotstxt.org/
+- Google 爬虫指南: https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt
+
+## 2025-01-XX - 添加域名重定向功能
+
+### 🎯 功能增强
+- **域名重定向**: 添加中间件，当访问 `ai.snapallx.com` 时自动重定向到首页
+- **SEO友好**: 使用 Next.js 中间件实现域名重定向，确保搜索引擎正确处理
+
+### ✨ 新功能
+- **中间件配置**: 创建 `src/middleware.ts` 文件处理域名重定向
+- **域名检测**: 自动检测请求的域名，匹配 `ai.snapallx.com` 时进行重定向
+- **路径保留**: 重定向时保留原始请求的协议和路径信息
+
+### 🔧 技术实现
+- **中间件匹配**: 配置中间件匹配所有路径（排除 API 路由和静态资源）
+- **域名检查**: 检查请求头中的 `host` 字段，匹配目标域名
+- **重定向响应**: 使用 `NextResponse.redirect()` 重定向到首页
+
+### 📝 修改文件
+- **新增文件**:
+  - `src/middleware.ts` - Next.js 中间件，处理域名重定向
+- **更新的文件**:
+  - `changelog.md` - 记录此次变更
+  - `allaboutproject.md` - 添加域名重定向说明
+
+### 🔄 使用方式
+- **自动重定向**: 当用户访问 `ai.snapallx.com` 或 `ai.snapallx.com:端口` 时，自动重定向到首页
+- **路径处理**: 所有路径都会被重定向到首页（`/`）
+- **静态资源**: API 路由和静态资源不受影响，正常访问
+
+### 📋 配置说明
+- **匹配规则**: 中间件匹配所有路径，除了：
+  - `/api/*` - API 路由
+  - `/_next/static/*` - 静态文件
+  - `/_next/image/*` - 图片优化文件
+  - `/favicon.ico` - 网站图标
+
+### 📚 相关文档
+- Next.js Middleware 文档: https://nextjs.org/docs/app/building-your-application/routing/middleware
+
 ## 2025-01-XX - Vercel Cron Job 自动发送最新 AI 新闻
 
 ### 🎯 功能增强
@@ -257,7 +385,7 @@ node scripts/send-latest-ai-news.js 6
 - **双语支持**: 提供英文和中文两个版本的确认邮件模板
 
 ### ✨ 设计特性
-- **品牌标识**: 邮件顶部显示 AINews logo 和 "by allyoucare.ai" 副标题
+- **品牌标识**: 邮件顶部显示 AINews logo 和 "by snapallx.com" 副标题
 - **复古风格**: 使用黑色 (#171717) 作为主色调，匹配网站风格
 - **字体系统**: 使用 Inter 字体作为主字体，Courier Prime 用于次要文本
 - **按钮样式**: 确认按钮使用黑色背景 (#171717) 和白色文字 (#fafafa)，带有 2px 边框

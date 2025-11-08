@@ -30,7 +30,7 @@
 
 **Logo/Brand 区域**:
 - AINews 大标题 (32px, 粗体, 大写)
-- "by allyoucare.ai" 副标题 (12px, Courier Prime)
+- "by snapallx.com" 副标题 (12px, Courier Prime)
 
 **主要内容**:
 - 标题: "Please confirm your subscription" (24px)
@@ -41,13 +41,13 @@
 
 **页脚**:
 - "AINews - Daily AI Roundup for Everyone" (11px, Courier Prime)
-- "by allyoucare.ai" (10px)
+- "by snapallx.com" (10px)
 
 ### 中文版本 (`double-optin-confirmation-zh.html`)
 
 **Logo/Brand 区域**:
 - AINews 大标题 (32px, 粗体, 大写)
-- "由 allyoucare.ai 出品" 副标题 (12px, Courier Prime)
+- "由 snapallx.com 出品" 副标题 (12px, Courier Prime)
 
 **主要内容**:
 - 标题: "请确认您的订阅" (24px)
@@ -58,7 +58,7 @@
 
 **页脚**:
 - "AINews - AI工程师每日资讯精选" (11px, Courier Prime)
-- "由 allyoucare.ai 出品" (10px)
+- "由 snapallx.com 出品" (10px)
 
 ## 🎨 样式特点
 

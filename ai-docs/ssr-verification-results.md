@@ -51,13 +51,13 @@
 ```html
 <title>Test Page - SSR Verification</title>
 <meta name="description" content="This is a test page to verify server-side rendering is working correctly." />
-<meta name="author" content="allyoucare.ai" />
+<meta name="author" content="snapallx.com" />
 <meta name="keywords" content="AI news, artificial intelligence, AI newsletter, AI engineers, machine learning, deep learning, AI资讯, 人工智能, AI工程师" />
 <meta name="robots" content="index, follow" />
 <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
-<link rel="canonical" href="https://news.allyoucare.ai/" />
-<link rel="alternate" hreflang="en" href="https://news.allyoucare.ai/" />
-<link rel="alternate" hreflang="zh-CN" href="https://news.allyoucare.ai/?lang=zh" />
+<link rel="canonical" href="https://news.snapallx.com/" />
+<link rel="alternate" hreflang="en" href="https://news.snapallx.com/" />
+<link rel="alternate" hreflang="zh-CN" href="https://news.snapallx.com/?lang=zh" />
 ```
 
 **Open Graph标签**:
