@@ -10,7 +10,7 @@ export const en = {
     },
     "hero": {
       "title": "AINews",
-      "byLine": "by allyoucare.ai",
+      "byLine": "by SnapAllx.ai",
       "subtitle": "Break your information bubble with quality industry news for everyone.",
       "description": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI messages from discords, reddits, X/Twitter, hackernews, infoq, techcrunch, cncf, nvidia, meta, openai, google, microsoft, amazon, apple, etc, and send you a roundup at least every weekday!",
       "emailPlaceholder": "your@work.email",

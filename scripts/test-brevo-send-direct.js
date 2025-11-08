@@ -49,7 +49,7 @@ async function testSendEmail() {
   const emailBody = {
     sender: {
       email: process.env.BREVO_SENDER_EMAIL || 'yangshiqi1089@gmail.com',
-      name: process.env.BREVO_SENDER_NAME || 'AINews',
+      name: process.env.BREVO_SENDER_NAME || '[AI]News',
     },
     to: [
       {

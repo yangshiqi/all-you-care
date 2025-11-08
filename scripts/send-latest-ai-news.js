@@ -353,7 +353,7 @@ async function main() {
     // 3. 发送邮件
     console.log('📤 开始发送邮件...\n');
     const senderEmail = process.env.BREVO_SENDER_EMAIL || 'yangshiqi1089@gmail.com';
-    const senderName = process.env.BREVO_SENDER_NAME || 'AINews';
+    const senderName = process.env.BREVO_SENDER_NAME || '[AI]News';
     
     const sendResults = await sendTransactionalEmail(
       recipients,

@@ -67,7 +67,7 @@ async function testSendCampaignEmail() {
     htmlContent,
     textContent: '你好 {{FIRSTNAME}} {{LASTNAME}}! 这是一封测试邮件，发送到 {{EMAIL}}',
     senderEmail: process.env.BREVO_SENDER_EMAIL || 'yangshiqi1089@gmail.com',
-    senderName: process.env.BREVO_SENDER_NAME || 'AINews',
+    senderName: process.env.BREVO_SENDER_NAME || '[AI]News',
   };
 
   try {

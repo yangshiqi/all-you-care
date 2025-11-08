@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "AINews - Daily AI Roundup for Engineers | AI工程师每日资讯精选",
   description: "How over 80k top AI Engineers keep up with AI news, every weekday. We summarize top AI discords, reddits, and X/Twitter. 超过8万顶尖AI工程师每个工作日获取AI新闻的方式。",
   keywords: "AI news, artificial intelligence, AI newsletter, AI engineers, machine learning, deep learning, AI资讯, 人工智能, AI工程师",
-  authors: [{ name: "allyoucare.ai" }],
+  authors: [{ name: "SnapAllx.ai" }],
   openGraph: {
     type: "website",
     locale: "zh_CN",
@@ -27,10 +27,10 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: "https://news.allyoucare.ai/",
+    canonical: "https://ai.snapallx.com/",
     languages: {
-      "en": "https://news.allyoucare.ai/",
-      "zh-CN": "https://news.allyoucare.ai/?lang=zh",
+      "en": "https://ai.snapallx.com/?lang=en",
+      "zh-CN": "https://ai.snapallx.com/",
     },
   },
   robots: {

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'allyoucare.ai',
+        hostname: 'snapallx.com',
         port: '',
         pathname: '/**',
       }

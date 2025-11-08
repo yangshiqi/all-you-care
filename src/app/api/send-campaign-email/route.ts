@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
 
     // 默认发件人信息
     const senderEmail = body.senderEmail || process.env.BREVO_SENDER_EMAIL || 'noreply@example.com';
-    const senderName = body.senderName || process.env.BREVO_SENDER_NAME || 'AINews';
+    const senderName = body.senderName || process.env.BREVO_SENDER_NAME || '[AI]News';
     const subject = body.subject || 'Newsletter';
     const htmlContent = body.htmlContent || '<p>Hello!</p>';
     const textContent = body.textContent;
