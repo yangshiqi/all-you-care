@@ -235,9 +235,6 @@ export default function SnowSubscribePage() {
                           borderColor: "#ff4949",
                         }}
                       />
-                      <p className="text-sm text-muted-foreground mt-2">
-                        <TranslatedText>{t("snowSubscribe.emailHint")}</TranslatedText>
-                      </p>
                     </div>
 
                     {/* 提交按钮 */}

@@ -95,7 +95,7 @@ export const zh_CN = {
     },
     "snowSubscribe": {
       "title": "All you care [SNOW] news",
-      "note": "注意:一旦订阅成功,请尽量控制自己的钱包不要破产。",
+      "note": "注意：一旦订阅成功，请尽量控制自己的钱包不要破产。",
       "emailLabel": "你最常用的邮件地址*",
       "emailPlaceholder": "EMAIL",
       "submitButton": "Drop it!",
