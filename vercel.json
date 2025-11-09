@@ -29,11 +29,11 @@
   ],
   "crons": [
     {
-      "path": "/api/send-latest-ai-news?campaignId=6",
+      "path": "/api/send-latest-ai-news",
       "schedule": "30 8 * * *"
     },
     {
-      "path": "/api/send-latest-ai-news?campaignId=6",
+      "path": "/api/send-latest-ai-news",
       "schedule": "30 20 * * *"
     }
   ]
