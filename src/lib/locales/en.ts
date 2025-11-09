@@ -92,6 +92,16 @@ export const en = {
       "title": "All Tags",
       "description": "Browse all tags and explore AI news issues by topics",
       "backToIssues": "Back to Issues"
+    },
+    "snowSubscribe": {
+      "title": "All you care [SNOW] news",
+      "note": "Note: Once the subscription is successful, please try to control your wallet from going bankrupt.",
+      "emailLabel": "Your most frequently used email address*",
+      "emailPlaceholder": "EMAIL",
+      "submitButton": "Drop it!",
+      "submitting": "Submitting...",
+      "errorTitle": "Subscription Failed",
+      "subscribeError": "Failed to subscribe. Please try again later."
     }
   }
 };

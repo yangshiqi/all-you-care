@@ -92,6 +92,16 @@ export const zh_CN = {
       "title": "所有标签",
       "description": "浏览所有标签并按主题探索AI新闻期刊",
       "backToIssues": "返回期刊列表"
+    },
+    "snowSubscribe": {
+      "title": "All you care [SNOW] news",
+      "note": "注意:一旦订阅成功,请尽量控制自己的钱包不要破产。",
+      "emailLabel": "你最常用的邮件地址*",
+      "emailPlaceholder": "EMAIL",
+      "submitButton": "Drop it!",
+      "submitting": "提交中...",
+      "errorTitle": "订阅失败",
+      "subscribeError": "订阅失败，请稍后重试。"
     }
   }
 };

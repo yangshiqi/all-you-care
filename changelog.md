@@ -1,3 +1,62 @@
+## 2025-01-XX - 添加 SNOW 订阅页面
+
+### 🎯 新功能
+- **SNOW 订阅页面**: 创建 `/subscribe/snow` 页面，提供简洁的邮件订阅界面
+- **设计风格**: 采用居中白色卡片布局，浅灰色背景，参考图片设计
+- **国际化支持**: 完整的中英文翻译支持
+
+### ✨ 功能特性
+- **简洁设计**: 居中白色卡片，浅灰色背景，符合现代简约风格
+- **响应式布局**: 完美适配移动端和桌面端
+- **表单验证**: 邮箱格式验证和错误提示
+- **订阅集成**: 集成现有的 `/api/subscribe` API，支持 Brevo 订阅
+- **SEO 优化**: 完整的元数据支持（title、description、Open Graph、Twitter Card）
+
+### 📝 修改文件
+- **新增文件**:
+  - `src/app/subscribe/snow/page.tsx` - SNOW 订阅页面组件
+  - `src/app/subscribe/snow/layout.tsx` - SNOW 订阅页面布局（元数据）
+- **更新的文件**:
+  - `src/lib/locales/zh_CN.ts` - 添加 SNOW 订阅页面的中文翻译
+  - `src/lib/locales/en.ts` - 添加 SNOW 订阅页面的英文翻译
+  - `allaboutproject.md` - 更新路由配置说明
+  - `changelog.md` - 记录此次变更
+
+### 🎨 页面设计
+- **标题**: "All you care [SNOW] news"
+- **提示文字**: "注意:一旦订阅成功,请尽量控制自己的钱包不要破产。"
+- **图片区域**: 预留雪地照片占位符（用户可替换为实际图片）
+- **表单字段**:
+  - 邮箱输入框（必填）
+  - 提示文字："Provide your email address to subscribe. For e.g abc@xyz.com"
+- **提交按钮**: "Drop it!"
+
+### 🔧 技术实现
+- **客户端组件**: 使用 React Hooks 管理表单状态
+- **表单提交**: 集成 `/api/subscribe` API
+- **错误处理**: 使用 sonner 显示错误提示
+- **成功跳转**: 订阅成功后跳转到 `/subscribe/success` 页面
+- **图片支持**: 预留图片占位符，支持 Next.js Image 组件
+
+### 📋 国际化键值
+- `snowSubscribe.title` - 页面标题
+- `snowSubscribe.note` - 提示文字
+- `snowSubscribe.emailLabel` - 邮箱标签
+- `snowSubscribe.emailPlaceholder` - 邮箱占位符
+- `snowSubscribe.emailHint` - 邮箱提示
+- `snowSubscribe.submitButton` - 提交按钮文字
+- `snowSubscribe.submitting` - 提交中状态
+- `snowSubscribe.errorTitle` - 错误标题
+- `snowSubscribe.subscribeError` - 错误消息
+
+### 🌐 访问方式
+- **访问路径**: `/subscribe/snow`
+- **SEO 友好**: 完整的元数据支持，搜索引擎可正确索引
+
+### 📝 注意事项
+- **图片替换**: 页面中包含图片占位符，需要用户替换为实际的雪地照片
+- **图片路径**: 如果使用图片，请将图片放在 `public/` 目录下，并更新页面中的图片路径
+
 ## 2025-01-XX - 添加动态 sitemap.xml 生成功能
 
 ### 🎯 SEO 优化

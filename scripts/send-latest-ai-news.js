@@ -2,11 +2,17 @@
 
 /**
  * 发送最新的 AI 新闻给邮件订阅者
- * 用法: node scripts/send-latest-ai-news.js [campaignId]
+ * 用法: node scripts/send-latest-ai-news.js [campaignId] [type]
+ * 
+ * 参数：
+ * - campaignId: Brevo Campaign ID（可选，默认为 6）
+ * - type: 内容类型，ai 或 snow（可选，默认为 ai）
+ *   - ai: 对应 supabase 表 n8n-ai-contents
+ *   - snow: 对应 supabase 表 n8n-good-contents
  * 
  * 功能：
  * 1. 按照给定的 campaignid，从 getCampaignRecipients 中获取当前的订阅者邮件
- * 2. 从 supabase 的 n8n-ai-contents 表中，获取最后一个 lang=zh_CN 的记录
+ * 2. 从 supabase 的对应表中，获取最后一个 lang=zh_CN 的记录
  * 3. 给这些邮件发送这条记录，邮件标题为 row 的 title，邮件内容为 row 的 content
  */
 
@@ -42,7 +48,19 @@ loadEnvFile(path.join(__dirname, '..', '.env'));
 // 导入 Supabase 客户端
 const { createClient } = require('@supabase/supabase-js');
 
+// 解析命令行参数
 const campaignId = parseInt(process.argv[2]) || 6;
+const type = (process.argv[3] || 'ai').toLowerCase();
+
+// 验证 type 参数
+if (type !== 'ai' && type !== 'snow') {
+  console.error(`❌ 错误: 无效的 type 参数 "${type}"，只支持 "ai" 或 "snow"`);
+  process.exit(1);
+}
+
+// 根据 type 确定表名和显示名称
+const tableName = type === 'ai' ? 'n8n-ai-contents' : 'n8n-good-contents';
+const typeDisplayName = type === 'ai' ? 'AI' : 'Snow';
 
 /**
  * 获取 Brevo Campaign 的收件人列表
@@ -150,8 +168,9 @@ async function getListContacts(listId, apiKey) {
 
 /**
  * 从 Supabase 获取最后一个 lang=zh_CN 的记录
+ * @param {string} table - 表名（n8n-ai-contents 或 n8n-good-contents）
  */
-async function getLatestZhCNContent() {
+async function getLatestZhCNContent(table) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -162,7 +181,7 @@ async function getLatestZhCNContent() {
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
   const { data, error } = await supabase
-    .from('n8n-ai-contents')
+    .from(table)
     .select('*')
     .eq('lang', 'zh_CN')
     .order('created_at', { ascending: false })
@@ -171,7 +190,7 @@ async function getLatestZhCNContent() {
 
   if (error) {
     if (error.code === 'PGRST116') {
-      throw new Error('未找到 lang=zh_CN 的记录');
+      throw new Error(`未找到 lang=zh_CN 的记录（表: ${table}）`);
     }
     console.error('Error fetching latest content:', error);
     throw new Error(`Failed to fetch latest content: ${error.message}`);
@@ -308,8 +327,9 @@ async function sendTransactionalEmail(
  * 主函数
  */
 async function main() {
-  console.log('📧 开始发送最新的 AI 新闻给邮件订阅者...\n');
-  console.log(`📋 Campaign ID: ${campaignId}\n`);
+  console.log(`📧 开始发送最新的 ${typeDisplayName} 新闻给邮件订阅者...\n`);
+  console.log(`📋 Campaign ID: ${campaignId}`);
+  console.log(`📋 内容类型: ${type} (表: ${tableName})\n`);
 
   // 检查环境变量
   const brevoApiKey = process.env.BREVO_API_KEY;
@@ -329,8 +349,8 @@ async function main() {
 
   try {
     // 1. 获取最新的中文内容
-    console.log('📰 正在从 Supabase 获取最新的中文内容...');
-    const latestContent = await getLatestZhCNContent();
+    console.log(`📰 正在从 Supabase 表 ${tableName} 获取最新的中文内容...`);
+    const latestContent = await getLatestZhCNContent(tableName);
     console.log('✅ 获取到最新内容:');
     console.log(`   标题: ${latestContent.title}`);
     console.log(`   创建时间: ${latestContent.created_at}`);
@@ -353,7 +373,7 @@ async function main() {
     // 3. 发送邮件
     console.log('📤 开始发送邮件...\n');
     const senderEmail = process.env.BREVO_SENDER_EMAIL || 'yangshiqi1089@gmail.com';
-    const senderName = process.env.BREVO_SENDER_NAME || '[AI]News';
+    const senderName = process.env.BREVO_SENDER_NAME || (type === 'ai' ? '[AI]News' : '[Snow]News');
     
     const sendResults = await sendTransactionalEmail(
       recipients,
