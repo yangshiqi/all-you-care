@@ -1,3 +1,80 @@
+## 2025-01-XX - 统一邮件发送 API 和脚本逻辑
+
+### 🎯 代码统一
+- **逻辑统一**: 将 API 路由 (`/api/send-latest-ai-news/route.ts`) 的逻辑与脚本文件 (`scripts/send-latest-ai-news.js`) 保持一致
+- **消除重复**: 统一两个实现的逻辑，避免代码重复和维护困难
+
+### ✨ 功能增强
+- **多模式支持**: API 路由现在支持 `ai` 和 `snow` 两种模式
+- **模式配置**: 添加统一的模式配置（MODES），包含 campaignId、表名、显示名称、发件人名称和时间限制
+- **时间限制检查**: 添加时间限制检查功能，snow 模式只能在周三和周五的 8:00-9:00 之间执行
+- **is_published 支持**: 
+  - 查询时只获取 `is_published=false` 的记录
+  - 发送成功后自动更新 `is_published=true`
+- **批量执行**: 支持不传 `type` 参数时遍历所有模式执行
+
+### 🔧 技术改进
+- **参数变更**: API 路由从 `campaignId` 参数改为 `type` 参数（`ai` 或 `snow`）
+- **响应格式**: 更新响应格式，支持多模式执行结果汇总
+- **错误处理**: 改进错误处理，支持部分模式失败的情况（返回 207 Multi-Status）
+- **类型安全**: 添加完整的 TypeScript 类型定义
+
+### 📝 修改文件
+- **更新的文件**:
+  - `src/app/api/send-latest-ai-news/route.ts` - 完全重写，与脚本文件逻辑保持一致
+  - `changelog.md` - 记录此次变更
+
+### 🔄 API 使用方式变更
+**旧方式**:
+```
+GET /api/send-latest-ai-news?campaignId=6
+POST /api/send-latest-ai-news
+{
+  "campaignId": 6
+}
+```
+
+**新方式**:
+```
+# 执行 ai 模式
+GET /api/send-latest-ai-news?type=ai
+POST /api/send-latest-ai-news
+{
+  "type": "ai"
+}
+
+# 执行 snow 模式
+GET /api/send-latest-ai-news?type=snow
+POST /api/send-latest-ai-news
+{
+  "type": "snow"
+}
+
+# 执行所有模式（不传 type 参数）
+GET /api/send-latest-ai-news
+POST /api/send-latest-ai-news
+```
+
+### 📋 模式配置
+- **ai 模式**:
+  - Campaign ID: 6
+  - 表名: `n8n-ai-contents`
+  - 发件人名称: `[AI]News`
+  - 时间限制: 无限制
+
+- **snow 模式**:
+  - Campaign ID: 10
+  - 表名: `n8n-good-contents`
+  - 发件人名称: `[Snow]News`
+  - 时间限制: 只能在周三和周五的 8:00-9:00 之间执行
+
+### ⚠️ 注意事项
+- API 路由的参数从 `campaignId` 改为 `type`，需要更新调用代码
+- Vercel Cron Jobs 配置需要更新，使用 `type` 参数而不是 `campaignId`
+- 时间限制检查会在 API 路由中自动执行，不符合时间要求的模式会被跳过
+
+---
+
 ## 2025-01-XX - 邮件发送脚本：添加 is_published 字段支持
 
 ### 🎯 新功能
