@@ -30,11 +30,11 @@
   "crons": [
     {
       "path": "/api/send-latest-ai-news",
-      "schedule": "30 8 * * *"
+      "schedule": "30 0 * * *"
     },
     {
       "path": "/api/send-latest-ai-news",
-      "schedule": "30 20 * * *"
+      "schedule": "06 21 * * *"
     }
   ]
 }

@@ -211,16 +211,47 @@ async function getLatestZhCNContent(table) {
     .from(table)
     .select('*')
     .eq('lang', 'zh_CN')
+    .eq('is_published', false)
     .order('created_at', { ascending: false })
     .limit(1)
     .single();
 
   if (error) {
     if (error.code === 'PGRST116') {
-      throw new Error(`未找到 lang=zh_CN 的记录（表: ${table}）`);
+      throw new Error(`未找到 lang=zh_CN 且 is_published=false 的记录（表: ${table}）`);
     }
     console.error('Error fetching latest content:', error);
     throw new Error(`Failed to fetch latest content: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
+ * 更新 Supabase 表中记录的 is_published 字段为 true
+ * @param {string} table - 表名（n8n-ai-contents 或 n8n-good-contents）
+ * @param {string} recordId - 记录 ID
+ */
+async function updateIsPublished(table, recordId) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase 环境变量未配置: NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const { data, error } = await supabase
+    .from(table)
+    .update({ is_published: true })
+    .eq('id', recordId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating is_published:', error);
+    throw new Error(`Failed to update is_published: ${error.message}`);
   }
 
   return data;
@@ -489,6 +520,22 @@ async function executeMode(mode) {
     if (sendResults.messageIds.length > 10) {
       console.log(`   ... 还有 ${sendResults.messageIds.length - 10} 个`);
     }
+  }
+
+  // 5. 如果邮件发送成功，更新 is_published 字段为 true
+  if (sendResults.success > 0) {
+    console.log(`\n🔄 正在更新记录状态（is_published = true）...`);
+    try {
+      await updateIsPublished(tableName, latestContent.id);
+      console.log(`✅ 成功更新记录 ${latestContent.id} 的 is_published 字段为 true`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ 更新 is_published 字段失败: ${errorMessage}`);
+      // 不抛出错误，因为邮件已经发送成功，更新失败不应该影响整体流程
+      console.warn('⚠️  警告: 邮件已发送，但更新发布状态失败，请手动检查数据库');
+    }
+  } else {
+    console.log('\n⚠️  没有成功发送的邮件，跳过更新 is_published 字段');
   }
 
   console.log(`\n✅ ${displayName} 模式邮件发送任务完成！`);

@@ -14,4 +14,5 @@ export interface N8nAiContent {
   tags: string | null
   created_at: string
   lang?: string
+  is_published?: boolean
 }

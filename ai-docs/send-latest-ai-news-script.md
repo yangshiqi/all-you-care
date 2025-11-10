@@ -21,7 +21,7 @@
 
 #### 2. 获取最新中文内容
 - 从 Supabase `n8n-ai-contents` 表查询
-- 筛选条件：`lang = 'zh_CN'`
+- 筛选条件：`lang = 'zh_CN'` 且 `is_published = false`
 - 排序：按 `created_at` 降序
 - 限制：只获取第一条记录
 
@@ -32,6 +32,12 @@
 - 邮件内容使用记录的 `content` 字段
 - 包含错误处理和重试机制
 - 添加延迟避免 API 速率限制
+
+#### 4. 更新发布状态
+- 邮件发送成功后，自动更新对应记录的 `is_published` 字段为 `true`
+- 使用 `updateIsPublished` 函数更新 Supabase 记录
+- 更新失败不会影响邮件发送流程（仅记录警告）
+- 确保已发送的内容不会被重复发送
 
 ### 技术实现
 
@@ -117,6 +123,9 @@ node scripts/send-latest-ai-news.js 6
    - user2@example.com: message-id-124
    ...
 
+🔄 正在更新记录状态（is_published = true）...
+✅ 成功更新记录 record-id-123 的 is_published 字段为 true
+
 ✅ 邮件发送任务完成！
 ```
 
@@ -144,8 +153,10 @@ node scripts/send-latest-ai-news.js 6
    - Campaign ID 必须有效
 
 4. **Supabase 数据**
-   - 确保存在 `lang=zh_CN` 的记录
+   - 确保存在 `lang=zh_CN` 且 `is_published=false` 的记录
    - 记录的 `title` 和 `content` 字段不能为空
+   - 确保表中有 `is_published` 布尔字段
+   - 确保 Supabase 有更新权限（RLS 策略允许更新）
 
 ### 后续优化建议
 
@@ -158,8 +169,9 @@ node scripts/send-latest-ai-news.js 6
    - 美化邮件格式
 
 3. **发送记录**
-   - 记录已发送的内容 ID
-   - 避免重复发送相同内容
+   - ✅ 已实现：通过 `is_published` 字段标记已发送内容
+   - 邮件发送成功后自动更新 `is_published = true`
+   - 下次查询时自动排除已发布的内容，避免重复发送
 
 4. **批量优化**
    - 支持更大的批量发送

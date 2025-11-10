@@ -1,3 +1,43 @@
+## 2025-01-XX - 邮件发送脚本：添加 is_published 字段支持
+
+### 🎯 新功能
+- **is_published 字段支持**: 添加对 `is_published` 布尔字段的支持
+- **自动状态更新**: 邮件发送成功后，自动将记录的 `is_published` 字段更新为 `true`
+- **防重复发送**: 查询时只获取 `is_published=false` 的记录，避免重复发送
+
+### ✨ 功能特性
+- **状态管理**: 通过 `is_published` 字段标记内容是否已发送
+- **自动更新**: 邮件发送成功后自动更新数据库状态
+- **错误处理**: 更新失败不会影响邮件发送流程，仅记录警告
+- **类型安全**: 更新了 TypeScript 类型定义，添加 `is_published?: boolean` 字段
+
+### 📝 修改文件
+- **更新的文件**:
+  - `scripts/send-latest-ai-news.js` - 添加 `updateIsPublished` 函数和更新逻辑
+  - `src/lib/supabase.ts` - 更新 `N8nAiContent` 接口，添加 `is_published` 字段
+  - `ai-docs/send-latest-ai-news-script.md` - 更新文档，记录新功能
+  - `changelog.md` - 记录此次变更
+
+### 🔧 技术实现
+- **新增函数**: `updateIsPublished(table, recordId)` - 更新指定记录的 `is_published` 字段
+- **更新时机**: 在邮件发送成功后（`sendResults.success > 0`）执行更新
+- **错误处理**: 使用 try-catch 包裹更新逻辑，失败时记录警告但不中断流程
+- **查询优化**: 查询时添加 `.eq('is_published', false)` 条件，只获取未发布的内容
+
+### 📋 工作流程
+1. 查询 `lang=zh_CN` 且 `is_published=false` 的最新记录
+2. 获取订阅者邮件列表
+3. 批量发送邮件给所有订阅者
+4. 如果发送成功（至少成功发送一封），更新记录的 `is_published` 为 `true`
+5. 下次执行时，已发布的内容不会被重复查询和发送
+
+### ⚠️ 注意事项
+- 确保 Supabase 表中有 `is_published` 布尔字段
+- 确保 Supabase RLS 策略允许更新操作
+- 更新失败不会影响邮件发送，但需要手动检查数据库状态
+
+---
+
 ## 2025-01-XX - 添加 SNOW 订阅页面
 
 ### 🎯 新功能
