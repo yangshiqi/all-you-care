@@ -18,13 +18,15 @@ const MODES = {
     tableName: 'n8n-good-contents',
     displayName: 'Snow',
     senderName: '[Snow]News',
+    // 时间限制：null 表示无限制
+    timeRestriction: null,
     // 时间限制：只能在周三和周五的早上 8:00-9:00 之间执行
     // allowedDays: 0=周日, 1=周一, 2=周二, 3=周三, 4=周四, 5=周五, 6=周六
     // allowedHours: { start: 8, end: 9 } 表示 8:00-8:59（包含开始时间，不包含结束时间）
-    timeRestriction: {
+    /*timeRestriction: {
       allowedDays: [3, 5], // 周三和周五
-      allowedHours: { start: 8, end: 9 }, // 8:00-8:59（即 8:00 到 8:59:59）
-    },
+      allowedHours: { start: 8, end: 19 }, // 8:00-8:59（即 8:00 到 8:59:59）
+    },*/
   },
 } as const;
 
