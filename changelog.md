@@ -1,3 +1,30 @@
+## 2025-01-XX - 修复 Vercel 上中文标签页面无法访问的问题
+
+### 🐛 问题修复
+- **问题描述**: 本地访问 `/tags/AI基础设施` 显示正常，但发布到 Vercel 后访问 `https://www.snapallx.com/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B` 显示不出来
+- **根本原因**: `generateStaticParams` 返回的标签名称编码方式与链接中的 URL 编码不一致，导致静态生成的页面路径无法匹配用户访问的编码 URL
+
+### ✨ 解决方案
+- **URL 编码一致性**: 确保 `generateStaticParams` 返回编码后的标签名称（使用 `encodeURIComponent`），与链接中的编码方式保持一致
+- **动态参数支持**: 添加 `export const dynamicParams = true`，确保即使静态生成失败，也能动态生成页面
+- **参数解码处理**: 在页面组件中添加了完善的参数解码逻辑，使用 try-catch 确保即使解码失败也能正常工作
+
+### 🔧 技术改进
+- **静态生成优化**: `generateStaticParams` 现在返回 `encodeURIComponent(t.name)`，确保生成的静态路径与用户访问的 URL 一致
+- **错误处理**: 添加了完善的错误处理机制，确保解码失败时也能正常显示页面
+- **兼容性**: 同时支持编码和未编码的 URL 参数，提高兼容性
+
+### 📝 修改文件
+- **更新的文件**:
+  - `src/app/tags/[tag]/page.tsx` - 修复 URL 编码处理逻辑，添加动态参数支持
+
+### 🎯 验证步骤
+1. 本地测试：访问 `/tags/AI基础设施` 应该正常显示
+2. Vercel 部署：访问 `https://www.snapallx.com/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B` 应该正常显示
+3. 检查静态生成：确保构建时所有标签页面都能正确生成
+
+---
+
 ## 2025-01-XX - 统一邮件发送 API 和脚本逻辑
 
 ### 🎯 代码统一
