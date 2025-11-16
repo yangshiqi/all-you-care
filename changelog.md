@@ -1,16 +1,16 @@
 ## 2025-01-XX - 修复 Vercel 上中文标签页面无法访问的问题
 
 ### 🐛 问题修复
-- **问题描述**: 本地访问 `/tags/AI基础设施` 显示正常，但发布到 Vercel 后访问 `https://www.snapallx.com/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B` 显示不出来
-- **根本原因**: `generateStaticParams` 返回的标签名称编码方式与链接中的 URL 编码不一致，导致静态生成的页面路径无法匹配用户访问的编码 URL
+- **问题描述**: 本地访问 `/tags/AI基础设施` 显示正常，但发布到 Vercel 后访问 `https://www.snapallx.com/tags/AI%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD` 显示不正常（标签参数未正确解码）
+- **根本原因**: `generateStaticParams` 返回了编码后的标签名称，但 Next.js 的路由匹配器会自动解码 URL 参数，导致路径不匹配
 
 ### ✨ 解决方案
-- **URL 编码一致性**: 确保 `generateStaticParams` 返回编码后的标签名称（使用 `encodeURIComponent`），与链接中的编码方式保持一致
+- **正确的 URL 编码处理**: `generateStaticParams` 现在返回未编码的标签名称，Next.js 会自动处理 URL 编码
 - **动态参数支持**: 添加 `export const dynamicParams = true`，确保即使静态生成失败，也能动态生成页面
 - **参数解码处理**: 在页面组件中添加了完善的参数解码逻辑，使用 try-catch 确保即使解码失败也能正常工作
 
 ### 🔧 技术改进
-- **静态生成优化**: `generateStaticParams` 现在返回 `encodeURIComponent(t.name)`，确保生成的静态路径与用户访问的 URL 一致
+- **静态生成优化**: `generateStaticParams` 现在返回未编码的标签名称（`t.name`），Next.js 会自动处理 URL 编码
 - **错误处理**: 添加了完善的错误处理机制，确保解码失败时也能正常显示页面
 - **兼容性**: 同时支持编码和未编码的 URL 参数，提高兼容性
 

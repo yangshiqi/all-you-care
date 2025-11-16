@@ -23,16 +23,17 @@
 
 ## 解决方案
 
-### 1. 统一 URL 编码方式
+### 1. 正确的 URL 编码处理
 
-确保 `generateStaticParams` 返回的标签名称与链接中的编码方式一致：
+根据 Next.js 的路由匹配机制，`generateStaticParams` 应该返回未编码的标签名称，Next.js 会自动处理 URL 编码：
 
 ```typescript
 export async function generateStaticParams() {
   try {
     const tags = await getAllTags();
-    // 返回编码后的标签名称，确保与链接中的 encodeURIComponent 一致
-    return tags.map(t => ({ tag: encodeURIComponent(t.name) }));
+    // 返回未编码的标签名称，Next.js 会自动处理 URL 编码
+    // Next.js 的路由匹配器会自动解码 URL 参数，所以这里返回未编码的值
+    return tags.map(t => ({ tag: t.name }));
   } catch (error) {
     console.error('Error generating static params for tags:', error);
     return [];
@@ -82,8 +83,8 @@ export default async function TagPage({ params }: PageProps) {
    ```
 
 2. **修复 `generateStaticParams`**:
-   - 返回编码后的标签名称（`encodeURIComponent(t.name)`）
-   - 确保与链接中的编码方式一致
+   - 返回未编码的标签名称（`t.name`）
+   - Next.js 会自动处理 URL 编码，路由匹配器会自动解码 URL 参数
 
 3. **完善参数解码**:
    - 添加 try-catch 错误处理
@@ -122,9 +123,10 @@ npm run build
 
 ### Next.js 动态路由 URL 编码处理
 
-1. **静态生成**: `generateStaticParams` 返回的值会被 Next.js 用于生成静态页面路径
-2. **URL 编码**: Next.js 会自动处理 URL 编码，但为了确保一致性，建议在 `generateStaticParams` 中返回编码后的值
-3. **参数解码**: Next.js 在匹配路由时会自动解码 URL 参数，但在页面组件中仍需要手动解码以确保正确性
+1. **静态生成**: `generateStaticParams` 应该返回未编码的值，Next.js 会自动处理 URL 编码
+2. **URL 编码**: Next.js 在生成静态页面路径时会自动编码中文字符
+3. **参数解码**: Next.js 的路由匹配器会自动解码 URL 参数，所以在页面组件中接收到的 `params.tag` 已经是解码后的值
+4. **兼容性处理**: 为了确保兼容性，在页面组件中仍然使用 try-catch 进行解码处理，以防某些边缘情况
 
 ### Vercel 部署注意事项
 

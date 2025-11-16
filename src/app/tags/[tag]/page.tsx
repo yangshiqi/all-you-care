@@ -11,13 +11,13 @@ interface PageProps {
 export const dynamicParams = true;
 
 // 生成静态参数 - Next.js静态导出必需
-// 注意：为了确保生成的静态路径与链接中的 URL 编码一致，这里返回编码后的标签名称
+// 注意：Next.js 会自动处理 URL 编码，所以这里返回未编码的标签名称
+// Next.js 的路由匹配器会自动解码 URL 参数，所以 generateStaticParams 应该返回未编码的值
 export async function generateStaticParams() {
   try {
     const tags = await getAllTags();
-    // 返回编码后的标签名称，确保与链接中的 encodeURIComponent 一致
-    // 这样生成的静态页面路径就能正确匹配用户访问的编码 URL
-    return tags.map(t => ({ tag: encodeURIComponent(t.name) }));
+    // 返回未编码的标签名称，Next.js 会自动处理 URL 编码
+    return tags.map(t => ({ tag: t.name }));
   } catch (error) {
     console.error('Error generating static params for tags:', error);
     // 返回空数组，避免构建失败
@@ -28,8 +28,16 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { tag } = await params
-  // Next.js 会自动解码 URL 参数，但如果传入的是编码后的值，需要手动解码
-  const decoded = decodeURIComponent(tag)
+  // Next.js 的路由匹配器会自动解码 URL 参数，所以 tag 已经是解码后的值
+  // 但如果 Next.js 没有自动解码（某些边缘情况），我们需要手动解码
+  let decoded: string
+  try {
+    // 尝试解码，如果已经是解码后的值，decodeURIComponent 会返回原值
+    decoded = decodeURIComponent(tag)
+  } catch {
+    // 如果解码失败，直接使用原值
+    decoded = tag
+  }
   const title = `Tag: ${decoded} | AINews`
   const description = `Browse AI news issues tagged with ${decoded}.`
   return {
@@ -45,13 +53,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function TagPage({ params }: PageProps) {
   const { tag } = await params
-  // Next.js 会自动解码 URL 参数，但如果传入的是编码后的值，需要手动解码
-  // 使用 try-catch 确保即使解码失败也能正常工作
+  // Next.js 的路由匹配器会自动解码 URL 参数，所以 tag 应该是解码后的值
+  // 但如果 Next.js 没有自动解码（某些边缘情况），我们需要手动解码
   let decoded: string
   try {
+    // 尝试解码，如果已经是解码后的值，decodeURIComponent 会返回原值
     decoded = decodeURIComponent(tag)
   } catch {
-    // 如果解码失败（可能已经是解码后的值），直接使用原值
+    // 如果解码失败，直接使用原值
     decoded = tag
   }
   return (
