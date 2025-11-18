@@ -13,7 +13,7 @@ export const zh_CN = {
       "byLine": "by SnapAllx.ai",
       "subtitle": "“每一个顶尖 AI 工程师都应该有的资讯获取方式”",
       "description": "我们以打破每个人的信息茧房为目标，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等全网相关平台的内容，定时为您发送精选资讯！",
-      "emailPlaceholder": "你的邮箱",
+      "emailPlaceholder": "你最常用的邮件地址",
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",
       "ctaButton": "解决我的 AI 信息焦虑",
@@ -94,8 +94,8 @@ export const zh_CN = {
       "backToIssues": "返回期刊列表"
     },
     "snowSubscribe": {
-      "title": "All you care [SNOW] news",
-      "note": "注意：一旦订阅成功，请尽量控制自己的钱包不要破产。",
+      "title": "[SNOW] news",
+      "note": "立即订阅，开启你的大 Pro 之路。",
       "emailLabel": "你最常用的邮件地址*",
       "emailPlaceholder": "EMAIL",
       "submitButton": "Drop it!",
