@@ -48,7 +48,6 @@ async function getIssueData(slug: string) {
         title: supabaseData.title,
         date: date,
         summary: supabaseData.summary,
-        intro: generateIntro(date), // 生成介绍文本
         tagCategories: generateTagCategories(supabaseData.tags), // 从 tags 字段生成标签
         sections: formattedContent // 格式化后的内容
       };
@@ -90,15 +89,10 @@ function removeTagsSection(html: string): string {
     
     // 0. 移除特定的标题标签（中文和英文）
     // 移除 <h1>AI新闻简报</h1> 及其变体
-    result = result.replace(/<h1[^>]*>[\s]*AI新闻简报[\s]*<\/h1>/gi, '');
-    result = result.replace(/<h1[^>]*>[\s]*AI News Brief[\s]*<\/h1>/gi, '');
-    result = result.replace(/<h1[^>]*>[\s]*AI News Roundup[\s]*<\/h1>/gi, '');
-    
+    result = result.replace(/<h1[^>]*>[\s]*AI 新闻简报：(.*?)[\s]*<\/h1>/gi, '');
+
     // 移除 <h2>AI新闻分类汇总</h2> 及其变体
-    result = result.replace(/<h2[^>]*>[\s]*AI新闻分类汇总[\s]*<\/h2>/gi, '');
-    result = result.replace(/<h2[^>]*>[\s]*AI News Summary[\s]*<\/h2>/gi, '');
-    result = result.replace(/<h2[^>]*>[\s]*AI News Categories[\s]*<\/h2>/gi, '');
-    result = result.replace(/<h2[^>]*>[\s]*AI News Categorization[\s]*<\/h2>/gi, '');
+    result = result.replace(/<h2[^>]*>[\s]*AI 新闻分类汇总[\s]*<\/h2>/gi, '');
     
     // 1. 移除包含 class="tags" 的容器元素（div, section, aside 等）及其所有内容
     // 匹配标签名，然后匹配到对应的结束标签
@@ -154,11 +148,6 @@ function formatHtmlContent(content: string | null | undefined) {
     title: "Content",
     content: paragraphs.map(p => `<p>${p.trim()}</p>`).join('\n')
   }];
-}
-
-// 生成介绍文本
-function generateIntro(date: string) {
-  return `AI News for ${date}. We checked multiple sources including subreddits, Twitter, and Discord channels for you. This content was automatically generated and curated from our AI content database.`;
 }
 
 // 从 tags 字段生成标签分类

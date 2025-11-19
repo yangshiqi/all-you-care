@@ -80,11 +80,11 @@ export const zh_CN = {
       "error": "错误"
     },
     "issueDetail": {
+      "intro": "AI News for {{date}}. 以下内容来自 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple 等众多科技平台，并经过我们的 AI 模型自动整理和筛选，确保您获取的是最 relevant 的信息。",
       "backToIssues": "返回期刊列表",
       "skipToMain": "跳转到主要内容",
       "showTags": "显示/隐藏标签",
       "hideTags": "显示/隐藏标签",
-      "summary": "摘要",
       "tableOfContents": "目录",
       "backToTop": "返回顶部"
     },

@@ -93,28 +93,14 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
                 </div>
               ))}
               
-              {/* Summary Section */}
-              {issue.summary && (
+              {/* Intro Section */}
                 <div className="pt-4 border-t border-border">
-                  <h3 className="text-xs uppercase tracking-widest text-muted-foreground mb-3 monospace font-bold">
-                    <TranslatedText>{t('issueDetail.summary')}</TranslatedText>
-                  </h3>
                   <p className="text-muted-foreground italic leading-relaxed">
-                    {issue.summary}
-                  </p>
-                </div>
-              )}
+                    {t('issueDetail.intro', { date: issue.date })}
+                </p>
+              </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Intro Quote */}
-      <div className="max-w-4xl mx-auto mb-12">
-        <div className="vintage-border bg-secondary/30 p-6 border-l-8 border-l-primary">
-          <p className="text-foreground leading-relaxed">
-            {issue.intro}
-          </p>
         </div>
       </div>
 
