@@ -10,7 +10,6 @@ interface IssueData {
   title: string;
   date: string;
   summary: string;
-  intro: string;
   tagCategories: {
     title: string;
     tags: string[];
