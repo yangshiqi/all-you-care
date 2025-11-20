@@ -29,7 +29,68 @@ export const zh_CN = {
       "toastDescription": "您已成功加入我们的邮件订阅列表！",
       "submitting": "提交中...",
       "errorTitle": "订阅失败",
-      "subscribeError": "订阅失败，请稍后重试。"
+      "subscribeError": "订阅失败，请稍后重试。",
+      "liveLogTitle": "实时处理日志",
+      "logMessages": {
+        "scraping": "抓取 {platform}...",
+        "scrapingPerson": "抓取 {person} 的推文...",
+        "removingClickbait": "移除 '{phrase}' 标题党...",
+        "summarizing": "汇总 {count}+ {source} 消息...",
+        "verifyingCitations": "验证 {count} 篇论文引用...",
+        "detectingTrending": "检测到 {count} 个新趋势仓库...",
+        "compressing": "压缩 {platform}...",
+        "filteringNoise": "过滤 {count} 条营销噪音...",
+        "parsing": "解析 {source} 研究...",
+        "detectingSOTA": "检测到新的 SOTA 基准测试...",
+        "removingDuplicates": "移除 {count} 条重复内容...",
+        "extractingInsights": "提取 {count} 条关键洞察...",
+        "categorizingContent": "分类 {count} 条内容...",
+        "processing": "处理 {platform} 数据流...",
+        "analyzing": "分析 {count} 条新消息...",
+        "ranking": "排名前 {count} 条热门内容...",
+        "deduplicating": "去重 {count} 条相似内容...",
+        "tagging": "为 {count} 条内容添加标签...",
+        "validating": "验证 {count} 个数据源...",
+        "aggregating": "聚合 {count} 个平台内容..."
+      },
+      "logPlatforms": {
+        "reddit": "Reddit",
+        "twitter": "X/Twitter",
+        "discord": "Discord",
+        "github": "GitHub",
+        "hackernews": "HackerNews",
+        "arxiv": "arXiv",
+        "openai": "OpenAI",
+        "google": "Google",
+        "meta": "Meta",
+        "nvidia": "NVIDIA",
+        "microsoft": "Microsoft",
+        "localLlama": "LocalLlama",
+        "infoq": "InfoQ",
+        "techcrunch": "TechCrunch"
+      },
+      "logPeople": {
+        "karpathy": "Andrej Karpathy",
+        "altman": "Sam Altman",
+        "lecun": "Yann LeCun",
+        "hinton": "Geoffrey Hinton",
+        "bengio": "Yoshua Bengio",
+        "ng": "Andrew Ng"
+      },
+      "logClickbaitPhrases": {
+        "gameChanger": "Game Changer",
+        "revolutionary": "Revolutionary",
+        "breakthrough": "Breakthrough",
+        "mindBlowing": "Mind-Blowing",
+        "youWontBelieve": "You Won't Believe"
+      },
+      "logSources": {
+        "discord": "Discord",
+        "reddit": "Reddit",
+        "twitter": "Twitter",
+        "github": "GitHub",
+        "arxiv": "arXiv"
+      }
     },
     "subscribeSuccess": {
       "title": "订阅成功！",

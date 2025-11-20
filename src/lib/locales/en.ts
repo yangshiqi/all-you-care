@@ -29,7 +29,68 @@ export const en = {
       "toastDescription": "You have been successfully added to our mailing list!",
       "submitting": "Submitting...",
       "errorTitle": "Subscription Failed",
-      "subscribeError": "Failed to subscribe. Please try again later."
+      "subscribeError": "Failed to subscribe. Please try again later.",
+      "liveLogTitle": "LIVE INGESTION LOG",
+      "logMessages": {
+        "scraping": "Scraping {platform}...",
+        "scrapingPerson": "Scraping {person}'s tweets...",
+        "removingClickbait": "Removing '{phrase}' clickbait...",
+        "summarizing": "Summarizing {count}+ {source} messages...",
+        "verifyingCitations": "Verifying {count} paper citations...",
+        "detectingTrending": "Detecting {count} new trending repos...",
+        "compressing": "Compressing {platform}...",
+        "filteringNoise": "Filtering {count} marketing noise items...",
+        "parsing": "Parsing {source} Research...",
+        "detectingSOTA": "Detected new SOTA benchmark...",
+        "removingDuplicates": "Removing {count} duplicate items...",
+        "extractingInsights": "Extracting {count} key insights...",
+        "categorizingContent": "Categorizing {count} items...",
+        "processing": "Processing {platform} data stream...",
+        "analyzing": "Analyzing {count} new messages...",
+        "ranking": "Ranking top {count} trending items...",
+        "deduplicating": "Deduplicating {count} similar items...",
+        "tagging": "Tagging {count} items...",
+        "validating": "Validating {count} data sources...",
+        "aggregating": "Aggregating {count} platform feeds..."
+      },
+      "logPlatforms": {
+        "reddit": "Reddit",
+        "twitter": "X/Twitter",
+        "discord": "Discord",
+        "github": "GitHub",
+        "hackernews": "HackerNews",
+        "arxiv": "arXiv",
+        "openai": "OpenAI",
+        "google": "Google",
+        "meta": "Meta",
+        "nvidia": "NVIDIA",
+        "microsoft": "Microsoft",
+        "localLlama": "LocalLlama",
+        "infoq": "InfoQ",
+        "techcrunch": "TechCrunch"
+      },
+      "logPeople": {
+        "karpathy": "Andrej Karpathy",
+        "altman": "Sam Altman",
+        "lecun": "Yann LeCun",
+        "hinton": "Geoffrey Hinton",
+        "bengio": "Yoshua Bengio",
+        "ng": "Andrew Ng"
+      },
+      "logClickbaitPhrases": {
+        "gameChanger": "Game Changer",
+        "revolutionary": "Revolutionary",
+        "breakthrough": "Breakthrough",
+        "mindBlowing": "Mind-Blowing",
+        "youWontBelieve": "You Won't Believe"
+      },
+      "logSources": {
+        "discord": "Discord",
+        "reddit": "Reddit",
+        "twitter": "Twitter",
+        "github": "GitHub",
+        "arxiv": "arXiv"
+      }
     },
     "subscribeSuccess": {
       "title": "Subscription Successful!",
