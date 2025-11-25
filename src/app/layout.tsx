@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "[AI]News",
     images: [
       {
-        url: "",
+        url: "/x_welcome.jpg",
         width: 1200,
         height: 630,
         alt: "[AI]News - 打破信息茧房，获取行业资讯",

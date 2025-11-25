@@ -187,6 +187,14 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
       card: "summary_large_image",
       title: issue.title,
       description: issue.summary,
+      images: [
+        {
+          url: "/x_welcome.jpg",
+          width: 1200,
+          height: 630,
+          alt: issue.title,
+        },
+      ],
     },
   };
 }

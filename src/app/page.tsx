@@ -17,6 +17,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "[AI]News - 打破信息茧房，获取行业资讯",
     description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。",
+    images: [
+      {
+        url: "/x_welcome.jpg",
+        width: 1200,
+        height: 630,
+        alt: "[AI]News - 打破信息茧房，获取行业资讯",
+      },
+    ],
   },
 };
 
