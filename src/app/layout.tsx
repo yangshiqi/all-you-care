@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
+
+const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
 
 export const metadata: Metadata = {
   title: "[AI]News - 打破信息茧房，获取行业资讯",
@@ -19,7 +22,20 @@ export const metadata: Metadata = {
     siteName: "[AI]News",
     images: [
       {
-        url: "/x_welcome.jpg",
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "[AI]News - 打破信息茧房，获取行业资讯",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "[AI]News - 打破信息茧房，获取行业资讯",
+    description: "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。",
+    images: [
+      {
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "[AI]News - 打破信息茧房，获取行业资讯",

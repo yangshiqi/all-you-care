@@ -1,3 +1,53 @@
+## 2025-01-XX - 修复 Open Graph (OG) Meta 标签图片显示问题
+
+### 🐛 问题修复
+- **问题描述**: 在 x.com (Twitter) 上分享链接时，没有显示预览图片
+- **根本原因**: 
+  1. 图片 URL 使用相对路径（`/x_welcome.jpg`），但 Twitter/X 需要绝对 URL（包含完整域名）
+  2. 部分页面缺少 Open Graph images 或 Twitter Card 配置
+
+### ✨ 解决方案
+- **工具函数**: 创建 `getAbsoluteUrl()` 函数，自动生成完整的图片 URL（使用 `NEXT_PUBLIC_SITE_URL` 环境变量）
+- **绝对 URL**: 所有 meta 标签中的图片 URL 现在使用绝对路径（例如：`https://www.snapallx.com/x_welcome.jpg`）
+- **完整配置**: 确保所有页面都有完整的 Open Graph 和 Twitter Card 配置，包括图片信息
+
+### 🔧 技术改进
+- **新增工具函数**: `src/lib/utils.ts` 中添加 `getAbsoluteUrl()` 函数
+- **统一配置**: 所有页面的 meta 标签统一使用绝对 URL
+- **环境变量**: 使用 `NEXT_PUBLIC_SITE_URL` 环境变量（默认值：`https://www.snapallx.com`）
+
+### 📝 修改文件
+- **新增功能**:
+  - `src/lib/utils.ts` - 添加 `getAbsoluteUrl()` 工具函数
+- **更新的文件**:
+  - `src/app/layout.tsx` - 添加 Twitter Card 配置，使用绝对 URL
+  - `src/app/page.tsx` - 添加 Open Graph images 配置，使用绝对 URL
+  - `src/app/issues/[slug]/page.tsx` - 添加 Open Graph images 配置，使用绝对 URL
+  - `src/app/issues/page.tsx` - 添加 Open Graph images 和 Twitter Card 配置，使用绝对 URL
+  - `src/app/tags/page.tsx` - 添加 Open Graph images 和 Twitter Card 配置，使用绝对 URL
+  - `src/app/tags/[tag]/page.tsx` - 添加 Open Graph images 和 Twitter Card 配置，使用绝对 URL
+  - `src/app/subscribe/snow/layout.tsx` - 添加 Open Graph images 和 Twitter Card 配置，使用绝对 URL
+  - `src/app/test/page.tsx` - 添加 Open Graph images 和 Twitter Card 配置，使用绝对 URL
+
+### 🎯 验证步骤
+1. **检查 meta 标签**: 在浏览器中查看页面源代码，确认所有 `og:image` 和 `twitter:image` 标签使用绝对 URL
+2. **Twitter Card 验证**: 使用 [Twitter Card Validator](https://cards-dev.twitter.com/validator) 验证卡片显示
+3. **Open Graph 验证**: 使用 [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) 验证 Open Graph 标签
+4. **环境变量**: 确保生产环境设置了正确的 `NEXT_PUBLIC_SITE_URL` 环境变量
+
+### 📋 图片要求
+- **图片尺寸**: 1200x630 像素（推荐）
+- **图片格式**: JPG、PNG 或 WebP
+- **文件位置**: `public/x_welcome.jpg`
+- **URL 格式**: 必须是绝对 URL（例如：`https://www.snapallx.com/x_welcome.jpg`）
+
+### ⚠️ 注意事项
+- 确保 `NEXT_PUBLIC_SITE_URL` 环境变量在生产环境中正确设置
+- 图片文件必须可以通过绝对 URL 公开访问
+- Twitter/X 可能需要一些时间才能更新缓存的预览图片
+
+---
+
 ## 2025-01-XX - 修复 Vercel 上中文标签页面无法访问的问题
 
 ### 🐛 问题修复

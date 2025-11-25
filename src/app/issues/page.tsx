@@ -3,6 +3,9 @@ import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { IssuesList } from "@/components/IssuesList";
 import { getAllAiContentsPaginated } from "@/lib/api";
+import { getAbsoluteUrl } from "@/lib/utils";
+
+const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
 
 export const metadata: Metadata = {
   title: "All Issues | AINews - Daily AI Roundup for Engineers",
@@ -11,6 +14,27 @@ export const metadata: Metadata = {
     title: "All Issues | AINews",
     description: "Browse all AI news issues and stay up to date with the latest developments in artificial intelligence.",
     type: "website",
+    images: [
+      {
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "All Issues | AINews",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "All Issues | AINews",
+    description: "Browse all AI news issues and stay up to date with the latest developments in artificial intelligence.",
+    images: [
+      {
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "All Issues | AINews",
+      },
+    ],
   },
 };
 

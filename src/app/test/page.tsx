@@ -1,8 +1,37 @@
 import { Metadata } from "next";
+import { getAbsoluteUrl } from "@/lib/utils";
+
+const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
 
 export const metadata: Metadata = {
   title: "Test Page - SSR Verification",
   description: "This is a test page to verify server-side rendering is working correctly.",
+  openGraph: {
+    title: "Test Page - SSR Verification",
+    description: "This is a test page to verify server-side rendering is working correctly.",
+    type: "website",
+    images: [
+      {
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "Test Page - SSR Verification",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Test Page - SSR Verification",
+    description: "This is a test page to verify server-side rendering is working correctly.",
+    images: [
+      {
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "Test Page - SSR Verification",
+      },
+    ],
+  },
 };
 
 export default function TestPage() {

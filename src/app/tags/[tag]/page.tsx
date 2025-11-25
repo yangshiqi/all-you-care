@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { TagIssuesList } from "../../../components/TagIssuesList";
 import { getAllTags } from "@/lib/api";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ tag: string }>
@@ -40,6 +41,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   const title = `Tag: ${decoded} | AINews`
   const description = `Browse AI news issues tagged with ${decoded}.`
+  const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
+  
   return {
     title,
     description,
@@ -47,6 +50,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: "website",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
     },
   }
 }

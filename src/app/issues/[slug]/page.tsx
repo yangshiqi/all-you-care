@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { IssueDetailContent } from "@/components/IssueDetailContent";
 import { getAiContentById, extractTagsFromContent, getAllAiContents } from "@/lib/api";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 interface IssueDetailPageProps {
   params: Promise<{
@@ -174,6 +175,8 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
     };
   }
 
+  const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
+
   return {
     title: `${issue.title} | AINews`,
     description: issue.summary,
@@ -182,6 +185,14 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
       description: issue.summary,
       type: "article",
       publishedTime: issue.date,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: issue.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -189,7 +200,7 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
       description: issue.summary,
       images: [
         {
-          url: "/x_welcome.jpg",
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: issue.title,
