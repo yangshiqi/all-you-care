@@ -47,6 +47,7 @@ async function getIssueData(slug: string) {
       
       return {
         title: supabaseData.title,
+        imgUrl: supabaseData.imgUrl || getAbsoluteUrl('/ainews/default.jpg'),
         date: date,
         summary: supabaseData.summary,
         tagCategories: generateTagCategories(supabaseData.tags), // 从 tags 字段生成标签

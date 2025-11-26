@@ -15,4 +15,5 @@ export interface N8nAiContent {
   created_at: string
   lang?: string
   is_published?: boolean
+  imgUrl: string | null
 }

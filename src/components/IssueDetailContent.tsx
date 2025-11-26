@@ -10,6 +10,7 @@ interface IssueData {
   title: string;
   date: string;
   summary: string;
+  imgUrl: string;
   tagCategories: {
     title: string;
     tags: string[];
@@ -107,6 +108,7 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
       <div className="flex flex-col lg:flex-row gap-8 max-w-4xl mx-auto">
         {/* Main Content */}
         <article id="main-content" className="flex-1 paper-texture">
+          
           <div className="space-y-12">
             {issue.sections.map(section => (
               <section key={section.id} id={section.id} className="scroll-mt-4">
@@ -118,7 +120,7 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
                     </h2>
                     <div className="w-2 h-2 bg-primary" />
                   </div>
-                  
+                  {issue.imgUrl && <img src={issue.imgUrl} alt="Cover Image" className="hero-img"/>}
                   <div 
                     className="prose prose-vintage max-w-none" 
                     dangerouslySetInnerHTML={{ __html: section.content }}
