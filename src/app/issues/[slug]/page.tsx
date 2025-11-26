@@ -97,9 +97,13 @@ function removeTagsSection(html: string): string {
     // 0. 移除特定的标题标签（中文和英文）
     // 移除 <h1>AI新闻简报</h1> 及其变体
     result = result.replace(/<h1[^>]*>[\s]*AI 新闻简报：(.*?)[\s]*<\/h1>/gi, '');
+    result = result.replace(/<h1[^>]*>[\s]*AI News Briefing[\s]*<\/h1>/gi, '');
 
     // 移除 <h2>AI新闻分类汇总</h2> 及其变体
     result = result.replace(/<h2[^>]*>[\s]*AI 新闻分类汇总[\s]*<\/h2>/gi, '');
+    
+    // 0.5. 移除带有 class="hero-img" 的图片标签
+    result = result.replace(/<img[^>]*class\s*=\s*["']hero-img["'][^>]*\/?>/gi, '');
     
     // 1. 移除包含 class="tags" 的容器元素（div, section, aside 等）及其所有内容
     // 匹配标签名，然后匹配到对应的结束标签
