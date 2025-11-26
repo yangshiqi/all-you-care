@@ -45,9 +45,14 @@ async function getIssueData(slug: string) {
       // 解析 content 字段中的 HTML 内容
       const formattedContent = formatHtmlContent(supabaseData.content);
       
+      // 处理图片 URL：如果是 https 开头则保持原值，否则使用 getAbsoluteUrl 转换
+      const imgUrl = supabaseData.imgUrl?.startsWith('https')
+        ? supabaseData.imgUrl
+        : getAbsoluteUrl(supabaseData.imgUrl || '/ainews/default.jpg');
+
       return {
         title: supabaseData.title,
-        imgUrl: supabaseData.imgUrl || getAbsoluteUrl('/ainews/default.jpg'),
+        imgUrl: imgUrl,
         date: date,
         summary: supabaseData.summary,
         tagCategories: generateTagCategories(supabaseData.tags), // 从 tags 字段生成标签
