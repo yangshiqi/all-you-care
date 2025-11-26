@@ -205,12 +205,8 @@
 
 .hero-img {
   width: 100%;
-  height: auto;
-  display: block;
   margin: 0 auto 30px;
   border-radius: 12px;
-  max-height: 700px;
-  object-fit: cover;
 }
 
 /* 列表样式增强 */
