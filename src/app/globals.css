@@ -142,7 +142,7 @@
 .prose-vintage article {
   background: hsl(var(--secondary) / 0.3);
   border-left: 4px solid hsl(var(--primary));
-  margin: 1rem 0;
+  margin: 2rem 0;
   padding: 1rem 1.25rem;
   border-radius: 6px;
   transition: all 0.2s ease;
@@ -205,8 +205,42 @@
 
 .hero-img {
   width: 100%;
+  height: auto;
+  display: block;
   margin: 0 auto 30px;
   border-radius: 12px;
+  max-height: 700px;
+  object-fit: cover;
+}
+.meta-box {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed #cbd5e1; /* 虚线分隔，颜色淡雅 */
+}
+
+.meta-row {
+  display: flex;
+  margin-bottom: 6px;
+  align-items: baseline; /* 保证文字基线对齐 */
+}
+
+/* 最后一行的 margin 去掉 */
+.meta-row:last-child { margin-bottom: 0; }
+
+.meta-label {
+
+  white-space: nowrap; /* 防止标签换行 */
+  min-width: 3em; /* 固定宽度，让后面的文字对齐 */
+  color: #778699; 
+  font-weight: normal;
+}
+
+.score-val {
+  color: #d97706; /* 使用琥珀色/橙色强调分数，比纯红更友好 */
+}
+.reason-text {
+  color: #333; 
+  font-style: italic;
 }
 
 /* 列表样式增强 */
