@@ -8,13 +8,15 @@ import { Header } from "@/components/Header";
 import { TranslatedText } from "@/components/TranslatedText";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
-import { addLanguageToPath } from "@/lib/i18n-utils";
+import { addLanguageToPath, isValidLanguage, DEFAULT_LANGUAGE, type SupportedLanguage } from "@/lib/i18n-utils";
 
 function SubscribeSuccessContent() {
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const params = useParams();
-  const lang = params?.lang as string || 'zh-CN';
+  const lang: SupportedLanguage = (params?.lang && isValidLanguage(params.lang as string)) 
+    ? (params.lang as SupportedLanguage) 
+    : DEFAULT_LANGUAGE;
 
   // 从 URL 参数获取邮箱和状态
   const email = searchParams.get("email");
@@ -25,7 +27,7 @@ function SubscribeSuccessContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header initialLang={lang as any} />
+      <Header initialLang={lang} />
       <main className="paper-texture">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-2xl mx-auto">
