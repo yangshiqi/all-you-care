@@ -25,18 +25,23 @@ interface IssueDetailPageProps {
 // 生成静态参数 - Next.js静态导出必需
 export async function generateStaticParams() {
   try {
-    // 从Supabase获取所有AI内容
-    const contents = await getAllAiContents();
-    
     // 为每种语言和每个 slug 生成参数
     const params: Array<{ lang: string; slug: string }> = [];
     
     for (const lang of SUPPORTED_LANGUAGES) {
+      // 为每种语言分别获取对应的内容，只生成存在的语言版本
+      const contents = await getAllAiContents(lang);
+      
       for (const content of contents) {
-        params.push({
-          lang,
-          slug: String(content.id),
-        });
+        // 验证该语言版本是否真的存在
+        const journalId = content.journal_id || content.id;
+        const issueData = await getAiContentByJournalId(String(journalId), lang);
+        if (issueData) {
+          params.push({
+            lang,
+            slug: String(journalId),
+          });
+        }
       }
     }
     

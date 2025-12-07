@@ -17,10 +17,18 @@ export async function generateStaticParams() {
     // 从Supabase获取所有AI内容
     const contents = await getAllAiContents();
     
-    // 返回所有slug参数（确保转换为字符串）
-    return contents.map((content) => ({
-      slug: String(content.id),
-    }));
+    // 只返回存在的 issue（验证每个 issue 是否存在）
+    const params: Array<{ slug: string }> = [];
+    for (const content of contents) {
+      const issueData = await getAiContentByJournalId(String(content.id));
+      if (issueData) {
+        params.push({
+          slug: String(content.id),
+        });
+      }
+    }
+    
+    return params;
   } catch (error) {
     console.error('Error generating static params:', error);
     // 返回空数组，避免构建失败

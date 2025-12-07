@@ -1,3 +1,45 @@
+## 2025-01-XX - 优化静态文件和 sitemap 生成逻辑
+
+### 🐛 问题修复
+- **问题描述**: 当 issue 详情不存在时，仍然会生成对应的静态文件和 sitemap 内容
+- **根本原因**: `generateStaticParams` 和 `sitemap.ts` 直接使用 `getAllAiContents()` 获取所有内容，没有验证每个 issue 是否真的存在（特别是对于特定语言版本）
+- **影响范围**: 可能生成不存在的 issue 的静态文件，导致构建时出现错误或生成无效的 sitemap 条目
+
+### ✨ 解决方案
+- **语言版本验证**: 在 `generateStaticParams` 中，为每种语言分别获取对应的内容，并验证每个 issue 在该语言版本是否存在
+- **存在性验证**: 在生成静态参数和 sitemap 条目之前，使用 `getAiContentByJournalId` 验证 issue 是否存在
+- **只生成存在的版本**: 只为存在的语言版本生成静态文件和 sitemap 条目
+
+### 🔧 技术实现
+- **`src/app/[lang]/issues/[slug]/page.tsx`**: 
+  - 修改 `generateStaticParams`，为每种语言分别调用 `getAllAiContents(lang)` 获取该语言版本的内容
+  - 使用 `getAiContentByJournalId` 验证每个 issue 在该语言版本是否存在
+  - 只生成存在的语言版本的静态参数
+- **`src/app/issues/[slug]/page.tsx`**: 
+  - 修改 `generateStaticParams`，验证每个 issue 是否存在
+  - 只生成存在的 issue 的静态参数
+- **`src/app/sitemap.ts`**: 
+  - 为每种语言分别调用 `getAllAiContents(lang)` 获取该语言版本的内容
+  - 使用 `getAiContentByJournalId` 验证每个 issue 在该语言版本是否存在
+  - 只包含存在的语言版本的 sitemap 条目
+
+### 📝 修改文件
+- `src/app/[lang]/issues/[slug]/page.tsx` - 优化静态参数生成逻辑
+- `src/app/issues/[slug]/page.tsx` - 优化静态参数生成逻辑
+- `src/app/sitemap.ts` - 优化 sitemap 生成逻辑
+
+### 🎯 功能特性
+- **准确性**: 确保只生成存在的 issue 的静态文件和 sitemap 条目
+- **语言支持**: 正确处理多语言版本的 issue，只为存在的语言版本生成内容
+- **性能优化**: 虽然增加了验证步骤，但避免了生成无效的静态文件，减少了构建错误
+
+### ⚠️ 注意事项
+- 构建时间可能会略微增加，因为需要验证每个 issue 是否存在
+- 如果某个 issue 的某个语言版本不存在，将不会为该语言版本生成静态文件
+- 这确保了 sitemap 和静态文件的准确性，避免了 404 错误
+
+---
+
 ## 2025-01-XX - 添加符合项目规范的 404 页面
 
 ### ✨ 新功能

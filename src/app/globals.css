@@ -228,9 +228,7 @@
 .meta-row:last-child { margin-bottom: 0; }
 
 .meta-label {
-
   white-space: nowrap; /* 防止标签换行 */
-  min-width: 3em; /* 固定宽度，让后面的文字对齐 */
   color: #778699; 
   font-weight: normal;
 }

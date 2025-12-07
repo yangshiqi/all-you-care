@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getAllAiContents } from '@/lib/api'
+import { getAllAiContents, getAiContentByJournalId } from '@/lib/api'
 import { getAllTags } from '@/lib/api'
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n-utils'
 
@@ -44,18 +44,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
   }
 
-  // 获取所有 issues - 为每种语言生成
+  // 获取所有 issues - 为每种语言生成（只包含存在的语言版本）
   const issuesPages: MetadataRoute.Sitemap = []
   try {
-    const issues = await getAllAiContents()
+    // 为每种语言分别获取对应的内容
     for (const lang of SUPPORTED_LANGUAGES) {
+      const issues = await getAllAiContents(lang)
       for (const issue of issues) {
-        issuesPages.push({
-          url: `${baseUrl}/${lang}/issues/${issue.journal_id || issue.id}`,
-          lastModified: new Date(issue.created_at),
-          changeFrequency: 'weekly' as const,
-          priority: 0.7,
-        })
+        // 验证该语言版本是否真的存在
+        const issueData = await getAiContentByJournalId(issue.journal_id || issue.id, lang)
+        if (issueData) {
+          issuesPages.push({
+            url: `${baseUrl}/${lang}/issues/${issue.journal_id || issue.id}`,
+            lastModified: new Date(issue.created_at),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+          })
+        }
       }
     }
   } catch (error) {
