@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TranslatedText } from "./TranslatedText";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { addLanguageToPath } from "@/lib/i18n-utils";
 
 interface IssueData {
   title: string;
@@ -24,18 +26,109 @@ interface IssueData {
 
 interface IssueDetailContentProps {
   issue: IssueData;
+  issueId: string;
+  hasEnVersion: boolean;
+  initialLang?: string; // 从服务器端传递的语言
 }
 
-export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
-  const { t } = useTranslation();
+export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }: IssueDetailContentProps) => {
+  const { t, i18n } = useTranslation();
+  const lang = useCurrentLanguage();
   const [showTags, setShowTags] = useState(true);
+  
+  // 同步服务器端语言到客户端 i18n，避免 hydration 不匹配
+  useEffect(() => {
+    if (initialLang && i18n.language !== initialLang) {
+      i18n.changeLanguage(initialLang);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLang]);
+
+  // 添加 hreflang 标签到 head
+  useEffect(() => {
+    // 确保在浏览器环境中执行
+    if (typeof window === 'undefined' || !hasEnVersion) return;
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com';
+      
+      // 使用特定的标识符来识别我们创建的标签，避免误删其他标签
+      const linkId = `hreflang-issue-${issueId}`;
+      
+      // 移除可能已存在的相同 hreflang 标签（避免重复）
+      // 只移除我们之前创建的标签
+      try {
+        const existingEnLinks = document.querySelectorAll(`link[rel="alternate"][hreflang="en"][data-issue-id="${issueId}"]`);
+        existingEnLinks.forEach(link => {
+          if (link && link.parentNode) {
+            link.remove();
+          }
+        });
+      } catch (error) {
+        console.warn('Error removing existing en links:', error);
+      }
+      
+      try {
+        const existingZhLinks = document.querySelectorAll(`link[rel="alternate"][hreflang="zh-CN"][data-issue-id="${issueId}"]`);
+        existingZhLinks.forEach(link => {
+          if (link && link.parentNode) {
+            link.remove();
+          }
+        });
+      } catch (error) {
+        console.warn('Error removing existing zh-CN links:', error);
+      }
+      
+      // 创建 en 版本的 link 标签
+      const enLink = document.createElement('link');
+      enLink.setAttribute('rel', 'alternate');
+      enLink.setAttribute('hreflang', 'en');
+      enLink.setAttribute('href', `${baseUrl}/en/issues/${issueId}`);
+      enLink.setAttribute('data-issue-id', issueId);
+      enLink.setAttribute('id', `${linkId}-en`);
+      
+      // 创建 zh-CN 版本的 link 标签
+      const zhLink = document.createElement('link');
+      zhLink.setAttribute('rel', 'alternate');
+      zhLink.setAttribute('hreflang', 'zh-CN');
+      zhLink.setAttribute('href', `${baseUrl}/zh-CN/issues/${issueId}`);
+      zhLink.setAttribute('data-issue-id', issueId);
+      zhLink.setAttribute('id', `${linkId}-zh`);
+      
+      // 确保 head 存在后再添加
+      if (document.head) {
+        document.head.appendChild(enLink);
+        document.head.appendChild(zhLink);
+      }
+
+      // 清理函数：组件卸载时移除这些标签
+      return () => {
+        try {
+          // 使用 ID 来精确查找和移除，避免误删
+          const enLinkToRemove = document.getElementById(`${linkId}-en`);
+          const zhLinkToRemove = document.getElementById(`${linkId}-zh`);
+          
+          if (enLinkToRemove && enLinkToRemove.parentNode) {
+            enLinkToRemove.remove();
+          }
+          if (zhLinkToRemove && zhLinkToRemove.parentNode) {
+            zhLinkToRemove.remove();
+          }
+        } catch (error) {
+          console.warn('Error removing hreflang links:', error);
+        }
+      };
+    } catch (error) {
+      console.error('Error setting up hreflang links:', error);
+    }
+  }, [issueId, hasEnVersion]);
 
   return (
     <main className="container mx-auto px-4 py-8">
       {/* Navigation */}
       <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-dotted border-border">
         <Link 
-          href="/issues" 
+          href={addLanguageToPath("/issues", lang)} 
           className="inline-flex items-center gap-2 text-sm hover:text-primary transition-colors uppercase tracking-wider font-medium"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -83,7 +176,7 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
                     {category.tags.map((tag, tagIndex) => (
                       <Link 
                         key={tagIndex} 
-                        href={`/tags/${encodeURIComponent(tag)}`} 
+                        href={addLanguageToPath(`/tags/${encodeURIComponent(tag)}`, lang)} 
                         className="px-3 py-1 text-sm bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
                       >
                         {tag}
@@ -95,8 +188,10 @@ export const IssueDetailContent = ({ issue }: IssueDetailContentProps) => {
               
               {/* Intro Section */}
                 <div className="pt-4 border-t border-border">
-                  <p className="text-muted-foreground italic leading-relaxed">
-                    {t('issueDetail.intro', { date: issue.date })}
+                  <p className="text-muted-foreground italic leading-relaxed" suppressHydrationWarning>
+                    <TranslatedText>
+                      {t('issueDetail.intro', { date: issue.date })}
+                    </TranslatedText>
                 </p>
               </div>
             </div>

@@ -1,68 +1,20 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Header } from "@/components/Header";
 import { TranslatedText } from "@/components/TranslatedText";
 import { Button } from "@/components/ui/button";
-import { useCurrentLanguage } from "@/hooks/use-current-language";
-import { addLanguageToPath, getLanguageFromPath } from "@/lib/i18n-utils";
+import { useParams } from "next/navigation";
+import { addLanguageToPath } from "@/lib/i18n-utils";
 
 function SubscribeSuccessContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
   const { t } = useTranslation();
-  const currentLang = useCurrentLanguage();
-  const [isRedirecting, setIsRedirecting] = useState(true);
-
-  // 自动重定向到对应的语言路由
-  useEffect(() => {
-    // 检查当前路径是否已经包含语言前缀
-    const langFromPath = getLanguageFromPath(pathname);
-    
-    // 如果路径已经包含语言前缀，不需要重定向
-    if (langFromPath) {
-      setIsRedirecting(false);
-      return;
-    }
-    
-    // 构建新的 URL，包含语言前缀和所有查询参数
-    const email = searchParams.get("email");
-    const status = searchParams.get("status");
-    const activated = searchParams.get("activated");
-    
-    // 构建查询参数字符串
-    const queryParams = new URLSearchParams();
-    if (email) queryParams.set("email", email);
-    if (status) queryParams.set("status", status);
-    if (activated) queryParams.set("activated", activated);
-    
-    const queryString = queryParams.toString();
-    const newPath = addLanguageToPath("/subscribe/success", currentLang) + (queryString ? `?${queryString}` : "");
-    
-    // 重定向到语言路由
-    router.replace(newPath);
-    setIsRedirecting(false);
-  }, [currentLang, router, searchParams, pathname]);
-
-  // 如果正在重定向，显示加载状态
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="paper-texture">
-          <div className="container mx-auto px-4 py-16 md:py-24">
-            <div className="max-w-2xl mx-auto text-center">
-              <p className="text-muted-foreground">Loading...</p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const params = useParams();
+  const lang = params?.lang as string || 'zh-CN';
 
   // 从 URL 参数获取邮箱和状态
   const email = searchParams.get("email");
@@ -73,7 +25,7 @@ function SubscribeSuccessContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header initialLang={lang as any} />
       <main className="paper-texture">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-2xl mx-auto">
@@ -142,9 +94,6 @@ function SubscribeSuccessContent() {
                 // 激活成功状态
                 <>
                   <div>
-                    {/*<h2 className="text-2xl font-bold text-primary mb-3">
-                      <TranslatedText>{t("subscribeSuccess.activatedMessageTitle")}</TranslatedText>
-                    </h2>*/}
                     <p className="text-lg leading-relaxed text-foreground mb-4">
                       <TranslatedText>{t("subscribeSuccess.activatedMessage")}</TranslatedText>
                     </p>
@@ -258,7 +207,7 @@ function SubscribeSuccessContent() {
               asChild
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider shadow-none border-2 border-primary"
             >
-              <Link href="/">
+              <Link href={addLanguageToPath("/", lang)}>
                 <TranslatedText>{t("subscribeSuccess.backToHome")}</TranslatedText>
               </Link>
             </Button>
@@ -267,7 +216,7 @@ function SubscribeSuccessContent() {
               variant="outline"
               className="border-2 border-border hover:border-primary font-bold uppercase tracking-wider"
             >
-              <Link href="/issues">
+              <Link href={addLanguageToPath("/issues", lang)}>
                 <TranslatedText>{t("subscribeSuccess.viewIssues")}</TranslatedText>
               </Link>
             </Button>

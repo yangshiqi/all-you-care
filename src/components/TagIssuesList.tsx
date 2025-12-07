@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { getAllAiContents, IssueSummary, extractTagsFromContent } from "@/lib/api";
 import { TranslatedText } from "./TranslatedText";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { addLanguageToPath } from "@/lib/i18n-utils";
 
 interface TagIssuesListProps {
   tag: string
@@ -13,6 +15,7 @@ interface TagIssuesListProps {
 
 export const TagIssuesList = ({ tag }: TagIssuesListProps) => {
   const { t, i18n } = useTranslation();
+  const lang = useCurrentLanguage();
   const [issues, setIssues] = useState<IssueSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,8 @@ export const TagIssuesList = ({ tag }: TagIssuesListProps) => {
             month: 'short',
             day: 'numeric'
           }),
-          tags: extractTagsFromContent(item.tags)
+          tags: extractTagsFromContent(item.tags),
+          journal_id: item.journal_id || item.id
         }));
         setIssues(formatted);
       } catch (err) {
@@ -83,18 +87,18 @@ export const TagIssuesList = ({ tag }: TagIssuesListProps) => {
                 <TranslatedText>{t('issuesList.noResults')}</TranslatedText>
               </p>
               <Button asChild className="mt-4" variant="outline">
-                <Link href="/issues">
+                <Link href={addLanguageToPath("/issues", lang)}>
                   <TranslatedText>{t('issuesList.backToHome')}</TranslatedText>
                 </Link>
               </Button>
             </div>
           ) : (
             filtered.map(issue => (
-              <article key={issue.id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
+              <article key={issue.journal_id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold text-primary mb-2">
-                      <Link href={`/issues/${issue.id}`} className="hover:text-primary/80 transition-colors">
+                      <Link href={addLanguageToPath(`/issues/${issue.journal_id}`, lang)} className="hover:text-primary/80 transition-colors">
                         {issue.title}
                       </Link>
                     </h2>
@@ -108,7 +112,7 @@ export const TagIssuesList = ({ tag }: TagIssuesListProps) => {
                   {issue.tags.map((t) => (
                     <Link
                       key={`${issue.id}-${t}`}
-                      href={`/tags/${encodeURIComponent(t)}`}
+                      href={addLanguageToPath(`/tags/${encodeURIComponent(t)}`, lang)}
                       className="px-3 py-1 text-xs bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
                     >
                       {t}
@@ -122,7 +126,7 @@ export const TagIssuesList = ({ tag }: TagIssuesListProps) => {
 
         <div className="text-center mt-12">
           <Button asChild className="vintage-border bg-primary text-primary-foreground px-8 py-3 font-bold uppercase tracking-wider hover:bg-primary/90">
-            <Link href="/issues">
+            <Link href={addLanguageToPath("/issues", lang)}>
               <TranslatedText>{t('issuesList.backToHome')}</TranslatedText>
             </Link>
           </Button>

@@ -2,6 +2,28 @@ export const zh_CN = {
   translation: {
     "siteTitle": "[AI]News - 打破信息茧房，获取行业资讯",
     "siteDescription": "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
+    "metadata": {
+      "home": {
+        "title": "[AI]News - 打破信息茧房，获取行业资讯",
+        "description": "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！"
+      },
+      "issues": {
+        "title": "所有往期内容 | [AI]News - 每日AI资讯摘要",
+        "description": "浏览所有AI新闻期刊，了解人工智能领域的最新发展"
+      },
+      "tags": {
+        "title": "所有标签 | [AI]News - 每日AI资讯摘要",
+        "description": "浏览所有标签并按主题探索AI新闻期刊"
+      },
+      "tagDetail": {
+        "title": "标签：{{tag}} | [AI]News",
+        "description": "浏览标签为 {{tag}} 的AI新闻期刊"
+      },
+      "issueDetail": {
+        "title": "{{title}} | [AI]News",
+        "description": "{{summary}}"
+      }
+    },
     "nav": {
       "subscribe": "订阅",
       "issues": "往期内容",

@@ -5,16 +5,25 @@ import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { TranslatedText } from "./TranslatedText";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { addLanguageToPath, type SupportedLanguage } from "@/lib/i18n-utils";
 
-export const Header = () => {
+interface HeaderProps {
+  initialLang?: SupportedLanguage; // 从服务器端传递的语言，避免 hydration mismatch
+}
+
+export const Header = ({ initialLang }: HeaderProps = {}) => {
   const { t } = useTranslation();
+  const langFromHook = useCurrentLanguage();
+  // 优先使用从服务器端传递的语言，确保服务器端和客户端一致
+  const lang = initialLang || langFromHook;
 
   return (
     <header className="border-b-4 border-primary bg-card shadow-sm">
       <div className="container mx-auto px-4 py-6 flex items-center justify-between">
         <div className="flex items-center gap-12">
           <Link 
-            href="/" 
+            href={addLanguageToPath("/", lang)} 
             className="flex items-center gap-0 group hover:opacity-80 transition-opacity"
           >
 <svg width="40" height="40" viewBox="0 0 513 512" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -34,29 +43,29 @@ export const Header = () => {
             </Link>*/}
             <span className="text-primary text-md">❖</span>
             <Link 
-              href="/issues" 
+              href={addLanguageToPath("/issues", lang)} 
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
             >
               <TranslatedText>{t('nav.issues')}</TranslatedText>
             </Link>
             <span className="text-primary text-md">❖</span>
             <Link 
-              href="/tags" 
+              href={addLanguageToPath("/tags", lang)} 
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
             </Link>
           </nav>
         </div>
-        {/*<div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <LanguageSwitcher />
-          <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors border-2 border-border px-3 py-1 hover:border-primary">
+          {/*<button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors border-2 border-border px-3 py-1 hover:border-primary">
             <Search className="w-4 h-4" />
             <TranslatedText className="hidden md:inline uppercase tracking-wider font-medium">
               {t('nav.search')}
             </TranslatedText>
-          </button>
-        </div>*/}
+          </button>*/}
+        </div>
       </div>
     </header>
   );

@@ -13,7 +13,11 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ]
-  }
+  },
+  // Turbopack 配置：明确指定项目根目录，避免检测到父目录的 lockfile
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

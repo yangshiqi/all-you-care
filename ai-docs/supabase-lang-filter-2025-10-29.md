@@ -8,7 +8,7 @@ Supabase 表 `n8n-ai-contents` 新增字段 `lang`（取值：`en` / `zh_CN`）�
 - 在 `src/lib/api.ts`：
   - 新增 `mapI18nLangToDbLang` 将 i18n 语言映射为 DB 语言：`zh-CN` → `zh_CN`，`en` → `en`。
   - `getIssueSummaries(limit, i18nLang?)` 支持基于 `lang` 过滤，优先按语言筛选；若未传语言参数，则返回全部。
-  - `getAiContentById(id, i18nLang?)` 优先用 `(id, lang)` 精确查询，若无结果回退到仅按 `id` 查询，避免空页面。
+  - `getAiContentByJournalId(journalId, i18nLang?)` 优先用 `(journalId, lang)` 精确查询，若无结果回退到仅按 `journalId` 查询，避免空页面。
 - 在 `src/components/RecentIssues.tsx` 中通过 `i18n.language` 传入当前语言，列表数据按语言过滤。
 - 在 `src/components/IssuesList.tsx` 中同样传入当前语言，`/issues` 页面也支持语言过滤。
 - 为 `IssuesList` 组件添加了完整的国际化支持，包括所有文本的翻译。
@@ -24,5 +24,5 @@ Supabase 表 `n8n-ai-contents` 新增字段 `lang`（取值：`en` / `zh_CN`）�
 ## 后续建议
 - 如需为详情页强制语言版本：
   1) 切换语言时写入 Cookie（例如 `language=en|zh-CN`），
-  2) 服务端读取 Cookie 并传给 `getAiContentById`。
+  2) 服务端读取 Cookie 并传给 `getAiContentByJournalId`。
 - 为 `lang` 建立索引以优化查询性能：`CREATE INDEX idx_n8n_ai_contents_lang ON n8n_ai_contents(lang);`

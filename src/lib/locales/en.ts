@@ -1,7 +1,29 @@
 export const en = {
   translation: {
-    "siteTitle": "AINews - Break Your Information Bubble",
-    "siteDescription": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI Discords, Reddits, and X/Twitter.",
+    "siteTitle": "[AI]News - Break Your Information Bubble",
+    "siteDescription": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI Discords, Reddits, X/Twitter, HackerNews, InfoQ, TechCrunch, CNCF, NVIDIA, Meta, OpenAI, Google, Microsoft, Amazon, Apple and more, and send you a roundup at least every weekday!",
+    "metadata": {
+      "home": {
+        "title": "[AI]News - Break Your Information Bubble",
+        "description": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI Discords, Reddits, X/Twitter, HackerNews, InfoQ, TechCrunch, CNCF, NVIDIA, Meta, OpenAI, Google, Microsoft, Amazon, Apple and more, and send you a roundup at least every weekday!"
+      },
+      "issues": {
+        "title": "All Issues | [AI]News - Daily AI Roundup for Engineers",
+        "description": "Browse all AI news issues and stay up to date with the latest developments in artificial intelligence."
+      },
+      "tags": {
+        "title": "All Tags | [AI]News - Daily AI Roundup for Engineers",
+        "description": "Browse all tags and explore AI news issues by topics."
+      },
+      "tagDetail": {
+        "title": "Tag: {{tag}} | [AI]News",
+        "description": "Browse AI news issues tagged with {{tag}}."
+      },
+      "issueDetail": {
+        "title": "{{title}} | [AI]News",
+        "description": "{{summary}}"
+      }
+    },
     "nav": {
       "subscribe": "subscribe",
       "issues": "issues",
@@ -9,7 +31,7 @@ export const en = {
       "search": "Search (Cmd+K)"
     },
     "hero": {
-      "title": "AINews",
+      "title": "[AI]News",
       "byLine": "by SnapAllx.ai",
       "subtitle": "Break your information bubble with quality industry news for everyone.",
       "description": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI messages from discords, reddits, X/Twitter, hackernews, infoq, techcrunch, cncf, nvidia, meta, openai, google, microsoft, amazon, apple, etc, and send you a roundup at least every weekday!",
@@ -141,6 +163,7 @@ export const en = {
       "error": "Error"
     },
     "issueDetail": {
+      "intro": "AI News for {{date}}. The following content comes from various tech platforms including AI Discord, Reddit, X/Twitter, HackerNews, InfoQ, TechCrunch, CNCF, NVIDIA, Meta, OpenAI, Google, Microsoft, Amazon, Apple, and more. It has been automatically organized and filtered by our AI models to ensure you get the most relevant information.",
       "backToIssues": "Back to Issues",
       "skipToMain": "Skip to Main",
       "showTags": "show/hide tags",

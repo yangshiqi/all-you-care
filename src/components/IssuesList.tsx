@@ -8,6 +8,8 @@ import Link from "next/link";
 import { IssueSummary, getAllAiContentsPaginated } from "@/lib/api";
 import { TranslatedText } from "./TranslatedText";
 import { Pagination } from "./Pagination";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { addLanguageToPath } from "@/lib/i18n-utils";
 
 interface IssuesListProps {
   initialIssues: IssueSummary[];
@@ -24,7 +26,8 @@ export const IssuesList = ({
   initialPageSize,
   initialTotalPages
 }: IssuesListProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const lang = useCurrentLanguage();
   const searchParams = useSearchParams();
   const [filter, setFilter] = useState("");
   const [issues, setIssues] = useState<IssueSummary[]>(initialIssues);
@@ -37,33 +40,33 @@ export const IssuesList = ({
   const [isInitialLoad, setIsInitialLoad] = useState(true); // 标记是否为初始加载
 
   // 加载指定页的数据
-  const loadPageData = useCallback(async (page: number, lang?: string) => {
+  const loadPageData = useCallback(async (page: number, langToUse?: string) => {
     try {
       setLoading(true);
-      const langToUse = lang || i18n.language;
-      const result = await getAllAiContentsPaginated(page, pageSize, langToUse);
+      const finalLang = langToUse || lang;
+      const result = await getAllAiContentsPaginated(page, pageSize, finalLang);
       setIssues(result.data);
       setTotal(result.total);
       setTotalPages(result.totalPages);
       setCurrentPage(result.page);
-      setCurrentLang(langToUse);
+      setCurrentLang(finalLang);
       setIsInitialLoad(false);
     } catch (error) {
       console.error('Error loading page data:', error);
     } finally {
       setLoading(false);
     }
-  }, [i18n.language, pageSize]);
+  }, [lang, pageSize]);
 
   // 组件挂载时，根据当前语言加载数据
   useEffect(() => {
     // 初始加载时，或者语言变化时，重新加载数据
-    if (isInitialLoad || i18n.language !== currentLang) {
+    if (isInitialLoad || lang !== currentLang) {
       const pageParam = searchParams.get('page');
       const page = pageParam ? parseInt(pageParam, 10) : 1;
-      loadPageData(page, i18n.language);
+      loadPageData(page, lang);
     }
-  }, [i18n.language, currentLang, searchParams, loadPageData, isInitialLoad]);
+  }, [lang, currentLang, searchParams, loadPageData, isInitialLoad]);
 
   // 从 URL 读取页码参数（仅当语言已确定后）
   useEffect(() => {
@@ -137,12 +140,12 @@ export const IssuesList = ({
             </div>
           ) : (
             filteredIssues.map((issue) => (
-              <article key={issue.id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
+              <article key={issue.journal_id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold text-primary mb-2">
                       <Link 
-                        href={`/issues/${issue.id}`}
+                        href={addLanguageToPath(`/issues/${issue.journal_id}`, lang)}
                         className="hover:text-primary/80 transition-colors"
                       >
                         {issue.title}
@@ -155,7 +158,7 @@ export const IssuesList = ({
                 </div>
                 
                 <p className="text-foreground mb-4 leading-relaxed">
-                  <Link href={`/issues/${issue.id}`} className="hover:text-primary/80 transition-colors">
+                  <Link href={addLanguageToPath(`/issues/${issue.journal_id}`, lang)} className="hover:text-primary/80 transition-colors">
                     {issue.summary}
                   </Link>
                 </p>
@@ -164,7 +167,7 @@ export const IssuesList = ({
                   {issue.tags.map((tag: string) => (
                     <Link
                       key={tag}
-                      href={`/tags/${encodeURIComponent(tag)}`}
+                      href={addLanguageToPath(`/tags/${encodeURIComponent(tag)}`, lang)}
                       className="px-3 py-1 text-xs bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
                     >
                       {tag}
@@ -183,14 +186,14 @@ export const IssuesList = ({
             totalPages={totalPages}
             totalCount={total}
             pageSize={pageSize}
-            baseUrl="/issues"
+            baseUrl={addLanguageToPath("/issues", lang)}
           />
         )}
 
 
         <div className="text-center mt-12">
           <Button asChild className="vintage-border bg-primary text-primary-foreground px-8 py-3 font-bold uppercase tracking-wider hover:bg-primary/90">
-            <Link href="/">
+            <Link href={addLanguageToPath("/", lang)}>
               <TranslatedText>{t('issuesList.backToHome')}</TranslatedText>
             </Link>
           </Button>

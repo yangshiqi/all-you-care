@@ -16,4 +16,5 @@ export interface N8nAiContent {
   lang?: string
   is_published?: boolean
   imgUrl: string | null
+  journal_id?: string
 }

@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { getIssueSummaries, getAllAiContents } from "@/lib/api";
+import { getIssueSummaries, getAllAiContents, IssueSummary } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/card";
 
 export default function TestSupabasePage() {
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{
+    summaries: IssueSummary[];
+    allContents: unknown[];
+    totalCount: number;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const testConnection = async () => {
@@ -76,8 +80,8 @@ export default function TestSupabasePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {data.summaries.map((issue: any) => (
-                  <div key={issue.id} className="border p-4 rounded">
+                {data.summaries.map((issue: IssueSummary) => (
+                  <div key={issue.journal_id} className="border p-4 rounded">
                     <h3 className="font-bold">{issue.title}</h3>
                     <p className="text-sm text-muted-foreground">{issue.date}</p>
                     <p className="mt-2">{issue.summary}</p>

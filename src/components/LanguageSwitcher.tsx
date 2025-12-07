@@ -2,11 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { switchLanguageInPath, isValidLanguage, type SupportedLanguage } from "@/lib/i18n-utils";
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentLang = useCurrentLanguage();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -14,11 +20,21 @@ export const LanguageSwitcher = () => {
   }, []);
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'zh-CN' : 'en';
-    i18n.changeLanguage(newLang);
+    const newLang: SupportedLanguage = currentLang === 'en' ? 'zh-CN' : 'en';
+    
+    // 切换 URL 路径中的语言（先切换 URL，让页面重新加载）
+    const newPath = switchLanguageInPath(pathname, newLang);
+    
+    // 更新 localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('language', newLang);
     }
+    
+    // 更新 i18n（在导航之前更新，确保状态一致）
+    i18n.changeLanguage(newLang);
+    
+    // 使用 replace 而不是 push，避免在历史记录中留下太多条目
+    router.replace(newPath);
   };
 
   if (!mounted) {
@@ -43,7 +59,7 @@ export const LanguageSwitcher = () => {
       className="flex items-center gap-2 uppercase tracking-wider"
     >
       <Globe className="w-4 h-4" />
-      {i18n.language === 'en' ? '中文' : 'EN'}
+      {currentLang === 'en' ? '中文' : 'EN'}
     </Button>
   );
 };

@@ -4,9 +4,20 @@ import { Header } from "@/components/Header";
 import { IssueDetailContent } from "@/components/IssueDetailContent";
 import { getAiContentByJournalId, extractTagsFromContent, getAllAiContents } from "@/lib/api";
 import { getAbsoluteUrl } from "@/lib/utils";
+import { isValidLanguage, SUPPORTED_LANGUAGES } from "@/lib/i18n-utils";
+
+// 导入翻译资源
+import { en } from "@/lib/locales/en";
+import { zh_CN } from "@/lib/locales/zh_CN";
+
+const translations = {
+  en: en.translation,
+  'zh-CN': zh_CN.translation,
+};
 
 interface IssueDetailPageProps {
   params: Promise<{
+    lang: string;
     slug: string;
   }>;
 }
@@ -17,10 +28,19 @@ export async function generateStaticParams() {
     // 从Supabase获取所有AI内容
     const contents = await getAllAiContents();
     
-    // 返回所有slug参数（确保转换为字符串）
-    return contents.map((content) => ({
-      slug: String(content.id),
-    }));
+    // 为每种语言和每个 slug 生成参数
+    const params: Array<{ lang: string; slug: string }> = [];
+    
+    for (const lang of SUPPORTED_LANGUAGES) {
+      for (const content of contents) {
+        params.push({
+          lang,
+          slug: String(content.id),
+        });
+      }
+    }
+    
+    return params;
   } catch (error) {
     console.error('Error generating static params:', error);
     // 返回空数组，避免构建失败
@@ -29,10 +49,10 @@ export async function generateStaticParams() {
 }
 
 // 从 Supabase 获取期刊数据
-async function getIssueData(slug: string) {
+async function getIssueData(slug: string, lang?: string) {
   try {
     // 尝试从 Supabase 获取数据
-    const supabaseData = await getAiContentByJournalId(slug);
+    const supabaseData = await getAiContentByJournalId(slug, lang);
     
     if (supabaseData) {
       // 格式化日期
@@ -175,25 +195,51 @@ function generateTagCategories(tags: string | null | undefined) {
 }
 
 export async function generateMetadata({ params }: IssueDetailPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const issue = await getIssueData(slug);
+  const { lang, slug } = await params;
+  
+  if (!isValidLanguage(lang)) {
+    return {
+      title: "Issue Not Found | [AI]News",
+    };
+  }
+  
+  const issue = await getIssueData(slug, lang);
   
   if (!issue) {
     return {
-      title: "Issue Not Found",
+      title: "Issue Not Found | [AI]News",
       description: "The requested issue could not be found.",
     };
   }
 
+  const t = translations[lang];
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com';
   const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
+  
+  // 生成所有语言版本的 URL
+  const alternateLanguages: Record<string, string> = {};
+  SUPPORTED_LANGUAGES.forEach((supportedLang) => {
+    alternateLanguages[supportedLang] = `${baseUrl}/${supportedLang}/issues/${slug}`;
+  });
+  
+  // 使用翻译模板生成标题和描述
+  const title = t.metadata.issueDetail.title.replace('{{title}}', issue.title);
+  const description = t.metadata.issueDetail.description.replace('{{summary}}', issue.summary);
 
   return {
-    title: `${issue.title} | AINews`,
-    description: issue.summary,
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/${lang}/issues/${slug}`,
+      languages: alternateLanguages,
+    },
     openGraph: {
       title: issue.title,
       description: issue.summary,
       type: "article",
+      locale: lang === 'en' ? 'en_US' : 'zh_CN',
+      alternateLocale: lang === 'en' ? 'zh_CN' : 'en_US',
+      url: `${baseUrl}/${lang}/issues/${slug}`,
       publishedTime: issue.date,
       images: [
         {
@@ -221,17 +267,27 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
 }
 
 export default async function IssueDetailPage({ params }: IssueDetailPageProps) {
-  const { slug } = await params;
-  const issue = await getIssueData(slug);
+  const { lang, slug } = await params;
+  
+  if (!isValidLanguage(lang)) {
+    notFound();
+  }
+  
+  const issue = await getIssueData(slug, lang);
   
   if (!issue) {
     notFound();
   }
 
+  // 检查 en 版本是否存在
+  const enVersion = await getAiContentByJournalId(slug, 'en');
+  const hasEnVersion = !!enVersion;
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      <IssueDetailContent issue={issue} />
+      <Header initialLang={lang} />
+      <IssueDetailContent issue={issue} issueId={slug} hasEnVersion={hasEnVersion} initialLang={lang} />
     </div>
   );
 }
+

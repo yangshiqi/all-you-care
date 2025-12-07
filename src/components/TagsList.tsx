@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getAllTags } from "@/lib/api";
 import { TranslatedText } from "./TranslatedText";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { addLanguageToPath } from "@/lib/i18n-utils";
 
 interface TagInfo {
   name: string;
@@ -13,6 +15,7 @@ interface TagInfo {
 
 export const TagsList = () => {
   const { t, i18n } = useTranslation();
+  const lang = useCurrentLanguage();
   const [tags, setTags] = useState<TagInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +25,7 @@ export const TagsList = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAllTags();
+        const data = await getAllTags(i18n.language);
         const tagsArray: TagInfo[] = data.map(row => ({ name: row.name, count: row.total }));
         setTags(tagsArray);
       } catch (err) {
@@ -75,7 +78,7 @@ export const TagsList = () => {
                 {tags.map((tagInfo) => (
                   <Link
                     key={tagInfo.name}
-                    href={`/tags/${encodeURIComponent(tagInfo.name)}`}
+                    href={addLanguageToPath(`/tags/${encodeURIComponent(tagInfo.name)}`, lang)}
                     className="group px-4 py-2 bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider font-medium relative"
                   >
                     <span>{tagInfo.name}</span>
@@ -91,7 +94,7 @@ export const TagsList = () => {
 
         <div className="text-center mt-12">
           <Link 
-            href="/issues"
+            href={addLanguageToPath("/issues", lang)}
             className="inline-block vintage-border bg-primary text-primary-foreground px-8 py-3 font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors"
           >
             <TranslatedText>{t('tagsList.backToIssues')}</TranslatedText>

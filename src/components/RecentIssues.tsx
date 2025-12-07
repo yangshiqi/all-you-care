@@ -7,9 +7,12 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { TranslatedText } from "./TranslatedText";
 import { getIssueSummaries, IssueSummary } from "@/lib/api";
+import { useCurrentLanguage } from "@/hooks/use-current-language";
+import { addLanguageToPath } from "@/lib/i18n-utils";
 
 export const RecentIssues = () => {
   const { t, i18n } = useTranslation();
+  const lang = useCurrentLanguage();
   const [filter, setFilter] = useState("");
   const [issues, setIssues] = useState<IssueSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,14 +36,16 @@ export const RecentIssues = () => {
             title: "AI breakthroughs in multimodal learning",
             date: "Dec 19, 2024",
             summary: "Major advances in vision-language models and their applications",
-            tags: ["multimodal", "vision", "language", "breakthrough"]
+            tags: ["multimodal", "vision", "language", "breakthrough"],
+            journal_id: "fallback-1"
           },
           {
             id: "fallback-2",
             title: "New open source models released",
             date: "Dec 17, 2024",
             summary: "Several organizations released new open source AI models",
-            tags: ["open-source", "models", "release"]
+            tags: ["open-source", "models", "release"],
+            journal_id: "fallback-2"
           }
         ]);
       } finally {
@@ -105,12 +110,12 @@ export const RecentIssues = () => {
               </div>
             ) : (
               filteredIssues.map((issue) => (
-                <article key={issue.id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
+                <article key={issue.journal_id} className="bg-card vintage-border p-6 hover:shadow-lg transition-shadow">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-primary mb-2">
                         <Link 
-                          href={`/issues/${issue.id}`}
+                          href={addLanguageToPath(`/issues/${issue.journal_id}`, lang)}
                           className="hover:text-primary/80 transition-colors"
                         >
                           {issue.title}
@@ -123,7 +128,7 @@ export const RecentIssues = () => {
                   </div>
                   
                   <p className="text-foreground mb-4 leading-relaxed">
-                    <Link href={`/issues/${issue.id}`} className="hover:text-primary/80 transition-colors">
+                    <Link href={addLanguageToPath(`/issues/${issue.journal_id}`, lang)} className="hover:text-primary/80 transition-colors">
                       {issue.summary}
                     </Link>
                   </p>
@@ -132,7 +137,7 @@ export const RecentIssues = () => {
                     {issue.tags.map((tag: string) => (
                       <Link
                         key={tag}
-                        href={`/tags/${tag}`}
+                        href={addLanguageToPath(`/tags/${encodeURIComponent(tag)}`, lang)}
                         className="px-3 py-1 text-xs bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
                       >
                         {tag}
@@ -146,7 +151,7 @@ export const RecentIssues = () => {
 
           <div className="text-center mt-12">
             <Button asChild className="vintage-border bg-primary text-primary-foreground px-8 py-3 font-bold uppercase tracking-wider hover:bg-primary/90">
-              <Link href="/issues">
+              <Link href={addLanguageToPath("/issues", lang)}>
                 <TranslatedText>{t('recentIssues.seeAll')}</TranslatedText>
               </Link>
             </Button>

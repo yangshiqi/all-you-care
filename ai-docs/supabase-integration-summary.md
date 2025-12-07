@@ -21,7 +21,7 @@
 ### 3. API 服务层
 - 创建 `src/lib/api.ts` - 统一的数据获取接口
 - 实现 `getAllAiContents()` - 获取所有数据
-- 实现 `getAiContentById()` - 根据ID获取单条数据
+- 实现 `getAiContentByJournalId()` - 根据 journal_id 获取单条数据
 - 实现 `getIssueSummaries()` - 获取首页摘要数据
 - 添加数据转换和标签提取逻辑
 

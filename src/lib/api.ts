@@ -7,6 +7,7 @@ export interface IssueSummary {
   summary: string
   date: string
   tags: string[]
+  journal_id: string
 }
 
 export interface TagSummary {
@@ -62,7 +63,7 @@ export async function getAllAiContentsPaginated(
     // 获取分页数据
     let dataQuery = supabase
       .from('n8n-ai-contents')
-      .select('id, title, summary, created_at, tags, lang')
+      .select('id, title, summary, created_at, tags, lang, journal_id')
       .order('created_at', { ascending: false })
       .range(from, to)
 
@@ -83,7 +84,8 @@ export async function getAllAiContentsPaginated(
       title: item.title,
       summary: item.summary,
       date: formatDate(item.created_at),
-      tags: extractTagsFromContent(item.tags)
+      tags: extractTagsFromContent(item.tags),
+      journal_id: item.journal_id
     }))
 
     return {
@@ -131,9 +133,9 @@ export async function getAllAiContents(i18nLang?: string): Promise<N8nAiContent[
 }
 
 /**
- * 根据 ID 获取单个 AI 内容
+ * 根据 journal_id 获取单个 AI 内容
  */
-export async function getAiContentById(id: string, i18nLang?: string): Promise<N8nAiContent | null> {
+export async function getAiContentByJournalId(journalId: string, i18nLang?: string): Promise<N8nAiContent | null> {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
 
@@ -142,7 +144,7 @@ export async function getAiContentById(id: string, i18nLang?: string): Promise<N
       const { data: langData, error: langError } = await supabase
         .from('n8n-ai-contents')
         .select('*')
-        .eq('id', id)
+        .eq('journal_id', journalId)
         .eq('lang', dbLang)
         .single()
 
@@ -155,7 +157,7 @@ export async function getAiContentById(id: string, i18nLang?: string): Promise<N
     const { data, error } = await supabase
       .from('n8n-ai-contents')
       .select('*')
-      .eq('id', id)
+      .eq('journal_id', journalId)
       .single()
 
     if (error) {
@@ -163,13 +165,13 @@ export async function getAiContentById(id: string, i18nLang?: string): Promise<N
         // 记录不存在
         return null
       }
-      console.error('Error fetching AI content by ID:', error)
+      console.error('Error fetching AI content by journal ID:', error)
       throw new Error(`Failed to fetch AI content: ${error.message}`)
     }
 
     return data
   } catch (error) {
-    console.error('Error in getAiContentById:', error)
+    console.error('Error in getAiContentByJournalId:', error)
     throw error
   }
 }
@@ -179,12 +181,10 @@ export async function getAiContentById(id: string, i18nLang?: string): Promise<N
  */
 // 将 i18n 语言映射到数据库中的 lang 值
 function mapI18nLangToDbLang(i18nLang: string | undefined): string | undefined {
-  return 'zh_CN'
-  
-  //if (!i18nLang) return undefined
-  //if (i18nLang === 'zh-CN' || i18nLang === 'zh') return 'zh_CN'
-  //if (i18nLang.startsWith('en')) return 'en'
-  //return undefined
+  if (!i18nLang) return undefined
+  if (i18nLang === 'zh-CN' || i18nLang === 'zh') return 'zh_CN'
+  if (i18nLang.startsWith('en')) return 'en'
+  return undefined
 }
 
 export async function getIssueSummaries(limit: number = 5, i18nLang?: string): Promise<IssueSummary[]> {
@@ -198,7 +198,7 @@ export async function getIssueSummaries(limit: number = 5, i18nLang?: string): P
 
     let query = supabase
       .from('n8n-ai-contents')
-      .select('id, title, summary, created_at, tags, lang')
+      .select('id, title, summary, created_at, tags, lang, journal_id')
       .gte('created_at', sevenDaysAgoISO)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -221,7 +221,8 @@ export async function getIssueSummaries(limit: number = 5, i18nLang?: string): P
       title: item.title,
       summary: item.summary,
       date: formatDate(item.created_at),
-      tags: extractTagsFromContent(item.tags) // 从 tags 字段解析标签
+      tags: extractTagsFromContent(item.tags), // 从 tags 字段解析标签
+      journal_id: item.journal_id
     }))
   } catch (error) {
     console.error('Error in getIssueSummaries:', error)
@@ -287,24 +288,53 @@ export function extractTagsFromContent(tags: string | null | undefined): string[
 }
 
 /**
- * 从 n8n_ai_tags 表获取所有标签及数量
+ * 从 n8n_ai_contents 表获取所有标签及数量（支持语言过滤）
  */
-export async function getAllTags(): Promise<TagSummary[]> {
+export async function getAllTags(i18nLang?: string): Promise<TagSummary[]> {
   try {
-    const { data, error } = await supabase
-      .from('n8n-ai-tags')
-      .select('name, total')
-      .order('total', { ascending: false })
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+
+    // 从 n8n-ai-contents 表中获取所有内容，根据语言过滤
+    let query = supabase
+      .from('n8n-ai-contents')
+      .select('tags')
+
+    if (dbLang) {
+      // 根据当前站点语言过滤对应语言版本
+      query = query.eq('lang', dbLang)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching tags:', error)
       throw new Error(`Failed to fetch tags: ${error.message}`)
     }
 
-    return (data || []).map((row: { name: unknown; total: unknown }) => ({
-      name: String(row.name),
-      total: Number(row.total) || 0,
-    }))
+    // 统计标签数量
+    const tagCountMap = new Map<string, number>()
+
+    if (data) {
+      data.forEach((item) => {
+        const tags = extractTagsFromContent(item.tags)
+        tags.forEach((tag) => {
+          const normalizedTag = tag.trim().toLowerCase()
+          if (normalizedTag) {
+            tagCountMap.set(normalizedTag, (tagCountMap.get(normalizedTag) || 0) + 1)
+          }
+        })
+      })
+    }
+
+    // 转换为 TagSummary 数组并按数量排序
+    const tagSummaries: TagSummary[] = Array.from(tagCountMap.entries())
+      .map(([name, total]) => ({
+        name,
+        total,
+      }))
+      .sort((a, b) => b.total - a.total)
+
+    return tagSummaries
   } catch (error) {
     console.error('Error in getAllTags:', error)
     throw error
