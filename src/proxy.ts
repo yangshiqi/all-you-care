@@ -4,8 +4,6 @@ import {
   detectLanguage,
   getLanguageFromPath,
   addLanguageToPath,
-  isValidLanguage,
-  DEFAULT_LANGUAGE,
 } from '@/lib/i18n-utils';
 
 export function proxy(request: NextRequest) {
@@ -25,7 +23,8 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/robots.txt') ||
-    pathname.startsWith('/sitemap')
+    pathname.startsWith('/sitemap') ||
+    pathname.startsWith('/ainews/')
   ) {
     return NextResponse.next();
   }
@@ -76,8 +75,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - robots.txt, sitemap.xml 等静态文件
+     * - ainews/ (静态图片资源目录)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap|ainews).*)',
   ],
 };
 
