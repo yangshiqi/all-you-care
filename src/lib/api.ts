@@ -151,9 +151,12 @@ export async function getAiContentByJournalId(journalId: string, i18nLang?: stri
       if (!langError && langData) {
         return langData
       }
-      // 如果语言版本不存在，继续走非语言限定的回退逻辑
-    }
 
+      // 在没有对应的语言版本时，返回 null
+      return null  
+    }
+    
+    // 如果语言版本不存在，继续走非语言限定的回退逻辑
     const { data, error } = await supabase
       .from('n8n-ai-contents')
       .select('*')

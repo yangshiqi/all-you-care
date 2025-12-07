@@ -228,10 +228,14 @@ export default async function IssueDetailPage({ params }: IssueDetailPageProps) 
     notFound();
   }
 
+  // 检查 en 版本是否存在
+  const enVersion = await getAiContentByJournalId(slug, 'en');
+  const hasEnVersion = !!enVersion;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <IssueDetailContent issue={issue} />
+      <IssueDetailContent issue={issue} issueId={slug} hasEnVersion={hasEnVersion} />
     </div>
   );
 }
