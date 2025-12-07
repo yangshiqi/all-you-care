@@ -1,3 +1,19 @@
+## 2025-01-XX - 从 sitemap 中排除 subscribe 页面
+
+### 🎯 SEO 优化
+- **排除订阅页面**: 将 `/subscribe` 目录及其所有子页面从 sitemap.xml 中移除
+- **原因**: 订阅页面属于功能性页面，不需要被搜索引擎索引
+- **影响范围**: `/subscribe/success` 和 `/subscribe/snow` 页面不再出现在 sitemap 中
+
+### 📝 修改文件
+- `src/app/sitemap.ts` - 移除 subscribe 相关页面的 sitemap 条目
+
+### ✨ 功能特性
+- **SEO 优化**: 减少不必要的 sitemap 条目，提高 sitemap 质量
+- **隐私保护**: 订阅相关页面不被搜索引擎索引，保护用户隐私
+
+---
+
 ## 2025-01-XX - 优化静态文件和 sitemap 生成逻辑
 
 ### 🐛 问题修复
