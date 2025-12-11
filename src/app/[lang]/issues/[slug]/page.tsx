@@ -58,6 +58,7 @@ async function getIssueData(slug: string, lang?: string) {
   try {
     // 尝试从 Supabase 获取数据
     const supabaseData = await getAiContentByJournalId(slug, lang);
+    console.log('supabaseData', supabaseData);
     
     if (supabaseData) {
       // 格式化日期
@@ -69,7 +70,8 @@ async function getIssueData(slug: string, lang?: string) {
 
       // 解析 content 字段中的 HTML 内容
       const formattedContent = formatHtmlContent(supabaseData.content);
-      
+
+      console.log('formattedContent', formattedContent);
       // 处理图片 URL：如果是 https 开头则保持原值，否则使用 getAbsoluteUrl 转换
       const imgUrl = supabaseData.imgUrl?.startsWith('https')
         ? supabaseData.imgUrl
@@ -129,22 +131,6 @@ function removeTagsSection(html: string): string {
     
     // 0.5. 移除带有 class="hero-img" 的图片标签
     result = result.replace(/<img[^>]*class\s*=\s*["']hero-img["'][^>]*\/?>/gi, '');
-    
-    // 1. 移除包含 class="tags" 的容器元素（div, section, aside 等）及其所有内容
-    // 匹配标签名，然后匹配到对应的结束标签
-    result = result.replace(/<(div|section|aside)[^>]*class\s*=\s*["'][^"']*\btags\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, '');
-    
-    // 2. 移除包含 id="tags" 或 id="tag" 的元素及其所有内容
-    result = result.replace(/<(div|section|aside)[^>]*id\s*=\s*["']tags?["'][^>]*>[\s\S]*?<\/\1>/gi, '');
-    
-    // 3. 移除包含 class="tag" 的单个标签元素（span, div, a 等）
-    result = result.replace(/<(span|div|a)[^>]*class\s*=\s*["'][^"']*\btag\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, '');
-    
-    // 4. 移除包含"相关标签"或"Related Tags"文本的 section 元素（包括标题中包含该文本的情况）
-    result = result.replace(/<section[^>]*>[\s\S]*?(?:相关标签|Related Tags)[\s\S]*?<\/section>/gi, '');
-    
-    // 5. 通用匹配：移除任何包含 class="tags" 的元素（作为后备方案）
-    result = result.replace(/<[^>]+class\s*=\s*["'][^"']*\btags\b[^"']*["'][^>]*>[\s\S]*?<\/[^>]+>/gi, '');
   }
   
   return result.trim();
@@ -163,9 +149,10 @@ function formatHtmlContent(content: string | null | undefined) {
 
   // 提取 body 标签内的内容（如果存在）
   let extractedContent = extractBodyContent(content);
-  
+  console.log('extractedContent111', extractedContent);
   // 过滤掉 tags 相关的 section
   extractedContent = removeTagsSection(extractedContent);
+  console.log('extractedContent222', extractedContent);
 
   // 如果内容已经是 HTML 格式，直接返回
   if (extractedContent.includes('<h') || extractedContent.includes('<p>') || extractedContent.includes('<div>')) {
@@ -178,7 +165,7 @@ function formatHtmlContent(content: string | null | undefined) {
 
   // 如果是纯文本，转换为 HTML 格式
   const paragraphs = extractedContent.split('\n\n').filter(p => p.trim());
-  
+  console.log('paragraphs', paragraphs);
   return [{
     id: "main-content",
     title: "Content",
