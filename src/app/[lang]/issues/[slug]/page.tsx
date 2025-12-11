@@ -58,7 +58,6 @@ async function getIssueData(slug: string, lang?: string) {
   try {
     // 尝试从 Supabase 获取数据
     const supabaseData = await getAiContentByJournalId(slug, lang);
-    console.log('supabaseData', supabaseData);
     
     if (supabaseData) {
       // 格式化日期
@@ -71,7 +70,6 @@ async function getIssueData(slug: string, lang?: string) {
       // 解析 content 字段中的 HTML 内容
       const formattedContent = formatHtmlContent(supabaseData.content);
 
-      console.log('formattedContent', formattedContent);
       // 处理图片 URL：如果是 https 开头则保持原值，否则使用 getAbsoluteUrl 转换
       const imgUrl = supabaseData.imgUrl?.startsWith('https')
         ? supabaseData.imgUrl
@@ -149,10 +147,8 @@ function formatHtmlContent(content: string | null | undefined) {
 
   // 提取 body 标签内的内容（如果存在）
   let extractedContent = extractBodyContent(content);
-  console.log('extractedContent111', extractedContent);
   // 过滤掉 tags 相关的 section
   extractedContent = removeTagsSection(extractedContent);
-  console.log('extractedContent222', extractedContent);
 
   // 如果内容已经是 HTML 格式，直接返回
   if (extractedContent.includes('<h') || extractedContent.includes('<p>') || extractedContent.includes('<div>')) {
@@ -165,7 +161,6 @@ function formatHtmlContent(content: string | null | undefined) {
 
   // 如果是纯文本，转换为 HTML 格式
   const paragraphs = extractedContent.split('\n\n').filter(p => p.trim());
-  console.log('paragraphs', paragraphs);
   return [{
     id: "main-content",
     title: "Content",
