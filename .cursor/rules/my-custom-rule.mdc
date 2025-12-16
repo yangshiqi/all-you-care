@@ -17,3 +17,8 @@ alwaysApply: true
     * Making sure all images have descriptive **`alt` attributes**.
     * Optimizing for **page load speed** and **mobile responsiveness**.
     * Implementing clear, concise, and descriptive **page titles** and **meta descriptions** where applicable.
+9.  **Use Latest APIs:** Always use the **latest recommended APIs and methods**. Never use deprecated or outdated APIs. Before implementing new features, check the official documentation to ensure using the recommended approach. If deprecated APIs are found, refer to the official migration guide and update immediately. For Next.js specifically:
+    * Use `src/proxy.ts` instead of `src/middleware.ts` (middleware.ts is deprecated)
+    * Use `await params` for dynamic route parameters (Next.js 16+)
+    * Use `generateMetadata` function for page metadata
+    * Use `generateStaticParams` for static page generation

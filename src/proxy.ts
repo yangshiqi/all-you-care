@@ -17,14 +17,22 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   
+  // 静态文件扩展名列表（public 目录下的文件）
+  const staticFileExtensions = [
+    '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico',
+    '.pdf', '.txt', '.xml', '.json', '.css', '.js', '.woff', '.woff2', '.ttf', '.eot'
+  ];
+  
+  // 检查是否是静态文件（通过文件扩展名判断）
+  const isStaticFile = staticFileExtensions.some(ext => pathname.toLowerCase().endsWith(ext));
+  
   // 跳过 API 路由、静态资源和 Next.js 内部路径
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
-    pathname.startsWith('/favicon.ico') ||
-    pathname.startsWith('/robots.txt') ||
     pathname.startsWith('/sitemap') ||
-    pathname.startsWith('/ainews/')
+    pathname.startsWith('/ainews/') ||
+    isStaticFile  // 跳过静态文件（public 目录下的文件）
   ) {
     return NextResponse.next();
   }
@@ -76,6 +84,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - robots.txt, sitemap.xml 等静态文件
      * - ainews/ (静态图片资源目录)
+     * - 静态文件扩展名（.jpg, .png, .svg 等）- 在 proxy 函数中通过扩展名检测处理
+     * 注意：public 目录下的文件通过根路径直接访问（如 /welcome.jpg），在 proxy 函数中通过文件扩展名检测跳过
      */
     '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap|ainews).*)',
   ],

@@ -1,3 +1,116 @@
+## 2025-01-XX - 修复静态文件无法访问的问题
+
+### 🐛 问题修复
+- **问题描述**: 访问 `localhost:3000/x_welcome.jpg` 等静态文件时无法打开
+- **根本原因**: `proxy.ts` 的匹配规则会拦截所有路径，包括静态文件，导致静态文件被添加语言前缀并重定向
+- **影响范围**: 所有 `public/` 目录下的静态文件（图片、字体、图标等）都无法直接访问
+
+### ✨ 解决方案
+- **静态文件检测**: 在 `proxy.ts` 中添加静态文件扩展名检测
+- **自动跳过**: 如果路径是静态文件（通过文件扩展名判断），直接跳过语言重定向处理
+- **支持的文件类型**: .jpg, .jpeg, .png, .gif, .svg, .webp, .ico, .pdf, .txt, .xml, .json, .css, .js, .woff, .woff2, .ttf, .eot
+
+### 🔧 技术实现
+- **扩展名检测**: 使用 `staticFileExtensions` 数组定义静态文件扩展名列表
+- **路径检测**: 检查 `pathname` 是否以静态文件扩展名结尾（不区分大小写）
+- **跳过处理**: 如果是静态文件，直接返回 `NextResponse.next()`，不进行语言重定向
+
+### 📝 修改文件
+- `src/proxy.ts` - 添加静态文件扩展名检测逻辑
+
+### ✅ 验证
+- ✅ `/x_welcome.jpg` 现在可以正常访问
+- ✅ `/welcome.jpg` 现在可以正常访问
+- ✅ 其他静态文件（.svg, .png 等）都可以正常访问
+- ✅ 页面路由仍然正常工作，会自动添加语言前缀
+
+### ⚠️ 注意事项
+- 静态文件必须放在 `public/` 目录下
+- 访问时使用根路径（如 `/x_welcome.jpg`），不需要 `/public/` 前缀
+- 如果添加了新的静态文件类型，需要在 `staticFileExtensions` 数组中添加对应的扩展名
+
+---
+
+## 2025-01-XX - 添加 API 使用规范：使用最新 API，避免废弃方法
+
+### 📋 项目规范更新
+- **新增规范**: 在项目规范中添加了 API 使用规范章节
+- **核心要求**: 必须使用官方推荐的最新 API，禁止使用废弃或过时的方法
+- **检查清单**: 添加了代码提交前的检查清单
+
+### ✨ 规范内容
+- **使用最新 API**: 必须使用官方推荐的最新 API 和方法
+- **避免废弃方法**: 禁止使用官方已废弃（deprecated）或过时的方法
+- **及时更新**: 当框架或库发布新版本时，及时检查并更新代码中的废弃 API
+- **文档参考**: 在实现新功能前，查阅官方最新文档，确保使用推荐的 API
+- **迁移指南**: 如果发现使用了废弃 API，参考官方迁移指南进行更新
+
+### 🔧 Next.js 特定规范
+- **中间件**: 使用 `src/proxy.ts` 而不是 `src/middleware.ts`（Next.js 已弃用 middleware.ts）
+- **路由参数**: 使用 `await params` 处理动态路由参数（Next.js 16+）
+- **元数据**: 使用 `generateMetadata` 函数生成页面元数据
+- **静态生成**: 使用 `generateStaticParams` 进行静态页面生成
+
+### 📝 修改文件
+- `allaboutproject.md` - 在代码规范章节添加 API 使用规范
+
+### ⚠️ 注意事项
+- 所有开发人员在提交代码前必须检查是否使用了废弃 API
+- 如果发现废弃 API，必须立即更新为最新推荐的方法
+- 定期检查依赖包更新，及时迁移到新版本 API
+
+---
+
+## 2025-01-XX - 修正静态文件访问方式：使用 Next.js 标准用法
+
+### 🎯 问题修正
+- **问题**: 之前添加了 `/public/*` rewrites 支持，但这不是 Next.js 的标准做法
+- **标准做法**: Next.js 中 `public/` 目录下的文件应通过根路径直接访问，不需要 `/public/` 前缀
+
+### ✨ 正确的用法
+- **文件存放**: 图片等静态文件放在 `public/` 目录下（如 `public/welcome.jpg`）
+- **URL 访问**: 通过根路径访问（如 `/welcome.jpg`），**不需要** `/public/` 前缀
+- **Next.js 标准**: 这是 Next.js 官方推荐的标准做法
+
+### 🔧 技术修正
+- **移除 rewrites**: 移除了 `next.config.ts` 中的 `/public/*` rewrites 配置
+- **更新中间件**: 移除了 `src/proxy.ts` 中对 `/public/*` 路径的特殊处理
+- **更新文档**: 在 `allaboutproject.md` 中明确说明正确的静态文件访问方式
+
+### 📝 修改文件
+- `next.config.ts` - 移除 `/public/*` rewrites 配置
+- `src/proxy.ts` - 移除 `/public/*` 路径的特殊处理
+- `allaboutproject.md` - 更新静态文件访问说明，添加正确和错误的用法示例
+
+### ✅ 使用示例
+```tsx
+// ✅ 正确用法
+<img src="/welcome.jpg" alt="Welcome" />
+<Image src="/x_welcome.jpg" alt="Welcome" width={1200} height={630} />
+
+// ❌ 错误用法（不要使用）
+<img src="/public/welcome.jpg" alt="Welcome" />
+```
+
+### ⚠️ 注意事项
+- 所有静态文件都应放在 `public/` 目录下
+- 访问时使用根路径（如 `/welcome.jpg`），不要加 `/public/` 前缀
+- 这是 Next.js 的标准做法，符合官方文档推荐
+
+### 🎯 使用方式
+- **访问静态文件**: 使用 `/public/文件名` 格式访问 `public/` 目录下的文件
+- **示例路径**:
+  - `/public/welcome.jpg` → 访问 `public/welcome.jpg`
+  - `/public/x_welcome.jpg` → 访问 `public/x_welcome.jpg`
+  - `/public/robots.txt` → 访问 `public/robots.txt`
+
+### ⚠️ 注意事项
+- 静态文件仍然可以通过根路径直接访问（如 `/welcome.jpg`）
+- `/public/*` 路径是额外的访问方式，不影响原有路径
+- 中间件会跳过 `/public/*` 路径，不会进行语言重定向处理
+
+---
+
 ## 2025-01-XX - 从 sitemap 中排除 subscribe 页面
 
 ### 🎯 SEO 优化

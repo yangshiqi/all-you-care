@@ -60,10 +60,27 @@ ainews/
 - **订阅成功页**: `/subscribe/success` - 订阅成功提示页面（支持激活状态）
 - **SNOW订阅页**: `/subscribe/snow` - SNOW新闻订阅页面（简洁设计风格）
 
+### 静态文件访问
+- **文件存放**: 所有静态文件（图片、字体、图标等）应放在 `public/` 目录下
+- **URL 访问**: 通过根路径直接访问，**不需要** `/public/` 前缀
+  - ✅ 正确：`/welcome.jpg` → 访问 `public/welcome.jpg`
+  - ✅ 正确：`/x_welcome.jpg` → 访问 `public/x_welcome.jpg`
+  - ❌ 错误：`/public/welcome.jpg`（这不是 Next.js 标准用法）
+- **Next.js 标准**: 这是 Next.js 的官方推荐做法，`public/` 目录下的文件会自动映射到网站根路径
+- **代码示例**: 
+  ```tsx
+  // ✅ 正确用法
+  <img src="/welcome.jpg" alt="Welcome" />
+  <Image src="/x_welcome.jpg" alt="Welcome" width={1200} height={630} />
+  
+  // ❌ 错误用法（不要使用）
+  <img src="/public/welcome.jpg" alt="Welcome" />
+  ```
+
 ### 域名重定向
 - **重定向规则**: 访问 `ai.snapallx.com` 时自动重定向到首页
 - **实现方式**: 使用 Next.js 代理 (`src/proxy.ts`) 处理域名重定向
-- **匹配规则**: 匹配所有路径（排除 API 路由和静态资源）
+- **匹配规则**: 匹配所有路径（排除 API 路由、静态资源和 `/public/*` 路径）
 - **SEO友好**: 使用标准 HTTP 重定向，搜索引擎正确处理
 
 ### 动态路由处理
@@ -217,6 +234,27 @@ npm run lint   # 代码检查
 - **ESLint**: 代码质量检查
 - **Prettier**: 代码格式化
 - **组件化**: 可复用的React组件
+
+### API 使用规范 ⚠️ 重要
+- **使用最新 API**: 必须使用官方推荐的最新 API 和方法
+- **避免废弃方法**: 禁止使用官方已废弃（deprecated）或过时的方法
+- **及时更新**: 当框架或库发布新版本时，及时检查并更新代码中的废弃 API
+- **文档参考**: 在实现新功能前，查阅官方最新文档，确保使用推荐的 API
+- **迁移指南**: 如果发现使用了废弃 API，参考官方迁移指南进行更新
+
+#### Next.js 特定规范
+- **中间件**: 使用 `src/proxy.ts` 而不是 `src/middleware.ts`（Next.js 已弃用 middleware.ts）
+- **路由参数**: 使用 `await params` 处理动态路由参数（Next.js 16+）
+- **元数据**: 使用 `generateMetadata` 函数生成页面元数据
+- **静态生成**: 使用 `generateStaticParams` 进行静态页面生成
+
+#### 检查清单
+在提交代码前，确保：
+- ✅ 没有使用任何废弃的 API 或方法
+- ✅ 所有依赖包都是最新稳定版本
+- ✅ 代码符合框架的最新最佳实践
+- ✅ 没有控制台警告或废弃提示
+- ✅ 参考了官方最新文档
 
 ## 📈 部署策略
 
