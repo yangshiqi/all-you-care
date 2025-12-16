@@ -38,7 +38,7 @@ export const en = {
       "emailPlaceholder": "your@work.email",
       "firstNamePlaceholder": "First Name",
       "lastNamePlaceholder": "Last Name",
-      "ctaButton": "Solve my AI overload",
+      "ctaButton": "Solve my overload",
       "privacyText": "We respect and protect your privacy.",
       "subscribeBoxTitle": "Join the Newsletter",
       "subscribeBoxSubtitle": "Get the latest AI news delivered to your inbox",

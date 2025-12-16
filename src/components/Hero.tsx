@@ -350,8 +350,12 @@ export const Hero = () => {
                       <TranslatedText>{t('hero.subscribeBoxSubtitle')}</TranslatedText>
                     </p>
                     <div className="text-sm">
-                      <span className="font-bold text-primary-foreground">{t('hero.subscriberCount')}</span>
-                      <span className="text-primary-foreground/80 ml-1">{t('hero.subscriberLabel')}</span>
+                      <span className="font-bold text-primary-foreground">
+                        <TranslatedText>{t('hero.subscriberCount')}</TranslatedText>
+                      </span>
+                      <span className="text-primary-foreground/80 ml-1">
+                        <TranslatedText>{t('hero.subscriberLabel')}</TranslatedText>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -459,7 +463,7 @@ export const Hero = () => {
               </div>
               <div 
                 id="log-container" 
-                className="space-y-2 flex-1 min-h-[300px] monospace text-sm p-6"
+                className="space-y-2 flex-1 min-h-[300px] monospace text-sm p-3"
               >
                 {logs.map((log) => (
                   <div 

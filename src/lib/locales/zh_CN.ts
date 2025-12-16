@@ -43,7 +43,7 @@ export const zh_CN = {
       "subscribeBoxTitle": "订阅 Newsletter",
       "subscribeBoxSubtitle": "将最新鲜的 AI 资讯送到您的邮箱",
       "subscriberCount": "2,683+",
-      "subscriberLabel": "位 AI 从业者已订阅",
+      "subscriberLabel": "已订阅",
       "featureFree": "完全免费",
       "featureDaily": "每日精选",
       "featureNoSpam": "拒绝垃圾邮件",
