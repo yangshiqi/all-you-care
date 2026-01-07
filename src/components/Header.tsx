@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { TranslatedText } from "./TranslatedText";
 import { useCurrentLanguage } from "@/hooks/use-current-language";
@@ -17,6 +18,7 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
   const langFromHook = useCurrentLanguage();
   // 优先使用从服务器端传递的语言，确保服务器端和客户端一致
   const lang = initialLang || langFromHook;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="border-b-4 border-primary bg-card shadow-sm">
@@ -59,6 +61,18 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
         </div>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-muted-foreground hover:text-primary transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
           {/*<button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors border-2 border-border px-3 py-1 hover:border-primary">
             <Search className="w-4 h-4" />
             <TranslatedText className="hidden md:inline uppercase tracking-wider font-medium">
@@ -67,6 +81,27 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
           </button>*/}
         </div>
       </div>
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border bg-card">
+          <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
+            <Link 
+              href={addLanguageToPath("/issues", lang)} 
+              className="hover:text-primary font-medium uppercase tracking-wider transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <TranslatedText>{t('nav.issues')}</TranslatedText>
+            </Link>
+            <Link 
+              href={addLanguageToPath("/tags", lang)} 
+              className="hover:text-primary font-medium uppercase tracking-wider transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <TranslatedText>{t('nav.tags')}</TranslatedText>
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
