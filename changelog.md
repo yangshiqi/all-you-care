@@ -1,3 +1,17 @@
+## 2025-01-XX - 清理废弃的 issues 路由目录
+
+### 🗑️ 代码清理
+- **删除废弃目录**: 移除了 `src/app/issues/` 目录及其所有文件
+  - 该目录包含旧版本的路由实现，硬编码了 `lang = 'en'`，不支持多语言
+  - 项目已迁移到多语言路由结构 `[lang]/issues`，所有组件都使用新的路由
+- **修复链接**: 修复了 `src/app/subscribe/success/page.tsx` 中的链接，使用 `addLanguageToPath` 函数支持多语言路由
+- **更新文档**: 更新了 `allaboutproject.md` 中的路由配置说明，反映正确的多语言路由结构
+
+### 📝 技术说明
+- 所有 issues 相关路由现在统一使用 `/[lang]/issues` 和 `/[lang]/issues/[slug]` 格式
+- 所有组件中的链接都通过 `addLanguageToPath("/issues", lang)` 函数生成正确的多语言路由
+- 确保路由结构的一致性和多语言支持的完整性
+
 ## 2025-01-XX - 添加组件和语法使用最新版本规范
 
 ### 📋 项目规范更新

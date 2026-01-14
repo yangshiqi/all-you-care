@@ -267,7 +267,7 @@ function SubscribeSuccessContent() {
               variant="outline"
               className="border-2 border-border hover:border-primary font-bold uppercase tracking-wider"
             >
-              <Link href="/issues">
+              <Link href={addLanguageToPath("/issues", currentLang)}>
                 <TranslatedText>{t("subscribeSuccess.viewIssues")}</TranslatedText>
               </Link>
             </Button>

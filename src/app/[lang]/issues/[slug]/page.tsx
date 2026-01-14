@@ -27,11 +27,11 @@ export async function generateStaticParams() {
   try {
     // 为每种语言和每个 slug 生成参数
     const params: Array<{ lang: string; slug: string }> = [];
-    
+
     for (const lang of SUPPORTED_LANGUAGES) {
       // 为每种语言分别获取对应的内容，只生成存在的语言版本
       const contents = await getAllAiContents(lang);
-      
+
       for (const content of contents) {
         // 验证该语言版本是否真的存在
         const journalId = content.journal_id || content.id;
@@ -44,7 +44,7 @@ export async function generateStaticParams() {
         }
       }
     }
-    
+
     return params;
   } catch (error) {
     console.error('Error generating static params:', error);
@@ -58,7 +58,7 @@ async function getIssueData(slug: string, lang?: string) {
   try {
     // 尝试从 Supabase 获取数据
     const supabaseData = await getAiContentByJournalId(slug, lang);
-    
+
     if (supabaseData) {
       // 格式化日期
       const date = new Date(supabaseData.created_at).toLocaleDateString('en-US', {
@@ -98,12 +98,12 @@ function extractBodyContent(html: string): string {
   // 使用正则表达式匹配 <body> 标签及其内容
   // 匹配 <body> 或 <body ...> 以及 </body>，使用非贪婪模式
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  
+
   if (bodyMatch && bodyMatch[1]) {
     // 找到 body 标签内的内容，返回它（不包括 body 标签）
     return bodyMatch[1].trim();
   }
-  
+
   // 如果没有找到 body 标签，返回原内容
   return html;
 }
@@ -111,14 +111,14 @@ function extractBodyContent(html: string): string {
 // 从 HTML 内容中过滤掉 tags 相关的 section
 function removeTagsSection(html: string): string {
   if (!html) return html;
-  
+
   let result = html;
   let previousResult = '';
-  
+
   // 循环处理，直到没有更多匹配（处理嵌套情况）
   while (result !== previousResult) {
     previousResult = result;
-    
+
     // 0. 移除特定的标题标签（中文和英文）
     // 移除 <h1>AI新闻简报</h1> 及其变体
     result = result.replace(/<h1[^>]*>[\s]*AI 新闻简报：(.*?)[\s]*<\/h1>/gi, '');
@@ -126,11 +126,11 @@ function removeTagsSection(html: string): string {
 
     // 移除 <h2>AI新闻分类汇总</h2> 及其变体
     result = result.replace(/<h2[^>]*>[\s]*AI 新闻分类汇总[\s]*<\/h2>/gi, '');
-    
+
     // 0.5. 移除带有 class="hero-img" 的图片标签
     result = result.replace(/<img[^>]*class\s*=\s*["']hero-img["'][^>]*\/?>/gi, '');
   }
-  
+
   return result.trim();
 }
 
@@ -183,15 +183,15 @@ function generateTagCategories(tags: string | null | undefined) {
 
 export async function generateMetadata({ params }: IssueDetailPageProps): Promise<Metadata> {
   const { lang, slug } = await params;
-  
+
   if (!isValidLanguage(lang)) {
     return {
       title: "Issue Not Found | [AI]News",
     };
   }
-  
+
   const issue = await getIssueData(slug, lang);
-  
+
   if (!issue) {
     return {
       title: "Issue Not Found | [AI]News",
@@ -201,14 +201,15 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
 
   const t = translations[lang];
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com';
-  const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
-  
+  //const ogImageUrl = getAbsoluteUrl("/x_welcome.jpg");
+  const ogImageUrl = issue.imgUrl
+
   // 生成所有语言版本的 URL
   const alternateLanguages: Record<string, string> = {};
   SUPPORTED_LANGUAGES.forEach((supportedLang) => {
     alternateLanguages[supportedLang] = `${baseUrl}/${supportedLang}/issues/${slug}`;
   });
-  
+
   // 使用翻译模板生成标题和描述
   const title = t.metadata.issueDetail.title.replace('{{title}}', issue.title);
   const description = t.metadata.issueDetail.description.replace('{{summary}}', issue.summary);
@@ -255,13 +256,13 @@ export async function generateMetadata({ params }: IssueDetailPageProps): Promis
 
 export default async function IssueDetailPage({ params }: IssueDetailPageProps) {
   const { lang, slug } = await params;
-  
+
   if (!isValidLanguage(lang)) {
     notFound();
   }
-  
+
   const issue = await getIssueData(slug, lang);
-  
+
   if (!issue) {
     notFound();
   }
