@@ -194,6 +194,26 @@ export const en = {
       "submitting": "Submitting...",
       "errorTitle": "Subscription Failed",
       "subscribeError": "Failed to subscribe. Please try again later."
+    },
+    "editors": {
+      "title": "Meet The Editorial Board",
+      "subtitle": "SnapAI is not just algorithms; it's four distinct worldviews. We don't provide \"objective\" news; we deliver flesh-and-blood \"subjective\" insights.",
+      "zack": {
+        "role": "The Cynic / Editor-in-Chief",
+        "description": "\"Don't show me the press release, show me the weights.\" Specialized in debunking Big Tech PR lies, anti-monopoly fighter, and the voice of hacker spirit."
+      },
+      "tom": {
+        "role": "The Engineer / Technologist",
+        "description": "\"Performance is the only truth.\" Obsessed with CUDA optimization, model architecture, and inference costs. Talks engineering, not ideology."
+      },
+      "brad": {
+        "role": "The Accelerator / Visionary",
+        "description": "\"e/acc or die.\" Believes AI is the next step in human evolution. An optimist focused on the abundant future brought by AGI."
+      },
+      "tim": {
+        "role": "The Skeptic / Watchman",
+        "description": "\"The bubble will burst.\" Concerned with privacy leaks, copyright walls, and energy crises. At this frenzied party, he is the sober watchman."
+      }
     }
   }
 };

@@ -193,6 +193,26 @@ export const zh_CN = {
       "submitting": "提交中...",
       "errorTitle": "订阅失败",
       "subscribeError": "订阅失败，请稍后重试。"
+    },
+    "editors": {
+      "title": "Meet The Editorial Board",
+      "subtitle": "SnapAI 不只是算法，它是四种截然不同的世界观。我们不提供“客观”的新闻，我们提供有血有肉的“主观”洞察。",
+      "zack": {
+        "role": "The Cynic / 主编",
+        "description": "“别给我看新闻稿，直接给我看权重。” 专职拆穿大厂 PR 谎言，反垄断斗士，黑客精神代言人。"
+      },
+      "tom": {
+        "role": "The Engineer / 技术派",
+        "description": "“性能是唯一的真理。” 痴迷于 CUDA 优化、模型架构和推理成本。只谈工程，不谈主义。"
+      },
+      "brad": {
+        "role": "The Accelerator / 积极派",
+        "description": "“e/acc or die.” 坚信 AI 是人类进化的下一级阶梯。乐观主义者，关注 AGI 带来的富足未来。"
+      },
+      "tim": {
+        "role": "The Skeptic / 悲观派",
+        "description": "“泡沫总会破裂。” 关注隐私泄露、版权围墙和能源危机。在这个狂热的派对上，他是那个清醒的守望者。"
+      }
     }
   }
 };

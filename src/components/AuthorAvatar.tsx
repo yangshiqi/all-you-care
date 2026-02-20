@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface AuthorAvatarProps {
   author: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
   className?: string;
   showName?: boolean;
 }
@@ -35,6 +35,7 @@ export function AuthorAvatar({ author, size = 'md', className, showName = false 
     md: 'w-10 h-10',
     lg: 'w-12 h-12',
     xl: 'w-16 h-16',
+    xxl: 'w-24 h-24',
   };
 
   if (!imagePath) {
