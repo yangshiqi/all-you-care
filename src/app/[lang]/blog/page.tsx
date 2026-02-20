@@ -39,7 +39,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       {/* Header Section */}
-      <div className="mb-12 border-b-4 border-black pb-8 dark:border-white">
+      <div className="mb-12 border-b-4 border-foreground pb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -53,7 +53,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
           {/* Active Filter Display */}
           {author && (
-            <div className="flex items-center gap-3 bg-gray-100 dark:bg-zinc-800 px-4 py-2 rounded-lg animate-in fade-in slide-in-from-right-4">
+            <div className="flex items-center gap-3 bg-muted px-4 py-2 rounded-lg animate-in fade-in slide-in-from-right-4">
               <Filter className="w-4 h-4 text-muted-foreground" />
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Filter:</span>
@@ -61,7 +61,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
               </div>
               <Link 
                 href={`/${lang}/blog`}
-                className="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full transition-colors"
+                className="ml-2 p-1 hover:bg-background rounded-full transition-colors"
                 title="Clear filter"
               >
                 <X className="w-4 h-4" />
@@ -74,8 +74,8 @@ export default async function BlogPage({ params, searchParams }: Props) {
       {/* Insights List */}
       <div className="grid gap-8">
         {insights.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-xl text-gray-500">
+          <div className="text-center py-20 border-2 border-dashed border-border rounded-lg">
+            <p className="text-xl text-muted-foreground">
               {author 
                 ? `No insights found for editor "${author}". They might be on a coffee break.`
                 : "No insights published yet. The editor is probably compiling kernels."
@@ -91,20 +91,20 @@ export default async function BlogPage({ params, searchParams }: Props) {
           insights.map((insight) => (
             <article 
               key={insight.id} 
-              className="group relative flex flex-col gap-4 border-2 border-transparent hover:border-black dark:hover:border-white p-6 rounded-xl transition-all duration-300 hover:bg-gray-50 dark:hover:bg-zinc-900"
+              className="group relative flex flex-col gap-4 border-2 border-transparent hover:border-foreground p-6 rounded-xl transition-all duration-300 hover:bg-accent"
             >
               {/* Meta Row: Author + Date + Tags */}
-              <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-2">
+              <div className="flex items-center justify-between border-b border-border pb-4 mb-2">
                 <div className="flex items-center gap-4">
                   <AuthorAvatar author={insight.author} size="sm" showName={true} />
-                  <div className="h-4 w-px bg-gray-200 dark:bg-zinc-700 mx-2 hidden sm:block" />
+                  <div className="h-4 w-px bg-border mx-2 hidden sm:block" />
                   <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono hidden sm:flex">
                     <Calendar className="w-3 h-3" />
                     {new Date(insight.published_at || insight.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 
-                <span className="bg-black text-white px-2 py-0.5 text-[10px] font-bold uppercase rounded-full dark:bg-white dark:text-black">
+                <span className="bg-foreground text-background px-2 py-0.5 text-[10px] font-bold uppercase rounded-full">
                   INSIGHT
                 </span>
               </div>
@@ -123,7 +123,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
               <div className="mt-4 flex items-center justify-between">
                  <div className="flex flex-wrap gap-2">
                     {insight.tags && insight.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="text-xs text-muted-foreground bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded">#{tag}</span>
+                      <span key={tag} className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">#{tag}</span>
                     ))}
                  </div>
                  <div className="flex items-center text-primary font-bold text-sm group-hover:translate-x-1 transition-transform uppercase tracking-wider">
