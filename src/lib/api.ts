@@ -181,6 +181,10 @@ export const getPublishedInsights = cache(async (i18nLang?: string, author?: str
     if (author) {
       // Use ilike for case-insensitive matching because author names might vary slightly
       // e.g. "Zack" vs "Zack @ SnapAllx"
+      // Also map simplified IDs to full names if needed
+      // But author avatars use 'zack', 'tom' etc.
+      // In DB, author might be 'Zack', 'Tom', 'Brad', 'Tim', or 'Zack @ SnapAllx'
+      // If we query ?author=Zack, we want to match 'Zack' and 'Zack @ SnapAllx'
       query = query.ilike('author', `${author}%`)
     }
 
@@ -316,3 +320,70 @@ export const getAllTags = cache(async (i18nLang?: string): Promise<TagSummary[]>
     throw error
   }
 })
+
+/**
+ * Get all distinct months (YYYY-MM) that have issues.
+ * Used for sitemap splitting.
+ */
+export const getIssueMonths = cache(async (): Promise<string[]> => {
+  try {
+    // Supabase currently doesn't support distinct on date_trunc directly in JS client easily without rpc
+    // So we fetch all created_at dates (lightweight) and process in memory
+    const { data, error } = await supabase
+      .from('n8n-ai-contents')
+      .select('created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const months = new Set<string>();
+    data?.forEach(item => {
+      if (item.created_at) {
+        const date = new Date(item.created_at);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        months.add(`${year}-${month}`);
+      }
+    });
+
+    return Array.from(months);
+  } catch (error) {
+    console.error('Error in getIssueMonths:', error);
+    return [];
+  }
+});
+
+/**
+ * Get issues for a specific month (YYYY-MM).
+ * Lightweight query returning only ID and Date.
+ */
+export const getIssuesByMonth = cache(async (monthStr: string, i18nLang?: string): Promise<{ id: string; journal_id?: string; created_at: string }[]> => {
+  try {
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+    
+    // Parse YYYY-MM
+    const [year, month] = monthStr.split('-').map(Number);
+    
+    // Construct date range
+    const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    // End date is start of next month
+    const endDate = new Date(Date.UTC(year, month, 1)).toISOString();
+
+    let query = supabase
+      .from('n8n-ai-contents')
+      .select('id, journal_id, created_at')
+      .gte('created_at', startDate)
+      .lt('created_at', endDate)
+      .order('created_at', { ascending: false });
+      
+    if (dbLang) query = query.eq('lang', dbLang)
+
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error(`Error fetching issues for month ${monthStr}:`, error);
+    return [];
+  }
+});
