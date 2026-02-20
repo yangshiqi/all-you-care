@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getAllAiContents, getAiContentByJournalId } from '@/lib/api'
+import { getAllAiContents, getAiContentByJournalId, getPublishedInsights } from '@/lib/api'
 import { getAllTags } from '@/lib/api'
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n-utils'
 
@@ -28,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
+      },
+      {
+        url: `${baseUrl}/${lang}/blog`,
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
       }
     )
   }
@@ -55,6 +61,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error fetching issues for sitemap:', error)
   }
 
+  // 获取所有博客文章 - 为每种语言生成
+  const blogPages: MetadataRoute.Sitemap = []
+  try {
+    for (const lang of SUPPORTED_LANGUAGES) {
+      // 暂时我们只生成了 zh_CN 的博客，但 API 支持按语言过滤
+      // 如果没有对应语言的博客，API 会返回空数组
+      const insights = await getPublishedInsights(lang)
+      for (const insight of insights) {
+        blogPages.push({
+          url: `${baseUrl}/${lang}/blog/${insight.slug}`,
+          lastModified: new Date(insight.updated_at || insight.created_at),
+          changeFrequency: 'weekly' as const,
+          priority: 0.8,
+        })
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching blogs for sitemap:', error)
+  }
+
   // 获取所有标签页面 - 为每种语言生成
   const tagPages: MetadataRoute.Sitemap = []
   try {
@@ -74,6 +100,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error fetching tags for sitemap:', error)
   }
 
-  return [...staticPages, ...issuesPages, ...tagPages]
+  return [...staticPages, ...issuesPages, ...blogPages, ...tagPages]
 }
 

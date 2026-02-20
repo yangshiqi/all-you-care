@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronUp, ArrowRight, Terminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TranslatedText } from "./TranslatedText";
 import { useCurrentLanguage } from "@/hooks/use-current-language";
 import { addLanguageToPath } from "@/lib/i18n-utils";
+
+// Interface for SnapAI Insight (Zack's Take)
+interface RelatedInsight {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+}
 
 interface IssueData {
   title: string;
@@ -28,15 +35,15 @@ interface IssueDetailContentProps {
   issue: IssueData;
   issueId: string;
   hasEnVersion: boolean;
-  initialLang?: string; // 从服务器端传递的语言
+  initialLang?: string;
+  relatedInsight?: RelatedInsight | null; // New prop for related insight
 }
 
-export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }: IssueDetailContentProps) => {
+export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, relatedInsight }: IssueDetailContentProps) => {
   const { t, i18n } = useTranslation();
   const lang = useCurrentLanguage();
   const [showTags, setShowTags] = useState(true);
   
-  // 同步服务器端语言到客户端 i18n，避免 hydration 不匹配
   useEffect(() => {
     if (initialLang && i18n.language !== initialLang) {
       i18n.changeLanguage(initialLang);
@@ -44,79 +51,35 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLang]);
 
-  // 添加 hreflang 标签到 head
   useEffect(() => {
-    // 确保在浏览器环境中执行
+    // ... (Existing hreflang logic remains unchanged)
     if (typeof window === 'undefined' || !hasEnVersion) return;
-
     try {
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com';
-      
-      // 使用特定的标识符来识别我们创建的标签，避免误删其他标签
       const linkId = `hreflang-issue-${issueId}`;
+      const removeLinks = (selector: string) => {
+          document.querySelectorAll(selector).forEach(link => link.parentNode?.removeChild(link));
+      };
+      removeLinks(`link[rel="alternate"][hreflang="en"][data-issue-id="${issueId}"]`);
+      removeLinks(`link[rel="alternate"][hreflang="zh-CN"][data-issue-id="${issueId}"]`);
       
-      // 移除可能已存在的相同 hreflang 标签（避免重复）
-      // 只移除我们之前创建的标签
-      try {
-        const existingEnLinks = document.querySelectorAll(`link[rel="alternate"][hreflang="en"][data-issue-id="${issueId}"]`);
-        existingEnLinks.forEach(link => {
-          if (link && link.parentNode) {
-            link.remove();
-          }
-        });
-      } catch (error) {
-        console.warn('Error removing existing en links:', error);
-      }
-      
-      try {
-        const existingZhLinks = document.querySelectorAll(`link[rel="alternate"][hreflang="zh-CN"][data-issue-id="${issueId}"]`);
-        existingZhLinks.forEach(link => {
-          if (link && link.parentNode) {
-            link.remove();
-          }
-        });
-      } catch (error) {
-        console.warn('Error removing existing zh-CN links:', error);
-      }
-      
-      // 创建 en 版本的 link 标签
-      const enLink = document.createElement('link');
-      enLink.setAttribute('rel', 'alternate');
-      enLink.setAttribute('hreflang', 'en');
-      enLink.setAttribute('href', `${baseUrl}/en/issues/${issueId}`);
-      enLink.setAttribute('data-issue-id', issueId);
-      enLink.setAttribute('id', `${linkId}-en`);
-      
-      // 创建 zh-CN 版本的 link 标签
-      const zhLink = document.createElement('link');
-      zhLink.setAttribute('rel', 'alternate');
-      zhLink.setAttribute('hreflang', 'zh-CN');
-      zhLink.setAttribute('href', `${baseUrl}/zh-CN/issues/${issueId}`);
-      zhLink.setAttribute('data-issue-id', issueId);
-      zhLink.setAttribute('id', `${linkId}-zh`);
-      
-      // 确保 head 存在后再添加
-      if (document.head) {
-        document.head.appendChild(enLink);
-        document.head.appendChild(zhLink);
-      }
+      const createLink = (lang: string, href: string, idSuffix: string) => {
+          const link = document.createElement('link');
+          link.rel = 'alternate';
+          link.hreflang = lang;
+          link.href = href;
+          link.setAttribute('data-issue-id', issueId);
+          link.id = `${linkId}-${idSuffix}`;
+          document.head.appendChild(link);
+      };
 
-      // 清理函数：组件卸载时移除这些标签
+      createLink('en', `${baseUrl}/en/issues/${issueId}`, 'en');
+      createLink('zh-CN', `${baseUrl}/zh-CN/issues/${issueId}`, 'zh');
+
       return () => {
-        try {
-          // 使用 ID 来精确查找和移除，避免误删
-          const enLinkToRemove = document.getElementById(`${linkId}-en`);
-          const zhLinkToRemove = document.getElementById(`${linkId}-zh`);
-          
-          if (enLinkToRemove && enLinkToRemove.parentNode) {
-            enLinkToRemove.remove();
-          }
-          if (zhLinkToRemove && zhLinkToRemove.parentNode) {
-            zhLinkToRemove.remove();
-          }
-        } catch (error) {
-          console.warn('Error removing hreflang links:', error);
-        }
+        const removeById = (id: string) => document.getElementById(id)?.remove();
+        removeById(`${linkId}-en`);
+        removeById(`${linkId}-zh`);
       };
     } catch (error) {
       console.error('Error setting up hreflang links:', error);
@@ -153,6 +116,38 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }
           </h1>
         </div>
         
+        {/* ZACK'S TAKE (Insight Card) */}
+        {relatedInsight && (
+          <div className="max-w-4xl mx-auto mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Link 
+              href={addLanguageToPath(`/blog/${relatedInsight.slug}`, lang)}
+              className="block group relative overflow-hidden rounded-xl border-4 border-black bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+            >
+              <div className="absolute top-0 right-0 bg-black text-white px-3 py-1 font-mono text-xs font-bold uppercase dark:bg-white dark:text-black">
+                Editor's Take
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black shrink-0">
+                  <Terminal className="h-6 w-6" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-xl font-bold font-serif mb-2 group-hover:text-primary transition-colors">
+                    {relatedInsight.title}
+                  </h3>
+                  {relatedInsight.excerpt && (
+                    <p className="text-muted-foreground line-clamp-2 font-serif italic mb-3">
+                      "{relatedInsight.excerpt}"
+                    </p>
+                  )}
+                  <span className="inline-flex items-center text-sm font-bold uppercase tracking-wider text-primary group-hover:gap-2 transition-all">
+                    Read Full Analysis <ArrowRight className="ml-1 w-4 h-4" />
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        )}
+
         {/* Tags Section */}
         <div className="max-w-4xl mx-auto mt-8">
           <button 
@@ -201,8 +196,16 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-8 max-w-4xl mx-auto">
-        {/* Main Content */}
         <article id="main-content" className="flex-1 paper-texture">
+          {issue.imgUrl && (
+            <div className="mb-8 p-1 vintage-border1 bg-card">
+              <img 
+                src={issue.imgUrl} 
+                alt={issue.title} 
+                className="w-full h-auto object-cover rounded-md"
+              />
+            </div>
+          )}
           
           <div className="space-y-12">
             {issue.sections.map(section => (
@@ -215,7 +218,6 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }
                     </h2>
                     <div className="w-2 h-2 bg-primary" />
                   </div>
-                  {issue.imgUrl && <img src={issue.imgUrl} alt="Cover Image" className="hero-img"/>}
                   <div 
                     className="prose prose-vintage max-w-none" 
                     dangerouslySetInnerHTML={{ __html: section.content }}

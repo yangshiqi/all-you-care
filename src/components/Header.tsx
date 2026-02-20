@@ -5,18 +5,18 @@ import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import { TranslatedText } from "./TranslatedText";
 import { useCurrentLanguage } from "@/hooks/use-current-language";
 import { addLanguageToPath, type SupportedLanguage } from "@/lib/i18n-utils";
 
 interface HeaderProps {
-  initialLang?: SupportedLanguage; // 从服务器端传递的语言，避免 hydration mismatch
+  initialLang?: SupportedLanguage;
 }
 
 export const Header = ({ initialLang }: HeaderProps = {}) => {
   const { t } = useTranslation();
   const langFromHook = useCurrentLanguage();
-  // 优先使用从服务器端传递的语言，确保服务器端和客户端一致
   const lang = initialLang || langFromHook;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,21 +28,15 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
             href={addLanguageToPath("/", lang)} 
             className="flex items-center gap-0 group hover:opacity-80 transition-opacity"
           >
-<svg width="40" height="40" viewBox="0 0 513 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M110.525 103.85C109.017 104.485 109.097 187.272 110.525 191.876C112.033 196.797 113.859 199.654 117.352 202.829C121.241 206.322 123.86 207.671 132.036 210.529C135.608 211.799 143.466 214.656 149.577 216.879C155.689 219.101 163.706 222.038 167.437 223.308C171.167 224.657 177.438 226.88 181.327 228.388C185.296 229.817 194.106 233.071 201.012 235.531L213.474 240.056V271.726C213.474 289.109 213.553 303.476 213.712 303.555C213.791 303.714 233 303.952 256.335 304.19L298.801 304.587L299.594 392.692L301.579 396.581C304.119 401.582 308.643 405.233 314.834 407.297C319.676 408.964 320.946 408.964 361.665 408.805L403.574 408.567V319.668L401.749 316.096C399.129 311.096 395.716 307.762 390.954 305.619L386.906 303.793L299.991 303.317L300.15 271.488L300.388 239.659L311.5 235.77C317.612 233.706 326.343 230.531 330.947 228.864C344.758 223.705 369.761 214.577 377.778 211.64C381.905 210.132 386.906 208.306 388.811 207.592C393.653 205.846 398.733 200.924 401.352 195.527L403.574 191.082V103.771H360.316C319.755 103.771 316.819 103.85 313.167 105.279C308.167 107.184 303.325 111.549 301.261 116.074C299.674 119.487 299.594 121.153 299.197 159.729L298.801 199.813L296.975 202.433C293.086 207.83 293.641 207.751 257.209 207.989C233.079 208.147 223.713 207.989 222.046 207.274C220.776 206.798 218.553 204.893 217.045 203.147L214.347 200.051L213.87 121.233L211.648 116.709C209.187 111.787 205.615 108.295 199.98 105.517C196.408 103.771 196.091 103.771 153.943 103.612C130.607 103.532 111.002 103.612 110.525 103.85Z" fill="black"></path>
-<path d="M127.829 304.269C121.876 305.301 118.701 307.048 115.05 311.096C109.414 317.525 109.493 316.811 109.652 365.308L109.89 408.567H152.355C184.423 408.567 195.614 408.329 198.154 407.535C203.393 405.948 209.029 401.026 211.569 395.708L213.87 391.105L214.108 348.322C214.267 318.001 214.108 305.301 213.474 304.666C212.362 303.555 134.02 303.158 127.829 304.269Z" fill="black"></path>
+            <svg width="40" height="40" viewBox="0 0 513 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black dark:text-white">
+<path d="M110.525 103.85C109.017 104.485 109.097 187.272 110.525 191.876C112.033 196.797 113.859 199.654 117.352 202.829C121.241 206.322 123.86 207.671 132.036 210.529C135.608 211.799 143.466 214.656 149.577 216.879C155.689 219.101 163.706 222.038 167.437 223.308C171.167 224.657 177.438 226.88 181.327 228.388C185.296 229.817 194.106 233.071 201.012 235.531L213.474 240.056V271.726C213.474 289.109 213.553 303.476 213.712 303.555C213.791 303.714 233 303.952 256.335 304.19L298.801 304.587L299.594 392.692L301.579 396.581C304.119 401.582 308.643 405.233 314.834 407.297C319.676 408.964 320.946 408.964 361.665 408.805L403.574 408.567V319.668L401.749 316.096C399.129 311.096 395.716 307.762 390.954 305.619L386.906 303.793L299.991 303.317L300.15 271.488L300.388 239.659L311.5 235.77C317.612 233.706 326.343 230.531 330.947 228.864C344.758 223.705 369.761 214.577 377.778 211.64C381.905 210.132 386.906 208.306 388.811 207.592C393.653 205.846 398.733 200.924 401.352 195.527L403.574 191.082V103.771H360.316C319.755 103.771 316.819 103.85 313.167 105.279C308.167 107.184 303.325 111.549 301.261 116.074C299.674 119.487 299.594 121.153 299.197 159.729L298.801 199.813L296.975 202.433C293.086 207.83 293.641 207.751 257.209 207.989C233.079 208.147 223.713 207.989 222.046 207.274C220.776 206.798 218.553 204.893 217.045 203.147L214.347 200.051L213.87 121.233L211.648 116.709C209.187 111.787 205.615 108.295 199.98 105.517C196.408 103.771 196.091 103.771 153.943 103.612C130.607 103.532 111.002 103.612 110.525 103.85Z" fill="currentColor"></path>
+<path d="M127.829 304.269C121.876 305.301 118.701 307.048 115.05 311.096C109.414 317.525 109.493 316.811 109.652 365.308L109.89 408.567H152.355C184.423 408.567 195.614 408.329 198.154 407.535C203.393 405.948 209.029 401.026 211.569 395.708L213.87 391.105L214.108 348.322C214.267 318.001 214.108 305.301 213.474 304.666C212.362 303.555 134.02 303.158 127.829 304.269Z" fill="currentColor"></path>
 </svg>
             <span className="font-bold text-2xl tracking-wide text-primary">
             SnapAllx
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-3 text-md">
-            {/*<Link 
-              href="/subscribe" 
-              className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
-            >
-              <TranslatedText>{t('nav.subscribe')}</TranslatedText>
-            </Link>*/}
             <span className="text-primary text-md">❖</span>
             <Link 
               href={addLanguageToPath("/issues", lang)} 
@@ -57,11 +51,19 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
             </Link>
+            <span className="text-primary text-md">❖</span>
+            <Link 
+              href={addLanguageToPath("/blog", lang)} 
+              className="hover:text-primary font-medium uppercase tracking-wider transition-colors relative group"
+            >
+              <span className="absolute -top-2 -right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              INSIGHTS
+            </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher />
           <LanguageSwitcher />
-          {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 text-muted-foreground hover:text-primary transition-colors"
@@ -73,15 +75,8 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
               <Menu className="w-6 h-6" />
             )}
           </button>
-          {/*<button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors border-2 border-border px-3 py-1 hover:border-primary">
-            <Search className="w-4 h-4" />
-            <TranslatedText className="hidden md:inline uppercase tracking-wider font-medium">
-              {t('nav.search')}
-            </TranslatedText>
-          </button>*/}
         </div>
       </div>
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-card">
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
@@ -98,6 +93,13 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
               onClick={() => setMobileMenuOpen(false)}
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
+            </Link>
+            <Link 
+              href={addLanguageToPath("/blog", lang)} 
+              className="hover:text-primary font-medium uppercase tracking-wider transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              INSIGHTS
             </Link>
           </nav>
         </div>

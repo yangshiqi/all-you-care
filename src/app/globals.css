@@ -1,4 +1,60 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+/* Custom Container Utility */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
 
 @layer base {
   :root {
@@ -49,11 +105,11 @@
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: var(--color-border);
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--color-background);
+    color: var(--color-foreground);
   }
 }
 
@@ -65,7 +121,7 @@
 }
 
 .vintage-border {
-  border: 2px solid hsl(var(--primary));
+  border: 2px solid var(--color-primary);
   position: relative;
 }
 
@@ -76,7 +132,7 @@
   left: -4px;
   right: -4px;
   bottom: -4px;
-  border: 2px solid hsl(var(--primary));
+  border: 2px solid var(--color-primary);
   z-index: -1;
 }
 
@@ -87,7 +143,7 @@
 .prose-vintage h1,
 .prose-vintage h2,
 .prose-vintage h3 {
-  color: hsl(var(--primary));
+  color: var(--color-primary);
   font-weight: bold;
 }
 
@@ -101,7 +157,7 @@
   font-size: 1.5rem;
   line-height: 2rem;
   margin-bottom: 0.75rem;
-  border-left: 4px solid hsl(var(--primary));
+  border-left: 4px solid var(--color-primary);
   padding-left: 0.75rem;
   margin-top: 1.5rem;
 }
@@ -111,7 +167,7 @@
   line-height: 1.75rem;
   margin-bottom: 0.5rem;
   margin-top: 1.25rem;
-  background: hsl(var(--secondary));
+  background: var(--color-secondary);
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
   display: inline-block;
@@ -123,25 +179,25 @@
   line-height: 1.75rem;
   margin-bottom: 0.5rem;
   margin-top: 1rem;
-  color: hsl(var(--primary));
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .prose-vintage p {
   margin-bottom: 1rem;
   line-height: 1.8;
-  color: hsl(var(--foreground));
+  color: var(--color-foreground);
 }
 
 .prose-vintage strong {
   font-weight: bold;
-  color: hsl(var(--primary));
+  color: var(--color-primary);
 }
 
 /* 增强文章内容的展示 */
 .prose-vintage article {
-  background: hsl(var(--secondary) / 0.3);
-  border-left: 4px solid hsl(var(--primary));
+  background: color-mix(in srgb, var(--color-secondary), transparent 70%);
+  border-left: 4px solid var(--color-primary);
   margin: 2rem 0;
   padding: 1rem 1.25rem;
   border-radius: 6px;
@@ -149,20 +205,20 @@
 }
 
 .prose-vintage article:hover {
-  background: hsl(var(--secondary) / 0.5);
+  background: color-mix(in srgb, var(--color-secondary), transparent 50%);
   border-left-width: 8px;
 }
 
 .prose-vintage article h4 {
   margin: 0 0 0.5rem 0;
-  color: hsl(var(--primary));
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .prose-vintage article p {
   margin-top: 0.5rem;
   margin-bottom: 0;
-  color: hsl(var(--foreground));
+  color: var(--color-foreground);
   line-height: 1.7;
 }
 
@@ -175,9 +231,9 @@
 }
 
 .prose-vintage .tag {
-  background: hsl(var(--secondary));
-  color: hsl(var(--primary));
-  border: 2px solid hsl(var(--border));
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  border: 2px solid var(--color-border);
   border-radius: 4px;
   padding: 0.25rem 0.625rem;
   font-size: 0.8125rem;
@@ -187,19 +243,19 @@
 }
 
 .prose-vintage .tag:hover {
-  border-color: hsl(var(--primary));
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
 }
 
 /* 摘要样式 */
 .prose-vintage .summary {
-  background: hsl(var(--secondary) / 0.5);
+  background: color-mix(in srgb, var(--color-secondary), transparent 50%);
   padding: 1rem 1.25rem;
   border-radius: 8px;
   margin: 1.5rem 0;
-  border-left: 4px solid hsl(var(--primary));
-  color: hsl(var(--foreground));
+  border-left: 4px solid var(--color-primary);
+  color: var(--color-foreground);
   line-height: 1.7;
 }
 
@@ -252,61 +308,61 @@
 .prose-vintage ul li,
 .prose-vintage ol li {
   margin: 0.5rem 0;
-  color: hsl(var(--foreground));
+  color: var(--color-foreground);
 }
 
 .prose-vintage ul li::marker {
-  color: hsl(var(--primary));
+  color: var(--color-primary);
 }
 
 .prose-vintage ol li::marker {
-  color: hsl(var(--primary));
+  color: var(--color-primary);
   font-weight: bold;
 }
 
 /* 链接样式 */
 .prose-vintage a {
-  color: hsl(var(--primary));
+  color: var(--color-primary);
   text-decoration: underline;
-  text-decoration-color: hsl(var(--primary) / 0.3);
+  text-decoration-color: color-mix(in srgb, var(--color-primary), transparent 70%);
   transition: all 0.2s ease;
 }
 
 .prose-vintage a:hover {
-  text-decoration-color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.1);
+  text-decoration-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary), transparent 90%);
   padding: 0 0.125rem;
   margin: 0 -0.125rem;
 }
 
 /* 引用样式 */
 .prose-vintage blockquote {
-  border-left: 4px solid hsl(var(--primary));
+  border-left: 4px solid var(--color-primary);
   padding-left: 1rem;
   margin: 1.5rem 0;
-  color: hsl(var(--muted-foreground));
+  color: var(--color-muted-foreground);
   font-style: italic;
-  background: hsl(var(--secondary) / 0.3);
+  background: color-mix(in srgb, var(--color-secondary), transparent 70%);
   padding: 1rem 1.25rem;
   border-radius: 4px;
 }
 
 /* 代码样式 */
 .prose-vintage code {
-  background: hsl(var(--secondary));
+  background: var(--color-secondary);
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   font-size: 0.875em;
-  color: hsl(var(--primary));
-  border: 1px solid hsl(var(--border));
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
 }
 
 .prose-vintage pre {
-  background: hsl(var(--secondary));
+  background: var(--color-secondary);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
-  border: 2px solid hsl(var(--border));
+  border: 2px solid var(--color-border);
   margin: 1rem 0;
 }
 
@@ -319,10 +375,10 @@
 /* 订阅框脉冲动画 */
 @keyframes pulse-subtle {
   0%, 100% {
-    box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px hsl(var(--primary)), 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--color-primary), 0 0 20px rgba(0, 0, 0, 0.1);
   }
   50% {
-    box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px hsl(var(--primary)), 0 0 30px rgba(0, 0, 0, 0.15), 0 0 40px hsl(var(--primary) / 0.1);
+    box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--color-primary), 0 0 30px rgba(0, 0, 0, 0.15), 0 0 40px color-mix(in srgb, var(--color-primary), transparent 90%);
   }
 }
 
