@@ -5,16 +5,14 @@ import { IssueDetailContent } from '@/components/IssueDetailContent'
 import { notFound } from 'next/navigation'
 
 interface Props {
-  params: {
+  params: Promise<{
     slug: string
     lang: string
-  }
+  }>
 }
 
-// 缓存 issue 存在性验证结果
-// 在 generateStaticParams 中验证，避免在 Page 组件中重复验证失败
-export async function generateStaticParams({ params }: Props) {
-  const { lang } = await params
+export async function generateStaticParams({ params }: { params: { lang: string } }) {
+  const { lang } = params
   
   // 直接获取当前语言的所有内容 ID (轻量级查询)
   const contents = await getAllAiContentIds(lang)
@@ -32,7 +30,7 @@ export async function generateStaticParams({ params }: Props) {
   }))
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string, lang: string }> }): Promise<Metadata> {
   const { slug, lang } = await params
   const issue = await getAiContentByJournalId(slug, lang)
 
@@ -130,7 +128,7 @@ function formatHtmlContent(htmlContent: string) {
   if (!htmlContent) return [];
   
   // 1. 提取 body 内容
-  let content = extractBodyContent(htmlContent);
+  let content = extractBodyContent(htmlContent).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   
   // 2. 移除 tags 区域
   content = removeTagsSection(content);
@@ -151,22 +149,12 @@ function formatHtmlContent(htmlContent: string) {
   
   // 检查开头是否有内容（在第一个 h2 之前）
   const firstH2Index = content.search(/<h2/i);
-  if (firstH2Index > 0) {
-    // 移除 Introduction 部分，直接跳过
-    // const introContent = content.substring(0, firstH2Index).trim();
-    // if (introContent) {
-    //   sections.push({
-    //     id: `section-intro`,
-    //     title: 'Introduction',
-    //     content: introContent
-    //   });
-    // }
-  } else if (firstH2Index === -1 && content.trim()) {
+  if (firstH2Index === -1 && content.trim()) {
     // 如果没有 h2，整个内容作为一个 section
     sections.push({
       id: `section-main`,
       title: 'Main Content',
-      content: content
+      content: content.trim()
     });
     return sections;
   }
@@ -175,12 +163,14 @@ function formatHtmlContent(htmlContent: string) {
     const title = match[1].replace(/<[^>]+>/g, '').trim(); // 移除标题中的 HTML 标签
     let sectionContent = match[2].trim();
     
-    sections.push({
-      id: `section-${index}`,
-      title: title || `Section ${index + 1}`,
-      content: sectionContent
-    });
-    index++;
+    if (sectionContent || title) {
+      sections.push({
+        id: `section-${index}`,
+        title: title || `Section ${index + 1}`,
+        content: sectionContent
+      });
+      index++;
+    }
   }
   
   return sections;
@@ -202,20 +192,8 @@ export default async function IssueDetailPage({ params }: Props) {
   // 这里我们假设这两个函数内部已经处理了错误并返回 null，所以可以用 Promise.all
   const [issue, possibleInsight] = await Promise.all([
     getAiContentByJournalId(slug, lang),
-    // 注意：这里需要 issue 的 journal_id 或 id，但 issue 还没拿到。
-    // 所以这是一个依赖关系。我们不能完全并行，除非我们先假设 slug 就是 journal_id（在这个项目中通常是的）
-    // 为了安全起见，我们可以先获取 issue，然后再获取 insight。
-    // 但是，我们可以利用 React 的 request memoization 特性。
-    // 如果我们在 getInsightByJournalId 内部也需要 issue 信息，那没办法。
-    // 但这里 getInsightByJournalId 只需要 ID。
-    // 在这个项目中，URL 中的 slug 通常就是 journal_id。
-    getInsightByJournalId(slug) 
+    getInsightByJournalId(slug, lang) 
   ])
-
-  // 如果 slug 不是 journal_id，上面的 getInsightByJournalId(slug) 可能会失败。
-  // 但我们目前的路由设计是 /issues/[journal_id]，所以 slug === journal_id。
-  // 唯一的特例是如果 slug 是 uuid (pre-journal_id era)，但那种数据应该很少了。
-  // 所以上面的并行是合理的尝试。
 
   if (!issue) {
     notFound()
@@ -224,7 +202,7 @@ export default async function IssueDetailPage({ params }: Props) {
   // 如果上面的并行尝试失败了（比如 slug 不等于 journal_id），我们再试一次用正确的 journal_id
   let insight = possibleInsight;
   if (!insight && issue.journal_id && issue.journal_id !== slug) {
-     insight = await getInsightByJournalId(issue.journal_id);
+     insight = await getInsightByJournalId(issue.journal_id, lang);
   }
 
   // 检查是否存在英文版本（用于 hreflang）
@@ -289,9 +267,16 @@ export default async function IssueDetailPage({ params }: Props) {
   }
 
   // 构建 issue 数据
+  // 使用固定的 locale 格式化日期，防止 Hydration 错误
+  const formattedDate = new Date(issue.created_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
   const issueData = {
     title: issue.title,
-    date: date,
+    date: formattedDate,
     summary: issue.summary,
     imgUrl: issue.imgUrl || '',
     tagCategories: [
@@ -305,14 +290,24 @@ export default async function IssueDetailPage({ params }: Props) {
 
   // 转换 Insight 数据
   const relatedInsight = insight ? {
-    slug: insight.slug,
-    title: insight.title,
-    excerpt: insight.excerpt
+    slug: String(insight.slug),
+    title: String(insight.title),
+    excerpt: insight.excerpt ? String(insight.excerpt) : null,
+    author: String(insight.author || 'zack')
   } : null
+
+  // 对 sections 进行最终的清洗，确保 server/client 数据完全一致
+  const sanitizedSections = sections.map(s => ({
+    ...s,
+    content: s.content.trim().replace(/\r\n/g, '\n')
+  }))
 
   return (
     <IssueDetailContent 
-      issue={issueData} 
+      issue={{
+        ...issueData,
+        sections: sanitizedSections
+      }} 
       issueId={slug}
       hasEnVersion={hasEnVersion}
       initialLang={lang}

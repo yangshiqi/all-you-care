@@ -4,6 +4,10 @@
 
 ## 1. 🔍 Fetch & Signal (抓取与信号)
 - **Source**: `n8n-ai-content-pre-publish` (Supabase).
+- **De-duplication Rule**: 
+  - Before fetching, query `snapai_insights` for all existing `related_journal_id`.
+  - Filter out any content where its `journal_id` already exists in `snapai_insights.related_journal_id`.
+  - **Exception**: Only re-process if the user explicitly specifies an ID or requests a "re-interpretation".
 - **Signal Analysis**: Do not just summarize. Identify the **Underlying Dynamics**:
   - Consolidation of Power (Oligarchy).
   - Physical/Economic Bottlenecks.

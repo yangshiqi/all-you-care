@@ -25,7 +25,7 @@ export const Hero = () => {
             <div className="vintage-border bg-card p-8 md:p-12 mb-8 relative">
               <div className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-foreground"></div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-foreground"></div>
-              <h1 className="text-5xl md:text-7xl font-bold leading-none text-foreground">
+              <h1 className="text-4xl md:text-6xl font-bold leading-none text-foreground">
                 <TranslatedText>{t('hero.title')}</TranslatedText>
               </h1>
             </div>
@@ -43,32 +43,32 @@ export const Hero = () => {
               <div className="relative bg-card rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-zinc-800">
                 {/* 顶部标题栏 */}
                 <div className="bg-transparent px-6 py-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="relative">
-                      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" strokeWidth="2"/>
-                        <path d="M2 7L10.8 13.6C11.5111 14.1333 12.4889 14.1333 13.2 13.6L22 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-                    </div>
-                    <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" strokeWidth="2"/>
+                          <path d="M2 7L10.8 13.6C11.5111 14.1333 12.4889 14.1333 13.2 13.6L22 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                      </div>
                       <h3 className="font-bold text-lg tracking-wide">
                         <TranslatedText>{t('hero.subscribeBoxTitle')}</TranslatedText>
                       </h3>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs opacity-80">
-                      <TranslatedText>{t('hero.subscribeBoxSubtitle')}</TranslatedText>
-                    </p>
-                    <div className="text-sm">
-                      <span className="font-bold text-foreground">
+                    <div className="text-sm text-right">
+                      <span className="font-bold text-foreground block md:inline">
                         <TranslatedText>{t('hero.subscriberCount')}</TranslatedText>
                       </span>
-                      <span className="text-muted-foreground ml-1">
+                      <span className="text-muted-foreground ml-1 text-xs md:text-sm">
                         <TranslatedText>{t('hero.subscriberLabel')}</TranslatedText>
                       </span>
                     </div>
+                  </div>
+                  <div>
+                    <p className="text-md opacity-80 leading-relaxed">
+                      <TranslatedText>{t('hero.subscribeBoxSubtitle')}</TranslatedText>
+                    </p>
                   </div>
                 </div>
 

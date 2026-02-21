@@ -233,24 +233,27 @@ export const getInsightBySlug = cache(async (slug: string, i18nLang?: string): P
   }
 })
 
-/**
- * Get insight related to a journal/issue
- */
-export const getInsightByJournalId = cache(async (journalId: string): Promise<SnapAiInsight | null> => {
+export const getInsightByJournalId = cache(async (journalId: string, i18nLang?: string): Promise<SnapAiInsight | null> => {
   try {
-    const { data, error } = await supabase
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+    
+    let query = supabase
       .from('snapai_insights')
       .select('*')
       .eq('related_journal_id', journalId)
       .eq('is_published', true)
-      .limit(1)
-      .single() // Return first match if any
+      
+    if (dbLang) {
+      query = query.eq('lang', dbLang)
+    }
 
-    if (error && error.code !== 'PGRST116') {
+    const { data, error } = await query.order('created_at', { ascending: false }).limit(1)
+
+    if (error) {
       console.warn(`Failed to fetch insight for journal ${journalId}: ${error.message}`)
       return null
     }
-    return data || null
+    return (data && data.length > 0) ? data[0] : null
   } catch (error) {
     console.error('Error in getInsightByJournalId:', error)
     return null

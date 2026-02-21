@@ -1,26 +1,26 @@
 export const zh_CN = {
   translation: {
-    "siteTitle": "[AI]News - 打破信息茧房，获取行业资讯",
+    "siteTitle": "[SnapAI]News - 打破信息茧房，获取行业资讯",
     "siteDescription": "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！",
     "metadata": {
       "home": {
-        "title": "[AI]News - 打破信息茧房，获取行业资讯",
+        "title": "[SnapAI]News - 打破信息茧房，获取行业资讯",
         "description": "打破每个人的信息茧房，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。我们汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等平台的内容，定时为您发送精选资讯！"
       },
       "issues": {
-        "title": "所有往期内容 | [AI]News - 每日AI资讯摘要",
+        "title": "所有往期内容 | [SnapAI]News - 每日AI资讯摘要",
         "description": "浏览所有AI新闻期刊，了解人工智能领域的最新发展"
       },
       "tags": {
-        "title": "所有标签 | [AI]News - 每日AI资讯摘要",
+        "title": "所有标签 | [SnapAI]News - 每日AI资讯摘要",
         "description": "浏览所有标签并按主题探索AI新闻期刊"
       },
       "tagDetail": {
-        "title": "标签：{{tag}} | [AI]News",
+        "title": "标签：{{tag}} | [SnapAI]News",
         "description": "浏览标签为 {{tag}} 的AI新闻期刊"
       },
       "issueDetail": {
-        "title": "{{title}} | [AI]News",
+        "title": "{{title}} | [SnapAI]News",
         "description": "{{summary}}"
       }
     },
@@ -31,19 +31,19 @@ export const zh_CN = {
       "search": "搜索 (Cmd+K)"
     },
     "hero": {
-      "title": "[AI]News",
+      "title": "[SnapAI]News",
       "byLine": "by SnapAllx.ai",
-      "subtitle": "「顶尖 AI 人才必备的资讯获取方式」",
-      "description": "我们以打破每个人的信息茧房为目标，收集行业内的新闻，帮助大家压缩信息、节省时间、缓解焦虑。汇总 AI Discord、Reddit、X/Twitter、HackerNews、InfoQ、TechCrunch、CNCF、NVIDIA、Meta、OpenAI、Google、Microsoft、Amazon、Apple等全网相关平台的内容，定时为您发送精选资讯！",
+      "subtitle": "不要让算法决定你看到什么。",
+      "description": "互联网充斥着 PR 通稿和 AI 生成的垃圾内容。SnapAI 是一台去噪引擎。我们监控全球 500+ 信息源，利用 Agent Swarm 提取信号，过滤噪音。我们不生产新闻，我们反编译真相。",
       "emailPlaceholder": "你最常用的邮件地址",
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",
-      "ctaButton": "免费订阅",
-      "privacyText": "我们尊重并保护您的隐私，不会将您的 email 泄露给任何第三方。",
-      "subscribeBoxTitle": "订阅 Newsletter",
-      "subscribeBoxSubtitle": "加入排名第一的 AI 资讯订阅，获取每日洞察",
+      "ctaButton": "发送信号",
+      "privacyText": "拒绝垃圾邮件，拒绝 AI 废话，只有纯净信号。",
+      "subscribeBoxTitle": "逃离算法推荐",
+      "subscribeBoxSubtitle": "你的时间很贵，别浪费在 AI 生成的废话上。每天 5 分钟，我们将全球噪音压缩为有限个核心信号，供你参考。",
       "subscriberCount": "2,937+",
-      "subscriberLabel": "已订阅",
+      "subscriberLabel": "已接入",
       "featureFree": "完全免费",
       "featureDaily": "每日精选",
       "featureNoSpam": "拒绝垃圾邮件",
@@ -176,6 +176,8 @@ export const zh_CN = {
       "skipToMain": "跳转到主要内容",
       "showTags": "显示/隐藏标签",
       "hideTags": "显示/隐藏标签",
+      "editorTake": "主编点评",
+      "readFullAnalysis": "阅读全文",
       "tableOfContents": "目录",
       "backToTop": "返回顶部"
     },

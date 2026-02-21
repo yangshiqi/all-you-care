@@ -20,7 +20,10 @@ export const LiveLog = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const getPlatforms = () => [t('hero.logPlatforms.reddit'), t('hero.logPlatforms.twitter'), 'Discord', 'GitHub'];
+    const getPlatforms = () => {
+      const platformsObj = t('hero.logPlatforms', { returnObjects: true }) as Record<string, string>;
+      return Object.values(platformsObj);
+    };
     const platforms = getPlatforms();
     
     const addLog = () => {
@@ -33,7 +36,7 @@ export const LiveLog = () => {
             status: "[OK]",
             type: "status-ok"
         };
-        setLogs(prev => [...prev, newLog].slice(-8));
+        setLogs(prev => [...prev, newLog].slice(-13));
     };
     
     const interval = setInterval(addLog, 2000);

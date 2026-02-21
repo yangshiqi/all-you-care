@@ -13,6 +13,7 @@ interface RelatedInsight {
   slug: string;
   title: string;
   excerpt: string | null;
+  author: string;
 }
 
 interface IssueData {
@@ -43,6 +44,11 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
   const { t, i18n } = useTranslation();
   const lang = useCurrentLanguage();
   const [showTags, setShowTags] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   useEffect(() => {
     if (initialLang && i18n.language !== initialLang) {
@@ -95,13 +101,13 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
           className="inline-flex items-center gap-2 text-sm hover:text-primary transition-colors uppercase tracking-wider font-medium"
         >
           <ChevronLeft className="w-4 h-4" />
-          <TranslatedText>{t('issueDetail.backToIssues')}</TranslatedText>
+          <TranslatedText>{mounted ? t('issueDetail.backToIssues') : ''}</TranslatedText>
         </Link>
         <button 
           className="text-sm text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider" 
           onClick={() => document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' })}
         >
-          <TranslatedText>{t('issueDetail.skipToMain')} ↓</TranslatedText>
+          <TranslatedText>{mounted ? t('issueDetail.skipToMain') : ''} ↓</TranslatedText>
         </button>
       </div>
 
@@ -109,39 +115,71 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
       <div className="mb-12 text-center">
         <div className="inline-block vintage-border1 bg-card px-8 py-6 mb-4">
           <div className="text-sm text-muted-foreground uppercase tracking-widest monospace mb-2">
-            {issue.date}
+            {mounted ? issue.date : ''}
           </div>
           <h1 className="text-5xl font-bold text-foreground mb-4">
             {issue.title}
           </h1>
         </div>
         
-        {/* ZACK'S TAKE (Insight Card) */}
-        {relatedInsight && (
-          <div className="max-w-4xl mx-auto mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* EDITOR'S TAKE (Mac Terminal Style) */}
+        {mounted && relatedInsight && (
+          <div className="max-w-4xl mx-auto mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Link 
               href={addLanguageToPath(`/blog/${relatedInsight.slug}`, lang)}
-              className="block group relative overflow-hidden rounded-xl border-4 border-black bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+              className="block group transform hover:scale-[1.01] transition-all duration-300"
             >
-              <div className="absolute top-0 right-0 bg-black text-white px-3 py-1 font-mono text-xs font-bold uppercase dark:bg-white dark:text-black">
-                Editor's Take
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black shrink-0">
-                  <Terminal className="h-6 w-6" />
+              <div className="bg-[#1e1e1e] rounded-lg shadow-2xl overflow-hidden border border-gray-800">
+                {/* Terminal Header */}
+                <div className="bg-[#2d2d2d] px-4 py-2 flex items-center justify-between border-b border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                    <Terminal className="w-3 h-3" />
+                    <span>{relatedInsight.author.toLowerCase()}@snapallx:~</span>
+                  </div>
+                  <div className="hidden sm:block text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                    {t('issueDetail.editorTake')}
+                  </div>
                 </div>
-                <div className="flex-1 text-left">
-                  <h3 className="text-xl font-bold font-serif mb-2 group-hover:text-primary transition-colors">
-                    {relatedInsight.title}
-                  </h3>
-                  {relatedInsight.excerpt && (
-                    <p className="text-muted-foreground line-clamp-2 font-serif italic mb-3">
-                      "{relatedInsight.excerpt}"
-                    </p>
-                  )}
-                  <span className="inline-flex items-center text-sm font-bold uppercase tracking-wider text-primary group-hover:gap-2 transition-all">
-                    Read Full Analysis <ArrowRight className="ml-1 w-4 h-4" />
-                  </span>
+
+                {/* Terminal Body */}
+                <div className="p-6 font-mono text-left text-sm md:text-base leading-relaxed text-gray-300">
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <span className="text-[#27c93f]">➜</span>
+                      <span className="text-[#59c2ff]">~</span>
+                      <span className="text-white">cat insight.md</span>
+                    </div>
+
+                    <div className="pl-4 border-l-2 border-gray-700 space-y-3">
+                      <h3 className="text-xl font-bold text-white group-hover:text-[#59c2ff] transition-colors font-mono">
+                        # {relatedInsight.title}
+                      </h3>
+                      {relatedInsight.excerpt && (
+                        <p className="text-gray-400 italic">
+                          "{relatedInsight.excerpt}"
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <span className="text-[#27c93f]">➜</span>
+                      <span className="text-[#59c2ff]">~</span>
+                      <span className="text-white group-hover:underline underline-offset-4 decoration-dashed">
+                        ./read_full_analysis.sh --verbose
+                      </span>
+                    </div>
+
+                    <div className="text-[#27c93f] flex items-center gap-2">
+                      <span className="font-bold">&gt; {t('issueDetail.readFullAnalysis')}</span>
+                      <ArrowRight className="w-4 h-4 animate-bounce-x" />
+                      <span className="inline-block w-2 h-4 bg-[#27c93f] animate-pulse"></span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -185,7 +223,7 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
                 <div className="pt-4 border-t border-border">
                   <p className="text-muted-foreground italic leading-relaxed" suppressHydrationWarning>
                     <TranslatedText>
-                      {t('issueDetail.intro', { date: issue.date })}
+                      {mounted ? t('issueDetail.intro', { date: issue.date }) : ''}
                     </TranslatedText>
                 </p>
               </div>
@@ -196,7 +234,7 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-8 max-w-4xl mx-auto">
-        <article id="main-content" className="flex-1 paper-texture">
+        <article id="main-content" className="flex-1 paper-texture" suppressHydrationWarning>
           {issue.imgUrl && (
             <div className="mb-8 p-1 vintage-border1 bg-card">
               <img 
@@ -207,26 +245,23 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
             </div>
           )}
           
-          <div className="space-y-12">
-            {issue.sections.map(section => (
-              <section key={section.id} id={section.id} className="scroll-mt-4">
-                <div className="vintage-border1 bg-card p-1">
+          <div className="space-y-12" suppressHydrationWarning>{mounted && issue.sections.map((section, index) => (
+              <section key={section.id || `section-${index}`} id={section.id} className="scroll-mt-4" suppressHydrationWarning>
+                <div className="vintage-border1 bg-card p-1" suppressHydrationWarning>
                   <div className="flex items-center gap-4 mb-6 pb-4 border-b-4 border-primary">
                     <div className="w-2 h-2 bg-primary" />
-                    <h2 className="text-3xl font-bold text-primary uppercase tracking-wider">
-                      {section.title}
-                    </h2>
+                    <h2 className="text-3xl font-bold text-primary uppercase tracking-wider">{section.title}</h2>
                     <div className="w-2 h-2 bg-primary" />
                   </div>
                   <div 
                     className="prose prose-vintage max-w-none" 
-                    dangerouslySetInnerHTML={{ __html: section.content }}
-                    style={{ lineHeight: '1.8' }}
+                    dangerouslySetInnerHTML={{ __html: section.content.trim() }} 
+                    style={{ lineHeight: '1.8' }} 
+                    suppressHydrationWarning
                   />
                 </div>
               </section>
-            ))}
-          </div>
+            ))}</div>
         </article>
       </div>
 
