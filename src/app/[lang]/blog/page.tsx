@@ -4,21 +4,30 @@ import { getPublishedInsights } from '@/lib/api'
 import Link from 'next/link'
 import { Calendar, Tag, Terminal, Filter, X } from 'lucide-react'
 import { AuthorAvatar } from '@/components/AuthorAvatar'
+import { en } from "@/lib/locales/en"
+import { zh_CN } from "@/lib/locales/zh_CN"
+
+const translations = {
+  en: en.translation,
+  'zh-CN': zh_CN.translation,
+}
 
 // Force dynamic rendering to always get the latest insights
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  params: {
+  params: Promise<{
     lang: string
-  }
-  searchParams?: {
+  }>
+  searchParams?: Promise<{
     author?: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params
+  const t = translations[lang as keyof typeof translations] || translations.en
+  
   return {
     title: 'SnapAI Insights - The Signal in the Noise',
     description: 'Deep dives, technical analysis, and unfiltered opinions on AI. No fluff, just signal.',
@@ -35,6 +44,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
   const { lang } = await params
   const { author } = await searchParams || {}
   const insights = await getPublishedInsights(lang, author)
+  const t = translations[lang as keyof typeof translations] || translations.en
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -126,9 +136,12 @@ export default async function BlogPage({ params, searchParams }: Props) {
                       <span key={tag} className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">#{tag}</span>
                     ))}
                  </div>
-                 <div className="flex items-center text-primary font-bold text-sm group-hover:translate-x-1 transition-transform uppercase tracking-wider">
-                  Read Analysis <span className="ml-1">→</span>
-                 </div>
+                 <Link 
+                   href={`/${lang}/blog/${insight.slug}`}
+                   className="flex items-center text-primary font-bold text-sm group-hover:translate-x-1 transition-transform uppercase tracking-wider hover:underline"
+                 >
+                  {t.blog.readAnalysis} <span className="ml-1">→</span>
+                 </Link>
               </div>
             </article>
           ))

@@ -166,6 +166,9 @@ export const zh_CN = {
         "next": "下一页"
       }
     },
+    "blog": {
+      "readAnalysis": "阅读详情"
+    },
     "common": {
       "loading": "加载中...",
       "error": "错误"

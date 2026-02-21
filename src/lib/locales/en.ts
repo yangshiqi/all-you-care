@@ -166,6 +166,9 @@ export const en = {
         "next": "Next"
       }
     },
+    "blog": {
+      "readAnalysis": "Read Analysis"
+    },
     "common": {
       "loading": "Loading...",
       "error": "Error"
