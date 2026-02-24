@@ -7,6 +7,7 @@ import { Calendar, Terminal, ArrowLeft, Tag } from 'lucide-react'
 import { remark } from 'remark'
 import html from 'remark-html'
 import remarkGfm from 'remark-gfm'
+import { getAbsoluteUrl } from '@/lib/utils'
 
 import { AuthorAvatar } from '@/components/AuthorAvatar'
 
@@ -30,6 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
+  const shareImage = insight.cover_image 
+    ? getAbsoluteUrl(insight.cover_image)
+    : getAbsoluteUrl('/x_welcome.jpg')
+
   return {
     title: `${insight.title} - SnapAI Insight`,
     description: insight.excerpt || 'Deep analysis by SnapAI.',
@@ -39,11 +44,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'article',
       publishedTime: insight.published_at || insight.created_at || '',
       authors: ['SnapAI'],
+      images: [
+        {
+          url: shareImage,
+          width: 1200,
+          height: 630,
+          alt: insight.title,
+        }
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: insight.title,
       description: insight.excerpt || '',
+      images: [shareImage],
     },
   }
 }
