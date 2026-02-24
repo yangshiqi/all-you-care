@@ -7,7 +7,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1N
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const articleTitle = "Intellectual Parasitism and Digital Bayonets: Anthropic Exposes the AGI Espionage War";
-const articleSlug = "intellectual-parasitism-anthropic-exposes-ai-espionage";
+const articleSlug = "anthropic-distillation-attack-intel";
 const articleExcerpt = "Anthropic unmasks DeepSeek, Moonshot, and MiniMax for industrial-scale distillation attacks on Claude. When AGI competition devolves into a borderless war of 24,000 ghost accounts, the mask of technical democratization shatters.";
 
 const articleBody = `
@@ -41,10 +41,12 @@ const coverImageUrl = "/images/blog/anthropic-distillation-attack-intel/cover.pn
 async function publish() {
   console.log(`🚀 Publishing English Version: ${articleTitle}`);
   
+  // Try to find if it exists for this specific language
   const { data: existing } = await supabase
     .from('snapai_insights')
     .select('id')
     .eq('slug', articleSlug)
+    .eq('lang', 'en')
     .single();
 
   if (existing) {

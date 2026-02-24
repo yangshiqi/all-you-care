@@ -7,7 +7,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1N
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const articleTitle = "Ghosts of the Nixon Era and IBM's Death Sentence: How Claude Code Dismantles a Trillion-Dollar Moat";
-const articleSlug = "ghosts-nixon-era-ibm-death-sentence";
+const articleSlug = "cobol-death-ibm-moat";
 const articleExcerpt = "Anthropic is physically liquidating IBM's core assets via Claude Code. When AI flattens the 'cost barrier' of understanding legacy code, the inefficient arbitrage model of traditional IT consulting goes bankrupt.";
 
 const articleBody = `
@@ -44,10 +44,12 @@ const coverImageUrl = "/images/blog/cobol-death-ibm-moat/cover.png";
 async function publish() {
   console.log(`🚀 Publishing English Version: ${articleTitle}`);
   
+  // Try to find if it exists for this specific language
   const { data: existing } = await supabase
     .from('snapai_insights')
     .select('id')
     .eq('slug', articleSlug)
+    .eq('lang', 'en')
     .single();
 
   let result;
