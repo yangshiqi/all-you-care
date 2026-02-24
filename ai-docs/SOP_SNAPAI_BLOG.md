@@ -12,6 +12,7 @@
   - Consolidation of Power (Oligarchy).
   - Physical/Economic Bottlenecks.
   - Paradigm Shifts (GUI -> Intent).
+- **Conflict Detection (New)**: Compare the signal with historical claims in `snapai_insights`. Identify "PR vs Reality" gaps or "The Grand Pivot" (e.g., when a company contradicts its previous roadmap).
 - **Output**: 3 Distinct Angles based on Personas (Zack/Tom/Brad/Tim).
 
 ## 2. 🎯 Topic Selection (选题)
@@ -47,4 +48,7 @@
 ## 7. 🚀 Publish & Distribute (发布与分发)
 - **SEO**: Ensure Slug is kebab-case and keyword-rich.
 - **Database**: Upsert to `snapai_insights`.
-- **Distribution**: (Future) Auto-post threat/hook to Twitter/X.
+- **Distribution**: 
+  - **Opinion Hook**: For every insight, generate a high-friction/controversial "Hook" specifically for X (Twitter) Threads. 
+  - **Visuals**: Ensure cover images use 15%+ Glitch Art elements to maintain the "Digital Craftsman" rebel aesthetic.
+  - **Auto-post**: (Future) Auto-post thread/hook to Twitter/X.
