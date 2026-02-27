@@ -5,7 +5,7 @@ description: "Block (Square) 近期的财报与裁员组合拳揭示了一个冷
 slug: "the-1.5m-blood-tax-ai-efficiency-myth"
 tags: ["AI", "Capital", "Layoffs", "Efficiency"]
 category: "Insight"
-cover_image: "https://www.snapallx.com/images/blog/the-1.5m-blood-tax-ai-efficiency-myth/cover.png"
+cover_image: "https://ylcjjcfopcuwtspiiytl.supabase.co/storage/v1/object/public/journal-covers/the-1.5m-blood-tax-ai-efficiency-myth-cover.png"
 is_published: false
 related_journal_id: null
 ---
