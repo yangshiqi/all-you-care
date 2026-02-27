@@ -26,6 +26,8 @@ L4 autonomous driving for software development has arrived. The remaining surviv
 
 Do not put Anthropic on a pedestal. Zack's engineering romanticism masks the brutality of business. In the face of survival and profit margins, every \"ethical bottom line\" has a price tag. Today they reject the Pentagon; tomorrow they might bypass the red line through a \"non-lethal logistics\" shell company.
 
+What's even more fascinating is that their biggest rival, OpenAI CEO Sam Altman, made a rare public statement defending Anthropic against the Pentagon's threat to invoke the Defense Production Act (DPA). Altman's \"righteous\" defense is ostensibly about maintaining Silicon Valley's \"safety consensus,\" but it's actually about circling the wagons against the state apparatus's forced co-optation of the private AI sector. When two fierce rivals are forced to stand together, you know exactly how cold the Pentagon's blade is.
+
 As for agents taking over the desktop? Just look at the single point of failure caused when Google banned the OpenClaw API. Handing over your system foundation entirely to closed-source APIs is a dangerous game of Russian roulette. The cloud vendors frantically hoarding compute to choke out competition will never surrender desktop-level control easily.
 
 ### Final Assertion
