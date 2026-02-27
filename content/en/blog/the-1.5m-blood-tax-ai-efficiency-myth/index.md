@@ -33,3 +33,6 @@ When a 10,000-person architecture is forced into 6,000, the remaining 'survivors
 ### Final Assertion
 
 If your CEO is calculating how much market cap each employee can be traded for, you are no longer part of a team—you are redundancy waiting to be cleared from the balance sheet.
+
+---
+*Source: [Aakash Gupta on X](https://x.com/aakashgupta/status/2027147619332747485?s=46)*
