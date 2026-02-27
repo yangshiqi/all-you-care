@@ -173,7 +173,7 @@ export const getPublishedInsights = cache(async (i18nLang?: string, author?: str
       .from('snapai_insights')
       .select('*')
       .eq('is_published', true)
-      .order('published_at', { ascending: false })
+      .order('created_at', { ascending: false })
     
     if (dbLang) query = query.eq('lang', dbLang)
     
