@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process';
 import Anthropic from '@anthropic-ai/sdk';
 import type { Logger } from './log.js';
 
@@ -64,11 +65,90 @@ function client(): Anthropic {
   return _client;
 }
 
+async function callViaCli(opts: {
+  prompt: string;
+  model: string;
+  log: Logger;
+  timeoutMs: number;
+}): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(
+      'claude',
+      ['-p', '--output-format', 'text', '--model', opts.model],
+      { stdio: ['pipe', 'pipe', 'pipe'] },
+    );
+
+    let stdout = '';
+    let stderr = '';
+    let killed = false;
+
+    const timer = setTimeout(() => {
+      killed = true;
+      proc.kill('SIGKILL');
+    }, opts.timeoutMs);
+
+    proc.stdout.setEncoding('utf8');
+    proc.stderr.setEncoding('utf8');
+    proc.stdout.on('data', (c) => {
+      stdout += c;
+    });
+    proc.stderr.on('data', (c) => {
+      stderr += c;
+    });
+    proc.on('error', (e) => {
+      clearTimeout(timer);
+      reject(e);
+    });
+    proc.on('close', (code) => {
+      clearTimeout(timer);
+      if (killed) return reject(new Error(`claude cli timed out after ${opts.timeoutMs}ms`));
+      if (code !== 0) return reject(new Error(`claude cli exit ${code}: ${stderr.slice(0, 500)}`));
+      resolve(stdout.trim());
+    });
+
+    proc.stdin.on('error', () => {
+      /* ignore EPIPE */
+    });
+    proc.stdin.write(opts.prompt);
+    proc.stdin.end();
+  });
+}
+
 export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult<T>> {
   const model = opts.model ?? 'claude-sonnet-4-6';
   const maxTokens = opts.maxTokens ?? 16000;
   const temperature = opts.temperature ?? 0;
   const log = opts.log;
+
+  const useApi = !!(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim());
+
+  if (!useApi) {
+    log.info(
+      { event: 'llm_via_cli', model },
+      'using local claude cli (no ANTHROPIC_API_KEY)',
+    );
+    const t0 = Date.now();
+    const text = await callViaCli({
+      prompt: opts.prompt,
+      model,
+      log,
+      timeoutMs: 180_000,
+    });
+    log.info(
+      { event: 'llm_cli_ok', model, ms: Date.now() - t0, bytes: text.length },
+      'llm cli ok',
+    );
+    const result: LlmResult<T> = {
+      text,
+      inputTokens: 0,
+      outputTokens: 0,
+      stopReason: null,
+    };
+    if (opts.expectJson) {
+      result.json = extractJsonObject(text) as T;
+    }
+    return result;
+  }
 
   let attempt = 0;
   let lastErr: unknown;
