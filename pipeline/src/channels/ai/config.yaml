@@ -1,0 +1,68 @@
+name: ai
+display_name: "AI Daily"
+
+sources:
+  rss:
+    - { url: "https://www.geekpark.net/rss",                                enabled: true }
+    - { url: "https://36kr.com/feed",                                       enabled: true }
+    - { url: "https://www.inside.com.tw/feed/all",                          enabled: true }
+    - { url: "https://blog.research.google/feeds/posts/default",            enabled: true }
+    - { url: "https://www.theverge.com/rss/index.xml",                      enabled: true }
+    - { url: "https://techcrunch.com/feed/",                                enabled: true }
+    - { url: "https://hnrss.org/frontpage",                                 enabled: true }
+    - { url: "https://www.technologyreview.com/feed/",                      enabled: true }
+    - { url: "https://www.wired.com/feed/rss",                              enabled: true }
+    - { url: "https://www.microsoft.com/en-us/research/feed/",              enabled: true }
+    - { url: "https://www.cio.com/feed/",                                   enabled: true }
+    - { url: "https://www.infoq.com/ai-ml-data-eng/feed/",                  enabled: true }
+    - { url: "https://www.cnbeta.com.tw/backend.php",                       enabled: true }
+    - { url: "https://www.artificialintelligence-news.com/feed/",           enabled: true }
+    - { url: "https://www.analyticsvidhya.com/blog/feed/",                  enabled: true }
+    - { url: "https://news.mit.edu/rss/topic/artificial-intelligence2",     enabled: true }
+    - { url: "https://www.marktechpost.com/feed/",                          enabled: true }
+    - { url: "https://www.tmtpost.com/rss/feed",                            enabled: true }
+    - { url: "https://aiquantumcomputing.substack.com/feed",                enabled: true }
+    - { url: "https://www.edge-ai-vision.com/feed/",                        enabled: true }
+    - { url: "https://www.thoughtworks.com/insights/insights.rss",          enabled: true }
+    - { url: "https://news.google.com/rss/search?q=ai&hl=en-US&gl=US",      enabled: true }
+    - { url: "https://a16z.com/feed/",                                      enabled: true }
+    - { url: "https://pitchbook.com/feed",                                  enabled: true }
+  email:
+    - aivalley@mail.beehiiv.com
+    - hello@newsletters.venturebeat.com
+    - aiquantumcomputing@substack.com
+    - hello@every.to
+    - news@smol.ai
+    - a16z@substack.com
+    - milkroadai@mail.beehiiv.com
+    - swyx+ainews@substack.com
+    - swyx@substack.com
+    - newsletter@ai.milkroad.com
+    - thebatch@deeplearning.ai
+    - insights@edge-ai-vision.com
+
+windows:
+  fetch_rss_age_hours: 4
+  fetch_email_age_hours: 48
+  compress_lookback_hours: 12
+  merge_new_lookback_hours: 72
+  merge_old_lookback_hours: 72
+
+thresholds:
+  compress_min_pending: 5
+  compress_batch_size: 100
+  score_batch_size: 10
+
+cover_image:
+  prefer: reuters_pool
+  cdn_pattern: "https://www.snapallx.com/ainews/{yyyymm}/{n}.jpg"
+  cdn_random_max: 8
+  default: "/ainews/default.jpg"
+
+deliver:
+  url: "https://www.snapallx.com/api/send-latest-ai-news?type=ai"
+
+llm:
+  model: "claude-sonnet-4-6"
+  max_tokens: 16000
+  temperature: 0
