@@ -1,0 +1,11 @@
+name: ai · score
+on:
+  schedule:
+    - cron: '20 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  score:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: score }
+    secrets: inherit

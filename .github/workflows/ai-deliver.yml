@@ -1,0 +1,9 @@
+name: ai · deliver
+on:
+  workflow_dispatch: {}        # manual only; admin button uses /api/admin/deliver
+
+jobs:
+  deliver:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: deliver }
+    secrets: inherit
