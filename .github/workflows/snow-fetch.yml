@@ -1,0 +1,13 @@
+name: snow · fetch
+on:
+  schedule:
+    - cron: '0 1,11 * * *'      # 09:00 / 19:00 Asia/Shanghai
+  workflow_dispatch: {}
+
+jobs:
+  fetch:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      channel: snow
+      step: fetch
+    secrets: inherit
