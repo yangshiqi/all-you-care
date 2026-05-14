@@ -42,6 +42,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `no deliver url for channel ${issue.channel}` }, { status: 500 });
   }
 
+  // SAFETY GATE: deliver default to dry-run unless DELIVER_LIVE=1.
+  // Prevents accidental real sends to subscribers from the admin UI.
+  if (process.env.DELIVER_LIVE !== '1') {
+    await sb.from('issues').update({
+      delivered: true,
+      delivered_at: new Date().toISOString(),
+      delivering_at: null,
+    } as never).eq('id', issue.id);
+    return NextResponse.json({
+      ok: true,
+      issue_id: issue.id,
+      dry_safety: true,
+      note: 'DELIVER_LIVE != 1 — skipped real fetch, marked delivered for UI consistency',
+    });
+  }
+
   try {
     const resp = await fetch(deliverUrl, { method: 'GET', signal: AbortSignal.timeout(30_000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${(await resp.text()).slice(0, 200)}`);

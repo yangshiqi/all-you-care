@@ -34,6 +34,22 @@ export async function run(ctx: StepContext): Promise<StepResult> {
     return { processed: 0, skipped: 1, failed: 0, notes: 'dry-run' };
   }
 
+  // SAFETY GATE: deliver default to dry-run unless DELIVER_LIVE=1.
+  // Prevents accidental real sends to subscribers during dev / staging.
+  if (process.env.DELIVER_LIVE !== '1') {
+    log.warn({
+      event: 'deliver_dry_safety',
+      issue_id: issue.id,
+      url: channel.deliver.url,
+    }, 'DELIVER_LIVE != 1 — skipping real fetch, marking delivered anyway for UI consistency');
+    await db.from('issues').update({
+      delivered: true,
+      delivered_at: new Date().toISOString(),
+      delivering_at: null,
+    } as never).eq('id', issue.id);
+    return { processed: 1, skipped: 0, failed: 0, notes: 'dry-safety (DELIVER_LIVE!=1)' };
+  }
+
   // CALL deliver url
   try {
     const resp = await fetch(channel.deliver.url, { method: 'GET', signal: AbortSignal.timeout(30_000) });
