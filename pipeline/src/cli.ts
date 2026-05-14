@@ -1,5 +1,31 @@
 // pipeline/src/cli.ts
 // Usage: tsx src/cli.ts <channel> <step> [--dry-run] [--limit N] [--verbose]
+//   或 npm run cli -- <channel> <step> [...]   ← 注意必须有那个 `--`，否则 flag 会被 npm 吃掉
+
+// Auto-load pipeline/.env.local (no dep). In CI, the file doesn't exist; env comes from Secrets.
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+{
+  const here = dirname(fileURLToPath(import.meta.url));
+  const envPath = resolve(here, '..', '.env.local');
+  if (existsSync(envPath)) {
+    for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eq = trimmed.indexOf('=');
+      if (eq < 0) continue;
+      const key = trimmed.slice(0, eq).trim();
+      let val = trimmed.slice(eq + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      // Existing env (e.g. GH Actions secrets) wins over file
+      if (!(key in process.env)) process.env[key] = val;
+    }
+  }
+}
+
 import { createLogger } from './lib/log.js';
 import { createDb } from './lib/db.js';
 import { loadChannel, channelDir } from './channels/load.js';
