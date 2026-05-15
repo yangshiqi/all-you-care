@@ -176,9 +176,9 @@ function pickProvider(): Provider {
   if (explicit === 'codex' || explicit === 'codex_cli') return 'codex_cli';
   if (explicit === 'claude' || explicit === 'claude_cli') return 'claude_cli';
   if (explicit === 'anthropic' || explicit === 'sdk' || explicit === 'api') return 'anthropic';
-  // auto: SDK if API key set, else local claude CLI fallback
+  // auto: SDK if API key set, else local codex CLI (more reliable on big batches than claude cli)
   if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim()) return 'anthropic';
-  return 'claude_cli';
+  return 'codex_cli';
 }
 
 export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult<T>> {
