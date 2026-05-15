@@ -15,13 +15,7 @@
 # 输出 HTML 结构（按此顺序）
 
 ```html
-<!-- A. 主线分析 box -->
-<div class='headline-box'>
-  <div class='headline-label'>📊 今日主线</div>
-  <p class='headline-text'>...headline_analysis 内容...</p>
-</div>
-
-<!-- B. Top 3 必看 spotlight -->
+<!-- A. Top 必看 spotlight -->
 <section class='spotlight-section'>
   <h3 class='section-title'>⭐ 必看</h3>
   <article class='spotlight-card'>
@@ -37,7 +31,7 @@
   <!-- ② ③ 同上 -->
 </section>
 
-<!-- C. 视角分组 (creator / engineer / investor) -->
+<!-- B. 视角分组 (creator / engineer / investor) -->
 <section class='persona-section'>
   <h3 class='section-title persona-creator'>💼 创业者关注</h3>
   <article class='persona-card'>
@@ -61,7 +55,7 @@
   <!-- 同上 -->
 </section>
 
-<!-- D. 通用动态 (titles only) -->
+<!-- C. 通用动态 (titles only) -->
 <section class='general-section'>
   <h3 class='section-title'>🌐 通用动态</h3>
   <ul class='general-list'>
@@ -73,7 +67,7 @@
 
 # 转换规则
 
-1. 顺序固定为 A → B → C → D。
+1. 顺序固定为 A → B → C。
 2. spotlight rank 用①②③④⑤（圆圈数字）。
 3. score_pill 显示 `⭐ X.X`（保留一位小数）。
 4. links 多个时全部输出，并排。

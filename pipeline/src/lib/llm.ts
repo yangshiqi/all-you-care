@@ -228,7 +228,7 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
       prompt: opts.prompt,
       model,
       log,
-      timeoutMs: 180_000,
+      timeoutMs: 600_000, // 10min — render with ~15KB JSON input often takes 4-5min
     });
     log.info(
       { event: 'llm_cli_ok', model, ms: Date.now() - t0, bytes: text.length },

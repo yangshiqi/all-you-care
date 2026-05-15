@@ -9,6 +9,145 @@ interface RenderOutput {
   content_html: string;
 }
 
+// ----- Deterministic JSON → HTML renderer for AI channel -----
+// The merge step now produces a strictly structured JSON. Going through an LLM
+// just to template it was wasteful (5-10 min latency, quota burn, timeouts).
+// This pure TS function does the same conversion in <1ms.
+
+interface AiMergePick {
+  title: string;
+  description: string;
+  links: string[];
+  score: number;
+  why_matters?: string;
+}
+interface AiMergeCard {
+  title: string;
+  description: string;
+  links?: string[];
+  link?: string;
+  score: number;
+}
+interface AiMergeGeneral {
+  title: string;
+  link: string;
+}
+interface AiMergePayload {
+  title: string;
+  date?: string;
+  summary?: string;
+  tags?: string[];
+  top_picks?: AiMergePick[];
+  by_persona?: {
+    creator?: AiMergeCard[];
+    engineer?: AiMergeCard[];
+    investor?: AiMergeCard[];
+  };
+  general?: AiMergeGeneral[];
+}
+
+const RANK_CHARS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+
+const PERSONA_META: ReadonlyArray<{
+  key: 'creator' | 'engineer' | 'investor';
+  label: string;
+  cls: string;
+}> = [
+  { key: 'creator',  label: '💼 创业者关注', cls: 'persona-creator'  },
+  { key: 'engineer', label: '🔧 工程师关注', cls: 'persona-engineer' },
+  { key: 'investor', label: '📊 投资人关注', cls: 'persona-investor' },
+];
+
+function renderLinkBtns(links: ReadonlyArray<string | null | undefined>): string {
+  return links
+    .filter((u): u is string => typeof u === 'string' && u.length > 0)
+    .map(u => `<a class="link-btn" href="${escapeHtml(u)}" target="_blank" rel="noopener">[查看详情]</a>`)
+    .join('\n      ');
+}
+
+function renderTopPick(pick: AiMergePick, rank: number): string {
+  const rankChar = RANK_CHARS[rank] ?? `${rank + 1}.`;
+  const why = pick.why_matters
+    ? `\n    <div class="spotlight-why">💡 为什么重要：${escapeHtml(pick.why_matters)}</div>`
+    : '';
+  return `  <article class="spotlight-card">
+    <div class="spotlight-header">
+      <span class="spotlight-rank">${rankChar}</span>
+      <span class="spotlight-score">⭐ ${pick.score.toFixed(1)}</span>
+    </div>
+    <h4 class="spotlight-title">${escapeHtml(pick.title)}</h4>
+    <p class="spotlight-desc">${escapeHtml(pick.description)}</p>
+    <div class="spotlight-links">
+      ${renderLinkBtns(pick.links)}
+    </div>${why}
+  </article>`;
+}
+
+function renderPersonaCard(card: AiMergeCard): string {
+  const linkList = card.links ?? (card.link ? [card.link] : []);
+  return `  <article class="persona-card">
+    <div class="card-header">
+      <h4>${escapeHtml(card.title)}</h4>
+      <span class="score-pill">⭐ ${card.score.toFixed(1)}</span>
+    </div>
+    <p>${escapeHtml(card.description)}</p>
+    <div class="card-links">
+      ${renderLinkBtns(linkList)}
+    </div>
+  </article>`;
+}
+
+function renderAiContent(payload: AiMergePayload): string {
+  const parts: string[] = [];
+
+  // A. Top 必看
+  if (payload.top_picks && payload.top_picks.length > 0) {
+    const cards = payload.top_picks.map((p, i) => renderTopPick(p, i)).join('\n');
+    parts.push(`<section class="spotlight-section">
+  <h3 class="section-title">⭐ 必看</h3>
+${cards}
+</section>`);
+  }
+
+  // B. by_persona — creator → engineer → investor
+  for (const meta of PERSONA_META) {
+    const cards = payload.by_persona?.[meta.key] ?? [];
+    if (cards.length === 0) continue;
+    const rendered = cards.map(renderPersonaCard).join('\n');
+    parts.push(`<section class="persona-section">
+  <h3 class="section-title ${meta.cls}">${meta.label}</h3>
+${rendered}
+</section>`);
+  }
+
+  // C. general
+  if (payload.general && payload.general.length > 0) {
+    const items = payload.general
+      .map(g => `    <li><a href="${escapeHtml(g.link)}" target="_blank" rel="noopener">${escapeHtml(g.title)}</a></li>`)
+      .join('\n');
+    parts.push(`<section class="general-section">
+  <h3 class="section-title">🌐 通用动态</h3>
+  <ul class="general-list">
+${items}
+  </ul>
+</section>`);
+  }
+
+  return parts.join('\n\n');
+}
+
+function parseAiPayload(contentMd: string): AiMergePayload | null {
+  try {
+    const parsed = JSON.parse(contentMd) as unknown;
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed as AiMergePayload;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -302,26 +441,36 @@ export async function run(ctx: StepContext): Promise<StepResult> {
 
   for (const pp of claimed) {
     try {
-      // AI channel stores structured JSON in content_md (rendered via {{json_payload}}).
-      // SNOW channel still stores legacy markdown (rendered via {{markdown}}).
-      const promptVars: Record<string, string> = channel.name === 'ai'
-        ? { json_payload: pp.content_md }
-        : { markdown: pp.content_md };
-      const prompt = await loadPrompt(channelDir, 'render', promptVars);
       if (dryRun) {
         log.info({ event: 'dry_run', would_render: pp.id }, '');
         await markFailed.prePublish(db, pp.id, 'dry_run_release');
         continue;
       }
-      const llm = await callLlm<RenderOutput>({
-        prompt,
-        expectJson: true,
-        model: channel.llm.model,
-        maxTokens: channel.llm.max_tokens,
-        temperature: channel.llm.temperature,
-        log,
-      });
-      const inner = llm.json!.content_html;
+
+      let inner: string;
+
+      if (channel.name === 'ai') {
+        // AI channel: deterministic JSON → HTML, no LLM needed.
+        const payload = parseAiPayload(pp.content_md);
+        if (!payload) {
+          throw new Error(`pre_publish ${pp.id}: content_md is not valid JSON for AI channel`);
+        }
+        inner = renderAiContent(payload);
+        log.info({ event: 'render_via_template', pre_publish_id: pp.id, mode: 'deterministic' }, '');
+      } else {
+        // SNOW channel still uses LLM (legacy markdown content_md).
+        const prompt = await loadPrompt(channelDir, 'render', { markdown: pp.content_md });
+        const llm = await callLlm<RenderOutput>({
+          prompt,
+          expectJson: true,
+          model: channel.llm.model,
+          maxTokens: channel.llm.max_tokens,
+          temperature: channel.llm.temperature,
+          log,
+        });
+        inner = llm.json!.content_html;
+      }
+
       const fullHtml = wrapShell(channel.name, inner, pp);
       const sanitized = sanitizeIssueHtml(fullHtml);
       await commit.render(db, pp.id, sanitized);
