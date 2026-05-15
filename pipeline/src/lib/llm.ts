@@ -200,7 +200,7 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
       prompt: opts.prompt,
       ...(codexModel ? { model: codexModel } : {}),
       log,
-      timeoutMs: 300_000, // codex tends to be slower than claude cli
+      timeoutMs: 600_000, // 10min — codex is slower; merge/render with ~25KB input often takes 4-5min
     });
     log.info(
       { event: 'llm_codex_ok', ms: Date.now() - t0, bytes: text.length },
