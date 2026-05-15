@@ -7,9 +7,15 @@ import { pickCoverImage } from '../lib/coverImage.js';
 
 interface MergeOutput {
   title: string;
-  summary: string;
-  tags: string[];
-  content: string;
+  date?: string;
+  summary?: string;
+  tags?: string[];
+  headline_analysis?: string;
+  top_picks?: unknown[];
+  by_persona?: Record<string, unknown[]>;
+  general?: unknown[];
+  // legacy field kept for backward compatibility (snow channel still uses markdown content)
+  content?: string;
 }
 
 export async function run(ctx: StepContext): Promise<StepResult> {
@@ -61,10 +67,15 @@ export async function run(ctx: StepContext): Promise<StepResult> {
     });
     const out = llm.json!;
     const cover = await pickCoverImage(db, channel, channel.name, log);
+    // For AI channel: store the FULL structured JSON in content_md (render step parses it).
+    // For SNOW channel: keep legacy markdown string in `out.content`.
+    const contentMd = channel.name === 'ai'
+      ? JSON.stringify(out)
+      : (out.content ?? '');
     const newId = await commit.merge(db, channel.name, {
       title: out.title,
       summary: out.summary ?? null,
-      contentMd: out.content,
+      contentMd,
       tags: out.tags ?? [],
       coverImage: cover,
       sourceScoredIds: claimed.map(c => c.id),
