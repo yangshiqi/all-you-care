@@ -65,7 +65,7 @@ function client(): Anthropic {
   return _client;
 }
 
-async function callViaCli(opts: {
+async function callViaClaudeCli(opts: {
   prompt: string;
   model: string;
   log: Logger;
@@ -114,21 +114,117 @@ async function callViaCli(opts: {
   });
 }
 
+async function callViaCodexCli(opts: {
+  prompt: string;
+  model?: string;
+  log: Logger;
+  timeoutMs: number;
+}): Promise<string> {
+  const { mkdtempSync } = await import('node:fs');
+  const { readFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+
+  const dir = mkdtempSync(join(tmpdir(), 'codex-'));
+  const outFile = join(dir, 'last.txt');
+  const args = ['exec', '-', '-s', 'read-only', '-o', outFile];
+  if (opts.model) args.push('-m', opts.model);
+
+  return await new Promise<string>((resolve, reject) => {
+    const proc = spawn('codex', args, { stdio: ['pipe', 'pipe', 'pipe'] });
+    let stderr = '';
+    let killed = false;
+    const timer = setTimeout(() => {
+      killed = true;
+      proc.kill('SIGKILL');
+    }, opts.timeoutMs);
+    proc.stderr.setEncoding('utf8');
+    proc.stderr.on('data', (c) => {
+      stderr += c;
+    });
+    proc.on('error', (e) => {
+      clearTimeout(timer);
+      reject(e);
+    });
+    proc.on('close', async (code) => {
+      clearTimeout(timer);
+      try {
+        if (killed) {
+          return reject(new Error(`codex cli timed out after ${opts.timeoutMs}ms`));
+        }
+        if (code !== 0) {
+          return reject(new Error(`codex cli exit ${code}: ${stderr.slice(0, 500)}`));
+        }
+        const text = await readFile(outFile, 'utf8');
+        resolve(text);
+      } finally {
+        await rm(dir, { recursive: true, force: true }).catch(() => {});
+      }
+    });
+    proc.stdin.on('error', () => {
+      /* ignore EPIPE */
+    });
+    proc.stdin.write(opts.prompt);
+    proc.stdin.end();
+  });
+}
+
+type Provider = 'anthropic' | 'claude_cli' | 'codex_cli';
+
+function pickProvider(): Provider {
+  const explicit = (process.env.LLM_PROVIDER ?? '').toLowerCase().trim();
+  if (explicit === 'codex' || explicit === 'codex_cli') return 'codex_cli';
+  if (explicit === 'claude' || explicit === 'claude_cli') return 'claude_cli';
+  if (explicit === 'anthropic' || explicit === 'sdk' || explicit === 'api') return 'anthropic';
+  // auto: SDK if API key set, else local claude CLI fallback
+  if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim()) return 'anthropic';
+  return 'claude_cli';
+}
+
 export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult<T>> {
   const model = opts.model ?? 'claude-sonnet-4-6';
   const maxTokens = opts.maxTokens ?? 16000;
   const temperature = opts.temperature ?? 0;
   const log = opts.log;
 
-  const useApi = !!(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim());
+  const provider = pickProvider();
 
-  if (!useApi) {
+  if (provider === 'codex_cli') {
+    const codexModel = process.env.CODEX_MODEL?.trim() || undefined;
+    log.info(
+      { event: 'llm_via_codex', model: codexModel ?? '(codex default)' },
+      'using local codex cli',
+    );
+    const t0 = Date.now();
+    const text = await callViaCodexCli({
+      prompt: opts.prompt,
+      ...(codexModel ? { model: codexModel } : {}),
+      log,
+      timeoutMs: 300_000, // codex tends to be slower than claude cli
+    });
+    log.info(
+      { event: 'llm_codex_ok', ms: Date.now() - t0, bytes: text.length },
+      'codex cli ok',
+    );
+    const result: LlmResult<T> = {
+      text,
+      inputTokens: 0,
+      outputTokens: 0,
+      stopReason: null,
+    };
+    if (opts.expectJson) {
+      result.json = extractJsonObject(text) as T;
+    }
+    return result;
+  }
+
+  if (provider === 'claude_cli') {
     log.info(
       { event: 'llm_via_cli', model },
       'using local claude cli (no ANTHROPIC_API_KEY)',
     );
     const t0 = Date.now();
-    const text = await callViaCli({
+    const text = await callViaClaudeCli({
       prompt: opts.prompt,
       model,
       log,
