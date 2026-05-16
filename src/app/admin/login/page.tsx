@@ -1,8 +1,8 @@
 'use client';
-import { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function AdminLogin() {
+function AdminLoginForm() {
   const [token, setToken] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const params = useSearchParams();
@@ -40,5 +40,13 @@ export default function AdminLogin() {
         {err && <p style={{ color: 'red' }}>{err}</p>}
       </form>
     </main>
+  );
+}
+
+export default function AdminLogin() {
+  return (
+    <Suspense fallback={<main style={{ maxWidth: 320, margin: '80px auto', padding: 16 }}><h1>Admin</h1></main>}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }
