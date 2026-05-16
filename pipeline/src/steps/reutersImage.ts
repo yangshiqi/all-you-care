@@ -16,7 +16,8 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   const { db, log, dryRun } = ctx;
   let processed = 0, skipped = 0, failed = 0;
 
-  await withImap(log, async client => {
+  try {
+    await withImap(log, async client => {
     const messages = await fetchUnreadFrom(client, REUTERS_FROM, 2, log);
     for (const m of messages) {
       try {
@@ -85,5 +86,9 @@ ${wrapUntrustedItems([{ source: m.from, content: slice }])}`;
       }
     }
   });
+  } catch (e) {
+    log.warn({ event: 'imap_connect_fail', err: (e as Error).message }, 'imap unreachable; skipping reuters image extraction');
+    failed++;
+  }
   return { processed, skipped, failed, notes: 'reuters daily briefing' };
 }

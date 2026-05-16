@@ -6,7 +6,8 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, db, log } = ctx;
   let processed = 0, skipped = 0, failed = 0;
 
-  await withImap(log, async client => {
+  try {
+    await withImap(log, async client => {
     for (const from of channel.sources.email) {
       try {
         const days = Math.ceil(channel.windows.fetch_email_age_hours / 24);
@@ -46,6 +47,12 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       }
     }
   });
+  } catch (e) {
+    // IMAP connection itself failed — log + record but don't crash the whole
+    // fetch step (RSS results upstream are preserved).
+    log.warn({ event: 'imap_connect_fail', err: (e as Error).message }, 'imap unreachable; skipping email sources');
+    failed += channel.sources.email.length;
+  }
 
   return { processed, skipped, failed, notes: `${channel.sources.email.length} senders` };
 }
