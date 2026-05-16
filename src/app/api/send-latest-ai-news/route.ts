@@ -148,9 +148,10 @@ async function getIssueForDelivery(channel: string, issueId?: number) {
       .select('id, title, content_html, published_at, lang, channel')
       .eq('id', issueId)
       .eq('channel', channel)
+      .eq('lang', 'zh_CN')
       .maybeSingle();
     if (error) throw new Error(`Failed to fetch issue ${issueId}: ${error.message}`);
-    if (!data) throw new Error(`Issue ${issueId} not found in channel ${channel}`);
+    if (!data) throw new Error(`Issue ${issueId} not found in channel ${channel} (lang=zh_CN). 仅支持 zh_CN deliver。`);
     return data;
   }
 
