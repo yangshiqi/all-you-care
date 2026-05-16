@@ -61,7 +61,10 @@ function client(): Anthropic {
   if (_client) return _client;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error('ANTHROPIC_API_KEY not set');
-  _client = new Anthropic({ apiKey: key });
+  // Optional override for self-hosted / proxied Anthropic-compatible endpoints.
+  // Accept ANTHROPIC_BASE_URL (preferred) or fall back to ANTHROPIC_ENDPOINT.
+  const baseURL = (process.env.ANTHROPIC_BASE_URL ?? process.env.ANTHROPIC_ENDPOINT ?? '').trim();
+  _client = new Anthropic({ apiKey: key, ...(baseURL ? { baseURL } : {}) });
   return _client;
 }
 
