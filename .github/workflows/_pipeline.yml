@@ -14,21 +14,13 @@ on:
 
 jobs:
   run:
-    # Allow schedule events unconditionally (they only fire on default branch)
-    # and explicit dispatches against main. Skip dispatches against feature branches.
-    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
       run:
         working-directory: pipeline
     steps:
-      - name: debug context
-        run: |
-          echo "event_name=${{ github.event_name }}"
-          echo "ref=${{ github.ref }}"
-          echo "ref_name=${{ github.ref_name }}"
-          echo "channel=${{ inputs.channel }} step=${{ inputs.step }}"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
