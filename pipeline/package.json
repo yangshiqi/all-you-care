@@ -15,7 +15,9 @@
     "@supabase/supabase-js": "^2.76.1",
     "imapflow": "^1.0.183",
     "js-yaml": "^4.1.0",
+    "juice": "^11.1.1",
     "mailparser": "^3.7.1",
+    "nodemailer": "^7.0.13",
     "rss-parser": "^3.13.0",
     "sanitize-html": "^2.13.0",
     "zod": "^3.23.8"
@@ -24,6 +26,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/mailparser": "^3.4.5",
     "@types/node": "^22.0.0",
+    "@types/nodemailer": "^8.0.0",
     "@types/sanitize-html": "^2.13.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
