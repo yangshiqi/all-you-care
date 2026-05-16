@@ -64,8 +64,6 @@ function mapIssueRowToSummary(row: IssueLightRow): IssueSummary {
   }
 }
 
-// ... (Existing content functions remain unchanged) ...
-
 export const getAllAiContentsPaginated = cache(async (
   page: number = 1,
   pageSize: number = 10,
@@ -323,7 +321,7 @@ function formatDate(dateString: string): string {
   })
 }
 
-export function extractTagsFromContent(tags: string | null | undefined): string[] {
+export function extractTagsFromContent(tags: string | string[] | null | undefined): string[] {
   if (!tags) return ['ai', 'technology']
   if (Array.isArray(tags)) {
     return tags.filter(tag => tag && typeof tag === 'string' && tag.trim() !== '').map(tag => tag.trim()).slice(0, 10)
@@ -382,7 +380,8 @@ export const getIssueMonths = cache(async (): Promise<string[]> => {
     if (error) throw error;
 
     const months = new Set<string>();
-    (data as { published_at: string | null }[] | null)?.forEach(item => {
+    const rows = (data ?? []) as Pick<IssueRow, 'published_at'>[]
+    rows.forEach(item => {
       if (item.published_at) {
         const date = new Date(item.published_at);
         const year = date.getFullYear();
