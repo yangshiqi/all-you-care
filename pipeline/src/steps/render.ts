@@ -167,9 +167,14 @@ function wrapShell(channel: 'ai' | 'snow', innerHtml: string, pp: PrePublishRow)
   const css = channel === 'ai' ? AI_CSS : SNOW_CSS;
   const safeTitle = escapeHtml(pp.title);
   let date = '';
+  let cover: { description?: string | null; link?: string | null } | undefined;
   try {
-    const parsed = JSON.parse(pp.content_md) as { date?: string };
+    const parsed = JSON.parse(pp.content_md) as {
+      date?: string;
+      cover?: { description?: string | null; link?: string | null };
+    };
     date = parsed.date ?? '';
+    cover = parsed.cover;
   } catch {
     // not JSON (snow channel still emits markdown) — silent fallback, no date subtitle
   }
@@ -178,6 +183,13 @@ function wrapShell(channel: 'ai' | 'snow', innerHtml: string, pp: PrePublishRow)
     : '';
   const heroImg = pp.cover_image
     ? `<img src="${escapeHtml(pp.cover_image)}" alt="Cover" class="hero-img">`
+    : '';
+  const coverCaption = cover?.description
+    ? `<p class="cover-caption">${
+        cover.link
+          ? `<a href="${escapeHtml(cover.link)}" target="_blank" rel="noopener">${escapeHtml(cover.description)}</a>`
+          : escapeHtml(cover.description)
+      }</p>`
     : '';
   return `<!doctype html>
 <html>
@@ -191,6 +203,7 @@ function wrapShell(channel: 'ai' | 'snow', innerHtml: string, pp: PrePublishRow)
 <h1>${safeTitle}</h1>
 ${subtitle}
 ${heroImg}
+${coverCaption}
 ${innerHtml}
 </div>
 </body>
@@ -252,7 +265,26 @@ const AI_CSS = `
   .hero-img {
     width: 100%;
     border-radius: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 12px;
+  }
+
+  .cover-caption {
+    margin: 0 auto 28px;
+    max-width: 640px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .cover-caption a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-muted);
+  }
+  .cover-caption a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
   }
 
   /* Headline analysis box */

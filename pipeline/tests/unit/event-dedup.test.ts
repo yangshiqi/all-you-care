@@ -1,0 +1,274 @@
+import { describe, it, expect } from 'vitest';
+import {
+  parseScoredEvents,
+  normalizeTitle,
+  deduplicateEvents,
+} from '../../src/lib/eventDedup.js';
+
+describe('parseScoredEvents', () => {
+  it('parses a typical scored block with 3 events', () => {
+    const md = `Some preamble that should be ignored.
+
+#### DeepSeek 完成 8 亿美元融资
+**原文**: DeepSeek 宣布完成新一轮融资，估值达 800 亿美元。
+**链接**: [查看详情](https://example.com/a) | [报道](https://example.com/a-bis)
+**热度**: ⭐ 8.8/10
+
+#### Anthropic 任命新 CFO
+**原文**: Anthropic 招募前 Stripe 高管出任首席财务官。
+**链接**: [TechCrunch](https://techcrunch.com/anthropic-cfo)
+**热度**: ⭐ 7.2/10
+
+#### Cerebras 提交 IPO 文件
+**原文**: AI 芯片公司 Cerebras 正式提交 S-1。
+**链接**: [WSJ](https://wsj.com/cerebras)
+**热度**: ⭐ 8.5/10
+`;
+    const evts = parseScoredEvents(md);
+    expect(evts).toHaveLength(3);
+    expect(evts[0]).toEqual({
+      title: 'DeepSeek 完成 8 亿美元融资',
+      description: 'DeepSeek 宣布完成新一轮融资，估值达 800 亿美元。',
+      links: ['https://example.com/a', 'https://example.com/a-bis'],
+      score: 8.8,
+    });
+    expect(evts[1]?.title).toBe('Anthropic 任命新 CFO');
+    expect(evts[1]?.score).toBe(7.2);
+    expect(evts[2]?.links).toEqual(['https://wsj.com/cerebras']);
+  });
+
+  it('falls back to defaults when 链接 / 热度 are missing', () => {
+    const md = `#### 仅有标题与描述的事件
+**原文**: 一段描述。
+`;
+    const evts = parseScoredEvents(md);
+    expect(evts).toHaveLength(1);
+    expect(evts[0]).toEqual({
+      title: '仅有标题与描述的事件',
+      description: '一段描述。',
+      links: [],
+      score: 0,
+    });
+  });
+
+  it('handles only a heading (no markers, no body)', () => {
+    const md = `#### 一个孤独的标题`;
+    const evts = parseScoredEvents(md);
+    expect(evts).toHaveLength(1);
+    expect(evts[0]?.title).toBe('一个孤独的标题');
+    expect(evts[0]?.description).toBe('');
+    expect(evts[0]?.links).toEqual([]);
+    expect(evts[0]?.score).toBe(0);
+  });
+
+  it('extracts multiple URLs from a 链接 line with `|` separators', () => {
+    const md = `#### Multi-link
+**链接**: [a](https://a.example) | [b](https://b.example) | [c](https://c.example)
+**热度**: ⭐ 6.5/10
+`;
+    const evts = parseScoredEvents(md);
+    expect(evts[0]?.links).toEqual([
+      'https://a.example',
+      'https://b.example',
+      'https://c.example',
+    ]);
+    expect(evts[0]?.score).toBe(6.5);
+  });
+
+  it('discards 点评 lines (legacy scoring output) instead of leaking into description', () => {
+    const md = `#### 某事件
+**原文**: 一段事件描述。
+**链接**: [src](https://x.example)
+**热度**: ⭐ 7.5/10
+**点评**: 这是不该出现在 description 里的旧字段。
+`;
+    const evts = parseScoredEvents(md);
+    expect(evts).toHaveLength(1);
+    expect(evts[0]?.description).toBe('一段事件描述。');
+    expect(evts[0]?.description).not.toContain('点评');
+    expect(evts[0]?.description).not.toContain('不该出现');
+  });
+});
+
+describe('normalizeTitle', () => {
+  it('strips a (总结/回顾) suffix', () => {
+    expect(normalizeTitle('OpenAI 发布会回顾（总结/回顾）'))
+      .toBe('openai 发布会回顾');
+    expect(normalizeTitle('某事件（总结）')).toBe('某事件');
+    expect(normalizeTitle('某事件（回顾）')).toBe('某事件');
+  });
+
+  it('lowercases ASCII while keeping CJK as-is', () => {
+    expect(normalizeTitle('NVIDIA 发布 Blackwell GPU'))
+      .toBe('nvidia 发布 blackwell gpu');
+  });
+
+  it('collapses whitespace and trims', () => {
+    expect(normalizeTitle('  Hello   World  '))
+      .toBe('hello world');
+  });
+
+  it('strips leading numeric enumeration', () => {
+    expect(normalizeTitle('1. Foo')).toBe('foo');
+    expect(normalizeTitle('2、Bar')).toBe('bar');
+  });
+});
+
+describe('deduplicateEvents', () => {
+  it('merges events with the same normalised title, keeping max score', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI launches GPT-6',
+        description: 'short',
+        links: ['https://a.example'],
+        score: 8.0,
+      },
+      {
+        title: 'openai launches gpt-6',
+        description: 'a longer, more detailed description',
+        links: ['https://b.example'],
+        score: 9.0,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.id).toBe(1);
+    expect(out[0]?.score).toBe(9.0);
+    expect(out[0]?.description).toBe('a longer, more detailed description');
+    expect(out[0]?.links.sort()).toEqual([
+      'https://a.example',
+      'https://b.example',
+    ]);
+    expect(out[0]?.source_count).toBe(2);
+  });
+
+  it('merges events with different titles but a shared URL', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'DeepSeek raises 800M',
+        description: 'one wording',
+        links: ['https://news.example/deepseek'],
+        score: 7.5,
+      },
+      {
+        title: 'DeepSeek 完成 8 亿美元融资',
+        description: 'another wording',
+        links: ['https://news.example/deepseek'],
+        score: 8.8,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.score).toBe(8.8);
+    expect(out[0]?.source_count).toBe(2);
+    expect(out[0]?.links).toEqual(['https://news.example/deepseek']);
+  });
+
+  it('keeps unrelated events separate and assigns sequential ids', () => {
+    const out = deduplicateEvents([
+      { title: 'A', description: 'a', links: ['https://x.example/a'], score: 7 },
+      { title: 'B', description: 'b', links: ['https://x.example/b'], score: 6 },
+      { title: 'C', description: 'c', links: [], score: 5 },
+    ]);
+    expect(out).toHaveLength(3);
+    expect(out.map(e => e.id)).toEqual([1, 2, 3]);
+    expect(out.map(e => e.title)).toEqual(['A', 'B', 'C']);
+  });
+
+  it('treats summary/回顾 suffix as the same event', () => {
+    const out = deduplicateEvents([
+      { title: 'AI 早报 周报', description: 'orig', links: [], score: 6 },
+      { title: 'AI 早报 周报（总结/回顾）', description: 'review', links: [], score: 7 },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.score).toBe(7);
+    expect(out[0]?.source_count).toBe(2);
+  });
+
+  it('preserves the union of links across duplicates', () => {
+    const out = deduplicateEvents([
+      { title: 'X', description: '', links: ['https://1.example'], score: 5 },
+      { title: 'X', description: '', links: ['https://2.example'], score: 5 },
+      { title: 'X', description: '', links: ['https://1.example', 'https://3.example'], score: 5 },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.links.sort()).toEqual([
+      'https://1.example',
+      'https://2.example',
+      'https://3.example',
+    ]);
+    expect(out[0]?.source_count).toBe(3);
+  });
+
+  it('does not collapse two unrelated events that happen to share zero links', () => {
+    const out = deduplicateEvents([
+      { title: 'Apple ships M5', description: '', links: [], score: 7 },
+      { title: 'Google ships TPU v6', description: '', links: [], score: 7 },
+    ]);
+    expect(out).toHaveLength(2);
+  });
+
+  // ── fuzzy title matching (Chinese near-duplicates) ──────────────────────
+
+  it('fuzzy-merges Chinese titles with high char overlap + identical latin tokens', () => {
+    const out = deduplicateEvents([
+      {
+        title: '美中讨论最强大 AI 模型防护栏',
+        description: 'wording A',
+        links: ['https://a.example'],
+        score: 9.0,
+      },
+      {
+        title: '中美讨论强大 AI 模型安全护栏',
+        description: 'wording B',
+        links: ['https://b.example'],
+        score: 8.7,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.score).toBe(9.0);
+    expect(out[0]?.source_count).toBe(2);
+  });
+
+  it('does NOT fuzzy-merge GPT-5 vs GPT-6 (digit differs in latin token)', () => {
+    const out = deduplicateEvents([
+      { title: 'OpenAI 发布 GPT-5', description: '', links: [], score: 9 },
+      { title: 'OpenAI 发布 GPT-6', description: '', links: [], score: 9 },
+    ]);
+    expect(out).toHaveLength(2);
+  });
+
+  it('does NOT fuzzy-merge Llama 3 vs Llama 4', () => {
+    const out = deduplicateEvents([
+      { title: 'Meta 发布 Llama 3', description: '', links: [], score: 8 },
+      { title: 'Meta 发布 Llama 4', description: '', links: [], score: 8 },
+    ]);
+    expect(out).toHaveLength(2);
+  });
+
+  it('does NOT fuzzy-merge iPhone 17 Pro vs iPhone 17 Pro Max (different SKU)', () => {
+    const out = deduplicateEvents([
+      { title: 'Apple 发布 iPhone 17 Pro', description: '', links: [], score: 7 },
+      { title: 'Apple 发布 iPhone 17 Pro Max', description: '', links: [], score: 7 },
+    ]);
+    expect(out).toHaveLength(2);
+  });
+
+  it('fuzzy-merges Chinese paraphrases with no latin tokens', () => {
+    const out = deduplicateEvents([
+      { title: '字节跳动发布豆包大模型', description: '', links: [], score: 7 },
+      { title: '字节跳动推出豆包大模型', description: '', links: [], score: 7 },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.source_count).toBe(2);
+  });
+
+  it('does NOT fuzzy-merge when CJK overlap is too low', () => {
+    // Same entity but very different framing — Jaccard below threshold.
+    const out = deduplicateEvents([
+      { title: '美国批准中国企业购买英伟达 H200 AI 芯片', description: '', links: [], score: 9 },
+      { title: '英伟达寻求 H200 出口许可，押注重返中国 AI 芯片市场', description: '', links: [], score: 9 },
+    ]);
+    // Conservative — these stay separate (would need semantic / cross-link
+    // dedup to catch). Documented limitation.
+    expect(out).toHaveLength(2);
+  });
+});

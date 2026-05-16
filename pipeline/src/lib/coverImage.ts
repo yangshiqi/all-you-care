@@ -4,6 +4,12 @@ import type { Channel } from './db.js';
 import type { ChannelConfig } from '../channels/types.js';
 import type { Logger } from './log.js';
 
+export interface CoverPick {
+  url: string;
+  description: string | null; // populated only when source = reuters_pool
+  link: string | null;
+}
+
 export function pickCdnUrl(
   pattern: string,
   randomMax: number,
@@ -21,11 +27,11 @@ export async function pickCoverImage(
   channel: Channel,
   log: Logger,
   now: Date = new Date(),
-): Promise<string> {
+): Promise<CoverPick> {
   // 1. Reuters pool (only if prefer=reuters_pool)
   if (config.cover_image.prefer === 'reuters_pool') {
     const { data, error } = await db.from('cover_images')
-      .select('id, image_url, used_count')
+      .select('id, image_url, description, link, used_count')
       .eq('channel', channel)
       .order('used_count', { ascending: true })
       .order('created_at', { ascending: false })
@@ -34,7 +40,11 @@ export async function pickCoverImage(
       const row = data[0];
       await db.from('cover_images').update({ used_count: (row.used_count ?? 0) + 1 } as never).eq('id', row.id);
       log.debug({ event: 'cover', source: 'reuters_pool', url: row.image_url }, '');
-      return row.image_url;
+      return {
+        url: row.image_url,
+        description: row.description ?? null,
+        link: row.link ?? null,
+      };
     }
     log.debug({ event: 'cover_fallback', from: 'reuters_pool', reason: error?.message ?? 'empty' }, '');
   }
@@ -45,7 +55,7 @@ export async function pickCoverImage(
     const resp = await fetch(cdnUrl, { method: 'HEAD', signal: AbortSignal.timeout(5_000) });
     if (resp.ok) {
       log.debug({ event: 'cover', source: 'cdn', url: cdnUrl }, '');
-      return cdnUrl;
+      return { url: cdnUrl, description: null, link: null };
     }
   } catch (e) {
     log.debug({ event: 'cover_fallback', from: 'cdn', err: (e as Error).message }, '');
@@ -53,5 +63,5 @@ export async function pickCoverImage(
 
   // 3. default
   log.debug({ event: 'cover', source: 'default', url: config.cover_image.default }, '');
-  return config.cover_image.default;
+  return { url: config.cover_image.default, description: null, link: null };
 }
