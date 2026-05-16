@@ -1,0 +1,9 @@
+name: snow · deliver
+on:
+  workflow_dispatch: {}
+
+jobs:
+  deliver:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: snow, step: deliver }
+    secrets: inherit

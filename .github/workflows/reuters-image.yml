@@ -1,0 +1,11 @@
+name: ai · reuters-image
+on:
+  schedule:
+    - cron: '5 12 * * *'       # 20:05 Asia/Shanghai
+  workflow_dispatch: {}
+
+jobs:
+  reuters:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: reutersImage }
+    secrets: inherit

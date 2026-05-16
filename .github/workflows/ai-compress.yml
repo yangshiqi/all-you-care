@@ -1,0 +1,11 @@
+name: ai · compress
+on:
+  schedule:
+    - cron: '10 * * * *'        # hourly+10
+  workflow_dispatch: {}
+
+jobs:
+  compress:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: compress }
+    secrets: inherit

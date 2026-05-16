@@ -1,0 +1,21 @@
+name: ai · publish-pipeline
+on:
+  schedule:
+    - cron: '30 0,11 * * 1-5'   # 08:30 / 19:30 Asia/Shanghai (UTC+8)
+  workflow_dispatch: {}
+
+jobs:
+  merge:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: merge }
+    secrets: inherit
+  render:
+    needs: merge
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: render }
+    secrets: inherit
+  publish:
+    needs: render
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: publish }
+    secrets: inherit

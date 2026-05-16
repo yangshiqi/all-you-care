@@ -1,0 +1,11 @@
+name: snow · compress
+on:
+  schedule:
+    - cron: '0 */6 * * *'       # every 6h
+  workflow_dispatch: {}
+
+jobs:
+  compress:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: snow, step: compress }
+    secrets: inherit

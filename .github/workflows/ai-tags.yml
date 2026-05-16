@@ -1,0 +1,11 @@
+name: ai · tags
+on:
+  schedule:
+    - cron: '30 0,12 * * *'     # 08:30 / 20:30 Asia/Shanghai
+  workflow_dispatch: {}
+
+jobs:
+  tags:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: tags }
+    secrets: inherit
