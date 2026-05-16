@@ -36,4 +36,5 @@ jobs:
           ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          PREVIEW_EMAIL_TO: ${{ secrets.PREVIEW_EMAIL_TO }}
         run: npm run cli -- ${{ inputs.channel }} ${{ inputs.step }} ${{ inputs.flags }}
