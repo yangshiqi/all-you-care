@@ -1,0 +1,26 @@
+name: snow · publish-pipeline
+on:
+  schedule:
+    - cron: '0 12 * * 2,5'     # Tue / Fri 20:00 Asia/Shanghai
+  workflow_dispatch: {}
+
+jobs:
+  score:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: snow, step: score }
+    secrets: inherit
+  merge:
+    needs: score
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: snow, step: merge }
+    secrets: inherit
+  render:
+    needs: merge
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: snow, step: render }
+    secrets: inherit
+  publish:
+    needs: render
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: snow, step: publish }
+    secrets: inherit

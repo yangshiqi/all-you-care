@@ -1,0 +1,70 @@
+name: snow
+display_name: "Snowboard Weekly"
+
+sources:
+  rss:
+    - { url: "https://casi-acms.com/feed/",                                 enabled: true }
+    - { url: "https://snowboardingprofiles.com/feed",                       enabled: true }
+    - { url: "https://whitelines.com/feed",                                 enabled: true }
+    - { url: "https://protectourwinters.jp/feed/",                          enabled: true }
+    - { url: "https://gala.co.jp/winter/feed/",                             enabled: true }
+  email:
+    - store@686.com
+    - email@na.burton.com
+    - burton@official.burton.com
+    - newsletter@news.ortovox.com
+    - support.us@bataleon.com
+    - noreply@jonessnowboards.com
+    - shop@capitasnowboarding.com
+    - email@spyoptic.com
+    - mervin@email.mervin.com
+    - noreply@email.salomon.com
+    - no-reply@nitrosnowboards.com
+    - news@black-crows.com
+    - info@rhythmjapan.com
+    - info@thirtytwo.com
+    - riderservice@yessnowboards.com
+    - info@oxess.ch
+    - info@westonbackcountry.com
+    - info@arborcollective.com
+    - news@tradeinn.com
+    - hithere@strandasnowboards.com
+    - media@freerideworldtour.com
+    - support.us@romesnowboards.com
+    - atomic@news.atomic.com
+    - rossignol@news.rossignol.com
+    - no-reply@emails.head.com
+    - bd@kl.blackdiamondequipment.com
+    - news@em.oakley.com
+    - hello@whitespacesnow.com
+    - news@email.gnu.com
+    - info@beyondmedals.com
+    - shred@camp3snowboarding.com
+    - newsletter@amplid.com
+    - giro@em.giro.com
+
+windows:
+  fetch_rss_age_hours: 24
+  fetch_email_age_hours: 168
+  compress_lookback_hours: 120
+  merge_new_lookback_hours: 96
+  merge_old_lookback_hours: 72
+
+thresholds:
+  compress_min_pending: 3
+  compress_batch_size: 30
+  score_batch_size: 5
+
+cover_image:
+  prefer: cdn_convention
+  cdn_pattern: "https://www.snapallx.com/snow/{yyyymm}/{n}.jpg"
+  cdn_random_max: 4
+  default: "/snow/default.jpg"
+
+deliver:
+  url: "https://www.snapallx.com/api/send-latest-ai-news?type=snow"
+
+llm:
+  model: "claude-sonnet-4-6"
+  max_tokens: 16000
+  temperature: 0

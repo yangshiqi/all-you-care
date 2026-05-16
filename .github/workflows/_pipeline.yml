@@ -1,0 +1,38 @@
+name: pipeline-step
+on:
+  workflow_call:
+    inputs:
+      channel:
+        type: string
+        required: true
+      step:
+        type: string
+        required: true
+      flags:
+        type: string
+        default: ""
+
+jobs:
+  run:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: pipeline/package-lock.json
+      - run: npm ci
+      - name: Run pipeline step
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: npm run cli -- ${{ inputs.channel }} ${{ inputs.step }} ${{ inputs.flags }}

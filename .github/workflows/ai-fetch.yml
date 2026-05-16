@@ -1,0 +1,13 @@
+name: ai · fetch
+on:
+  schedule:
+    - cron: '0 * * * *'         # hourly
+  workflow_dispatch: {}
+
+jobs:
+  fetch:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      channel: ai
+      step: fetch
+    secrets: inherit
