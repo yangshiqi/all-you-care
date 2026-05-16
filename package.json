@@ -41,7 +41,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.4",
-    "eslint": "^4.1.1",
+    "eslint": "^10.0.1",
     "eslint-config-next": "^0.2.4",
     "playwright": "^1.57.0",
     "tailwindcss": "^4",
