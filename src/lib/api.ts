@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import { supabase, N8nAiContent, SnapAiInsight } from './supabase'
+import { supabase, N8nAiContent, SnapAiInsight, IssueRow } from './supabase'
 import { cache } from 'react'
 
 // -----------------------------------------------------------------------------
@@ -28,6 +28,28 @@ export interface PaginatedResult<T> {
   totalPages: number
 }
 
+// -----------------------------------------------------------------------------
+// Internal helpers — map pipeline `issues` rows to the stable N8nAiContent shape.
+// -----------------------------------------------------------------------------
+
+const ISSUE_COLS_LIGHT = 'id, title, summary, published_at, tags, lang, journal_id, cover_image'
+const ISSUE_COLS_FULL = 'id, title, summary, content_html, published_at, created_at, tags, lang, journal_id, cover_image, delivered'
+
+function mapIssueRow(row: Partial<IssueRow>): N8nAiContent {
+  return {
+    id: row.id != null ? String(row.id) : '',
+    title: row.title ?? '',
+    content: row.content_html ?? '',
+    summary: row.summary ?? '',
+    tags: row.tags ?? null,
+    created_at: row.published_at ?? row.created_at ?? '',
+    lang: row.lang,
+    is_published: row.delivered,
+    imgUrl: row.cover_image ?? null,
+    journal_id: row.journal_id != null ? String(row.journal_id) : undefined,
+  }
+}
+
 // ... (Existing content functions remain unchanged) ...
 
 export const getAllAiContentsPaginated = cache(async (
@@ -41,10 +63,11 @@ export const getAllAiContentsPaginated = cache(async (
     const to = from + pageSize - 1
 
     let countQuery = supabase
-      .from('n8n-ai-contents')
+      .from('issues')
       .select('*', { count: 'exact', head: true })
+      .eq('channel', 'ai')
     if (dbLang) countQuery = countQuery.eq('lang', dbLang)
-    
+
     const { count, error: countError } = await countQuery
     if (countError) throw new Error(`Failed to count AI contents: ${countError.message}`)
 
@@ -52,22 +75,24 @@ export const getAllAiContentsPaginated = cache(async (
     const totalPages = Math.ceil(total / pageSize)
 
     let dataQuery = supabase
-      .from('n8n-ai-contents')
-      .select('id, title, summary, created_at, tags, lang, journal_id')
-      .order('created_at', { ascending: false })
+      .from('issues')
+      .select(ISSUE_COLS_LIGHT)
+      .eq('channel', 'ai')
+      .order('published_at', { ascending: false })
       .range(from, to)
     if (dbLang) dataQuery = dataQuery.eq('lang', dbLang)
 
     const { data, error } = await dataQuery
     if (error) throw new Error(`Failed to fetch AI contents: ${error.message}`)
 
-    const formattedData: IssueSummary[] = (data || []).map(item => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary,
-      date: formatDate(item.created_at),
-      tags: extractTagsFromContent(item.tags),
-      journal_id: item.journal_id
+    const rows = (data ?? []) as Partial<IssueRow>[]
+    const formattedData: IssueSummary[] = rows.map(row => ({
+      id: row.id != null ? String(row.id) : '',
+      title: row.title ?? '',
+      summary: row.summary ?? '',
+      date: formatDate(row.published_at ?? ''),
+      tags: extractTagsFromContent(row.tags),
+      journal_id: row.journal_id != null ? String(row.journal_id) : ''
     }))
 
     return { data: formattedData, total, page, pageSize, totalPages }
@@ -80,11 +105,20 @@ export const getAllAiContentsPaginated = cache(async (
 export const getAllAiContentIds = cache(async (i18nLang?: string): Promise<{ id: string; journal_id?: string; created_at: string }[]> => {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
-    let query = supabase.from('n8n-ai-contents').select('id, journal_id, created_at').order('created_at', { ascending: false })
+    let query = supabase
+      .from('issues')
+      .select('id, journal_id, published_at')
+      .eq('channel', 'ai')
+      .order('published_at', { ascending: false })
     if (dbLang) query = query.eq('lang', dbLang)
     const { data, error } = await query
     if (error) throw new Error(`Failed to fetch AI content IDs: ${error.message}`)
-    return data || []
+    const rows = (data ?? []) as Pick<IssueRow, 'id' | 'journal_id' | 'published_at'>[]
+    return rows.map(r => ({
+      id: String(r.id),
+      journal_id: r.journal_id != null ? String(r.journal_id) : undefined,
+      created_at: r.published_at,
+    }))
   } catch (error) {
     console.error('Error in getAllAiContentIds:', error)
     throw error
@@ -94,11 +128,16 @@ export const getAllAiContentIds = cache(async (i18nLang?: string): Promise<{ id:
 export const getAllAiContents = cache(async (i18nLang?: string): Promise<N8nAiContent[]> => {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
-    let query = supabase.from('n8n-ai-contents').select('*').order('created_at', { ascending: false })
+    let query = supabase
+      .from('issues')
+      .select(ISSUE_COLS_FULL)
+      .eq('channel', 'ai')
+      .order('published_at', { ascending: false })
     if (dbLang) query = query.eq('lang', dbLang)
     const { data, error } = await query
     if (error) throw new Error(`Failed to fetch AI contents: ${error.message}`)
-    return data || []
+    const rows = (data ?? []) as Partial<IssueRow>[]
+    return rows.map(mapIssueRow)
   } catch (error) {
     console.error('Error in getAllAiContents:', error)
     throw error
