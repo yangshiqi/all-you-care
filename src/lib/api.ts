@@ -344,21 +344,19 @@ export function extractTagsFromContent(tags: string | string[] | null | undefine
 export const getAllTags = cache(async (i18nLang?: string): Promise<TagSummary[]> => {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
-    let query = supabase.from('n8n-ai-contents').select('tags')
+    let query = supabase
+      .from('tag_counts')
+      .select('name, total')
+      .eq('channel', 'ai')
     if (dbLang) query = query.eq('lang', dbLang)
-    const { data, error } = await query
+
+    const { data, error } = await query.order('total', { ascending: false })
     if (error) throw new Error(`Failed to fetch tags: ${error.message}`)
-    const tagCountMap = new Map<string, number>()
-    if (data) {
-      data.forEach((item) => {
-        const tags = extractTagsFromContent(item.tags)
-        tags.forEach((tag) => {
-          const normalizedTag = tag.trim().toLowerCase()
-          if (normalizedTag) tagCountMap.set(normalizedTag, (tagCountMap.get(normalizedTag) || 0) + 1)
-        })
-      })
-    }
-    return Array.from(tagCountMap.entries()).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total)
+
+    return (data ?? []).map(r => ({
+      name: String(r.name),
+      total: Number(r.total),
+    }))
   } catch (error) {
     console.error('Error in getAllTags:', error)
     throw error
