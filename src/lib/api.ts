@@ -35,7 +35,10 @@ export interface PaginatedResult<T> {
 const ISSUE_COLS_LIGHT = 'id, title, summary, published_at, tags, lang, journal_id, cover_image'
 const ISSUE_COLS_FULL = 'id, title, summary, content_html, published_at, created_at, tags, lang, journal_id, cover_image, delivered'
 
-function mapIssueRow(row: Partial<IssueRow>): N8nAiContent {
+type IssueLightRow = Pick<IssueRow, 'id' | 'title' | 'summary' | 'published_at' | 'tags' | 'lang' | 'journal_id' | 'cover_image'>
+type IssueFullRow = Pick<IssueRow, 'id' | 'title' | 'summary' | 'content_html' | 'published_at' | 'created_at' | 'tags' | 'lang' | 'journal_id' | 'cover_image' | 'delivered'>
+
+function mapIssueRow(row: IssueFullRow): N8nAiContent {
   return {
     id: row.id != null ? String(row.id) : '',
     title: row.title ?? '',
@@ -47,6 +50,17 @@ function mapIssueRow(row: Partial<IssueRow>): N8nAiContent {
     is_published: row.delivered,
     imgUrl: row.cover_image ?? null,
     journal_id: row.journal_id != null ? String(row.journal_id) : undefined,
+  }
+}
+
+function mapIssueRowToSummary(row: IssueLightRow): IssueSummary {
+  return {
+    id: row.id != null ? String(row.id) : '',
+    title: row.title ?? '',
+    summary: row.summary ?? '',
+    date: formatDate(row.published_at ?? ''),
+    tags: extractTagsFromContent(row.tags),
+    journal_id: row.journal_id != null ? String(row.journal_id) : ''
   }
 }
 
@@ -85,15 +99,8 @@ export const getAllAiContentsPaginated = cache(async (
     const { data, error } = await dataQuery
     if (error) throw new Error(`Failed to fetch AI contents: ${error.message}`)
 
-    const rows = (data ?? []) as Partial<IssueRow>[]
-    const formattedData: IssueSummary[] = rows.map(row => ({
-      id: row.id != null ? String(row.id) : '',
-      title: row.title ?? '',
-      summary: row.summary ?? '',
-      date: formatDate(row.published_at ?? ''),
-      tags: extractTagsFromContent(row.tags),
-      journal_id: row.journal_id != null ? String(row.journal_id) : ''
-    }))
+    const rows = (data ?? []) as IssueLightRow[]
+    const formattedData: IssueSummary[] = rows.map(mapIssueRowToSummary)
 
     return { data: formattedData, total, page, pageSize, totalPages }
   } catch (error) {
@@ -136,7 +143,7 @@ export const getAllAiContents = cache(async (i18nLang?: string): Promise<N8nAiCo
     if (dbLang) query = query.eq('lang', dbLang)
     const { data, error } = await query
     if (error) throw new Error(`Failed to fetch AI contents: ${error.message}`)
-    const rows = (data ?? []) as Partial<IssueRow>[]
+    const rows = (data ?? []) as IssueFullRow[]
     return rows.map(mapIssueRow)
   } catch (error) {
     console.error('Error in getAllAiContents:', error)
@@ -147,19 +154,21 @@ export const getAllAiContents = cache(async (i18nLang?: string): Promise<N8nAiCo
 export const getAiContentByJournalId = cache(async (journalId: string, i18nLang?: string): Promise<N8nAiContent | null> => {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
-    if (dbLang) {
-      const { data, error } = await supabase
-        .from('n8n-ai-contents')
-        .select('*')
-        .eq('journal_id', journalId)
-        .eq('lang', dbLang)
-        .single()
-      if (!error && data) return data
-      return null
+    const numericId = Number(journalId)
+    if (!Number.isFinite(numericId)) return null
+
+    let query = supabase
+      .from('issues')
+      .select(ISSUE_COLS_FULL)
+      .eq('channel', 'ai')
+      .eq('journal_id', numericId)
+    if (dbLang) query = query.eq('lang', dbLang)
+
+    const { data, error } = await query.maybeSingle()
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to fetch AI content: ${error.message}`)
     }
-    const { data, error } = await supabase.from('n8n-ai-contents').select('*').eq('journal_id', journalId).single()
-    if (error && error.code !== 'PGRST116') throw new Error(`Failed to fetch AI content: ${error.message}`)
-    return data || null
+    return data ? mapIssueRow(data as IssueFullRow) : null
   } catch (error) {
     console.error('Error in getAiContentByJournalId:', error)
     throw error
@@ -174,24 +183,19 @@ export const getIssueSummaries = cache(async (limit: number = 5, i18nLang?: stri
     const dbLang = mapI18nLangToDbLang(i18nLang)
 
     let query = supabase
-      .from('n8n-ai-contents')
-      .select('id, title, summary, created_at, tags, lang, journal_id')
-      .gte('created_at', sevenDaysAgoISO)
-      .order('created_at', { ascending: false })
+      .from('issues')
+      .select(ISSUE_COLS_LIGHT)
+      .eq('channel', 'ai')
+      .gte('published_at', sevenDaysAgoISO)
+      .order('published_at', { ascending: false })
       .limit(limit)
     if (dbLang) query = query.eq('lang', dbLang)
 
     const { data, error } = await query
     if (error) throw new Error(`Failed to fetch issue summaries: ${error.message}`)
 
-    return (data || []).map(item => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary,
-      date: formatDate(item.created_at),
-      tags: extractTagsFromContent(item.tags),
-      journal_id: item.journal_id
-    }))
+    const rows = (data ?? []) as IssueLightRow[]
+    return rows.map(mapIssueRowToSummary)
   } catch (error) {
     console.error('Error in getIssueSummaries:', error)
     throw error
@@ -369,19 +373,18 @@ export const getAllTags = cache(async (i18nLang?: string): Promise<TagSummary[]>
  */
 export const getIssueMonths = cache(async (): Promise<string[]> => {
   try {
-    // Supabase currently doesn't support distinct on date_trunc directly in JS client easily without rpc
-    // So we fetch all created_at dates (lightweight) and process in memory
     const { data, error } = await supabase
-      .from('n8n-ai-contents')
-      .select('created_at')
-      .order('created_at', { ascending: false });
+      .from('issues')
+      .select('published_at')
+      .eq('channel', 'ai')
+      .order('published_at', { ascending: false });
 
     if (error) throw error;
 
     const months = new Set<string>();
-    data?.forEach(item => {
-      if (item.created_at) {
-        const date = new Date(item.created_at);
+    (data as { published_at: string | null }[] | null)?.forEach(item => {
+      if (item.published_at) {
+        const date = new Date(item.published_at);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         months.add(`${year}-${month}`);
@@ -402,28 +405,30 @@ export const getIssueMonths = cache(async (): Promise<string[]> => {
 export const getIssuesByMonth = cache(async (monthStr: string, i18nLang?: string): Promise<{ id: string; journal_id?: string; created_at: string }[]> => {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
-    
-    // Parse YYYY-MM
+
     const [year, month] = monthStr.split('-').map(Number);
-    
-    // Construct date range
     const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
-    // End date is start of next month
     const endDate = new Date(Date.UTC(year, month, 1)).toISOString();
 
     let query = supabase
-      .from('n8n-ai-contents')
-      .select('id, journal_id, created_at')
-      .gte('created_at', startDate)
-      .lt('created_at', endDate)
-      .order('created_at', { ascending: false });
-      
+      .from('issues')
+      .select('id, journal_id, published_at')
+      .eq('channel', 'ai')
+      .gte('published_at', startDate)
+      .lt('published_at', endDate)
+      .order('published_at', { ascending: false });
+
     if (dbLang) query = query.eq('lang', dbLang)
 
     const { data, error } = await query;
     if (error) throw error;
-    
-    return data || [];
+
+    const rows = (data ?? []) as Pick<IssueRow, 'id' | 'journal_id' | 'published_at'>[]
+    return rows.map(r => ({
+      id: String(r.id),
+      journal_id: r.journal_id != null ? String(r.journal_id) : undefined,
+      created_at: r.published_at,
+    }))
   } catch (error) {
     console.error(`Error fetching issues for month ${monthStr}:`, error);
     return [];
