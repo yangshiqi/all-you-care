@@ -25,9 +25,33 @@ export async function withImap<T>(
     port: 993,
     secure: true,
     auth: { user, pass },
-    logger: false,
+    // Pipe imapflow's protocol-level events into our structured logger so a
+    // generic "Command failed" still surfaces the real cause (auth reject,
+    // capability mismatch, socket reset etc).
+    logger: {
+      debug: () => { /* noisy — skip */ },
+      info:  (obj) => log.debug({ event: 'imap_info',  ...(obj as object) }, ''),
+      warn:  (obj) => log.warn({  event: 'imap_warn',  ...(obj as object) }, ''),
+      error: (obj) => log.warn({  event: 'imap_error', ...(obj as object) }, ''),
+    },
   });
-  await client.connect();
+  client.on('error', (err) => {
+    log.warn({ event: 'imap_client_error', err: (err as Error)?.message ?? String(err), user, host: 'imap.gmail.com' }, '');
+  });
+  try {
+    await client.connect();
+  } catch (err) {
+    log.warn({
+      event: 'imap_connect_throw',
+      user,
+      host: 'imap.gmail.com',
+      err: (err as Error)?.message ?? String(err),
+      cause: (err as { cause?: unknown })?.cause ? String((err as { cause: unknown }).cause) : undefined,
+      code: (err as { code?: string })?.code,
+      response: (err as { response?: unknown })?.response ? String((err as { response: unknown }).response).slice(0, 500) : undefined,
+    }, 'imap connect threw');
+    throw err;
+  }
   try {
     return await fn(client);
   } finally {
