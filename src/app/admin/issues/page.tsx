@@ -53,12 +53,14 @@ export default async function AdminIssues() {
                  '🟡 pending'}
               </td>
               <td>
-                {!r.delivered && (
+                {!r.delivered && r.lang === 'zh_CN' ? (
                   <form action="/api/admin/deliver" method="post">
                     <input type="hidden" name="issue_id" value={r.id} />
                     <button type="submit">发送</button>
                   </form>
-                )}
+                ) : !r.delivered ? (
+                  <span style={{ fontSize: 12, color: '#888' }}>非 zh_CN 不发</span>
+                ) : null}
               </td>
             </tr>
           ))}
