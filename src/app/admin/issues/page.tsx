@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Live admin data — never prerender at build time (would also require build-time
+// env vars and freeze the dashboard to deploy time).
+export const dynamic = 'force-dynamic';
+
 interface Row {
   id: number;
   channel: string;
