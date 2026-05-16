@@ -11,6 +11,10 @@ export function cn(...inputs: ClassValue[]) {
  * @returns 完整的绝对 URL
  */
 export function getAbsoluteUrl(path: string): string {
+  // 如果已经是绝对 URL，直接返回
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com';
   // 确保 path 以 / 开头
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;

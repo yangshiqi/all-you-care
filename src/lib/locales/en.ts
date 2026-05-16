@@ -1,26 +1,26 @@
 export const en = {
   translation: {
-    "siteTitle": "[AI]News - Break Your Information Bubble",
+    "siteTitle": "[SnapAI]News - Break Your Information Bubble",
     "siteDescription": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI Discords, Reddits, X/Twitter, HackerNews, InfoQ, TechCrunch, CNCF, NVIDIA, Meta, OpenAI, Google, Microsoft, Amazon, Apple and more, and send you a roundup at least every weekday!",
     "metadata": {
       "home": {
-        "title": "[AI]News - Break Your Information Bubble",
+        "title": "[SnapAI]News - Break Your Information Bubble",
         "description": "We break information bubbles by collecting industry news to help everyone compress information, save time, and reduce anxiety. We summarize top AI Discords, Reddits, X/Twitter, HackerNews, InfoQ, TechCrunch, CNCF, NVIDIA, Meta, OpenAI, Google, Microsoft, Amazon, Apple and more, and send you a roundup at least every weekday!"
       },
       "issues": {
-        "title": "All Issues | [AI]News - Daily AI Roundup for Engineers",
+        "title": "All Issues | [SnapAI]News - Daily AI Roundup for Engineers",
         "description": "Browse all AI news issues and stay up to date with the latest developments in artificial intelligence."
       },
       "tags": {
-        "title": "All Tags | [AI]News - Daily AI Roundup for Engineers",
+        "title": "All Tags | [SnapAI]News - Daily AI Roundup for Engineers",
         "description": "Browse all tags and explore AI news issues by topics."
       },
       "tagDetail": {
-        "title": "Tag: {{tag}} | [AI]News",
+        "title": "Tag: {{tag}} | [SnapAI]News",
         "description": "Browse AI news issues tagged with {{tag}}."
       },
       "issueDetail": {
-        "title": "{{title}} | [AI]News",
+        "title": "{{title}} | [SnapAI]News",
         "description": "{{summary}}"
       }
     },
@@ -31,19 +31,19 @@ export const en = {
       "search": "Search (Cmd+K)"
     },
     "hero": {
-      "title": "[AI]News",
+      "title": "[SnapAI]News",
       "byLine": "by SnapAllx.ai",
-      "subtitle": "You should GET AHEAD Of The \"AI Boom\" 💣...",
-      "description": "We are collecting industry news to help you compress information, save time, and reduce anxiety. We summarize top AI messages from discords, reddits, X/Twitter, hackernews, infoq, techcrunch, cncf, nvidia, meta, openai, google, microsoft, amazon, apple, etc, and send you a roundup at least every weekday!",
+      "subtitle": "Stop letting algorithms dictate your reality.",
+      "description": "The internet is flooded with PR fluff and AI-generated slop. SnapAI is a denoising engine. We monitor 500+ global sources, using Agent Swarms to extract the SIGNAL and filter the NOISE. We don't just aggregate news; we decompile the truth.",
       "emailPlaceholder": "your@work.email",
       "firstNamePlaceholder": "First Name",
       "lastNamePlaceholder": "Last Name",
-      "ctaButton": "Free Subscribe",
-      "privacyText": "We respect and protect your privacy.",
-      "subscribeBoxTitle": "Join the Newsletter",
-      "subscribeBoxSubtitle": "JOIN THE #1 AI NEWSLETTER FOR EVERYDAY INSIGHTS",
+      "ctaButton": "Send Me The Signal",
+      "privacyText": "No spam. No AI slop. Just pure signal.",
+      "subscribeBoxTitle": "Escape the Algorithm",
+      "subscribeBoxSubtitle": "Your time is expensive. Don't waste it on noise. 5 minutes a day, we compress the global chaos into CORE signals, to provide you with the most relevant information.",
       "subscriberCount": "2,937+",
-      "subscriberLabel": "already subscribed",
+      "subscriberLabel": "connected",
       "featureFree": "100% Free",
       "featureDaily": "Daily Digest",
       "featureNoSpam": "No Spam",
@@ -166,6 +166,9 @@ export const en = {
         "next": "Next"
       }
     },
+    "blog": {
+      "readAnalysis": "Read Analysis"
+    },
     "common": {
       "loading": "Loading...",
       "error": "Error"
@@ -176,6 +179,8 @@ export const en = {
       "skipToMain": "Skip to Main",
       "showTags": "show/hide tags",
       "hideTags": "show/hide tags",
+      "editorTake": "Editor's Take",
+      "readFullAnalysis": "Read Full Analysis",
       "summary": "Summary",
       "tableOfContents": "Table of Contents",
       "backToTop": "Back to Top"
@@ -194,6 +199,26 @@ export const en = {
       "submitting": "Submitting...",
       "errorTitle": "Subscription Failed",
       "subscribeError": "Failed to subscribe. Please try again later."
+    },
+    "editors": {
+      "title": "Meet The Editorial Board",
+      "subtitle": "SnapAI is not just algorithms; it's four distinct worldviews. We don't provide \"objective\" news; we deliver flesh-and-blood \"subjective\" insights.",
+      "zack": {
+        "role": "The Cynic / Editor-in-Chief",
+        "description": "\"Don't show me the press release, show me the weights.\" Specialized in debunking Big Tech PR lies, anti-monopoly fighter, and the voice of hacker spirit."
+      },
+      "tom": {
+        "role": "The Engineer / Technologist",
+        "description": "\"Performance is the only truth.\" Obsessed with CUDA optimization, model architecture, and inference costs. Talks engineering, not ideology."
+      },
+      "brad": {
+        "role": "The Accelerator / Visionary",
+        "description": "\"e/acc or die.\" Believes AI is the next step in human evolution. An optimist focused on the abundant future brought by AGI."
+      },
+      "tim": {
+        "role": "The Skeptic / Watchman",
+        "description": "\"The bubble will burst.\" Concerned with privacy leaks, copyright walls, and energy crises. At this frenzied party, he is the sober watchman."
+      }
     }
   }
 };
