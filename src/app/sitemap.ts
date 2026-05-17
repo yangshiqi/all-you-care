@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getPublishedInsights, getIssueMonths, getIssuesByMonth, getAllAiContentIds } from '@/lib/api'
+import { getIssueMonths, getIssuesByMonth, getAllAiContentIds } from '@/lib/api'
 import { getAllTags } from '@/lib/api'
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n-utils'
 
@@ -8,7 +8,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = BASE_URL;
   const staticPages: MetadataRoute.Sitemap = []
-  const blogPages: MetadataRoute.Sitemap = []
   const tagPages: MetadataRoute.Sitemap = []
   const issuesPages: MetadataRoute.Sitemap = []
 
@@ -17,22 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     staticPages.push(
       { url: `${baseUrl}/${lang}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
       { url: `${baseUrl}/${lang}/issues`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-      { url: `${baseUrl}/${lang}/tags`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-      { url: `${baseUrl}/${lang}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 }
+      { url: `${baseUrl}/${lang}/tags`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 }
     )
 
-    // 2. Blog Posts
-    try {
-      const insights = await getPublishedInsights(lang)
-      for (const insight of insights) {
-        blogPages.push({
-          url: `${baseUrl}/${lang}/blog/${insight.slug}`,
-          lastModified: new Date(insight.updated_at || insight.created_at),
-          changeFrequency: 'weekly',
-          priority: 0.8,
-        })
-      }
-    } catch (e) { console.error('Sitemap Blog Error', e) }
+    // Blog disabled — entries hidden from sitemap until snapai_insights migration lands.
 
     // 3. Tags
     try {
@@ -62,5 +49,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     } catch (e) { console.error('Sitemap Issues Error', e) }
   }
 
-  return [...staticPages, ...blogPages, ...tagPages, ...issuesPages]
+  return [...staticPages, ...tagPages, ...issuesPages]
 }
