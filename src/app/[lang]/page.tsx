@@ -2,7 +2,6 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { RecentIssues } from "@/components/RecentIssues";
 import { Manifesto } from "@/components/Manifesto";
-import { EditorsShowcase } from "@/components/EditorsShowcase";
 import { Metadata } from "next";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { isValidLanguage } from "@/lib/i18n-utils";
@@ -100,7 +99,6 @@ export default async function Home({ params }: HomePageProps) {
       <main>
         <Hero />
         <Manifesto />
-        <EditorsShowcase lang={lang} />
         <RecentIssues />
       </main>
     </div>
