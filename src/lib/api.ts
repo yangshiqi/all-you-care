@@ -32,11 +32,11 @@ export interface PaginatedResult<T> {
 // Internal helpers — map pipeline `issues` rows to the stable N8nAiContent shape.
 // -----------------------------------------------------------------------------
 
-const ISSUE_COLS_LIGHT = 'id, title, summary, published_at, tags, lang, journal_id, cover_image'
-const ISSUE_COLS_FULL = 'id, title, summary, content_html, published_at, created_at, tags, lang, journal_id, cover_image, delivered'
+const ISSUE_COLS_LIGHT = 'id, title, summary, published_at, tags, lang, journal_id'
+const ISSUE_COLS_FULL = 'id, title, summary, content_html, published_at, tags, lang, journal_id, cover_image, delivered'
 
-type IssueLightRow = Pick<IssueRow, 'id' | 'title' | 'summary' | 'published_at' | 'tags' | 'lang' | 'journal_id' | 'cover_image'>
-type IssueFullRow = Pick<IssueRow, 'id' | 'title' | 'summary' | 'content_html' | 'published_at' | 'created_at' | 'tags' | 'lang' | 'journal_id' | 'cover_image' | 'delivered'>
+type IssueLightRow = Pick<IssueRow, 'id' | 'title' | 'summary' | 'published_at' | 'tags' | 'lang' | 'journal_id'>
+type IssueFullRow = Pick<IssueRow, 'id' | 'title' | 'summary' | 'content_html' | 'published_at' | 'tags' | 'lang' | 'journal_id' | 'cover_image' | 'delivered'>
 
 function mapIssueRow(row: IssueFullRow): N8nAiContent {
   return {
@@ -45,7 +45,7 @@ function mapIssueRow(row: IssueFullRow): N8nAiContent {
     content: row.content_html ?? '',
     summary: row.summary ?? '',
     tags: row.tags ?? null,
-    created_at: row.published_at ?? row.created_at ?? '',
+    created_at: row.published_at,
     lang: row.lang,
     is_published: row.delivered,
     imgUrl: row.cover_image ?? null,
@@ -163,7 +163,7 @@ export const getAiContentByJournalId = cache(async (journalId: string, i18nLang?
     if (dbLang) query = query.eq('lang', dbLang)
 
     const { data, error } = await query.maybeSingle()
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       throw new Error(`Failed to fetch AI content: ${error.message}`)
     }
     return data ? mapIssueRow(data as IssueFullRow) : null
