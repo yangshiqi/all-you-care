@@ -45,19 +45,11 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
               <TranslatedText>{t('nav.issues')}</TranslatedText>
             </Link>
             <span className="text-primary text-md">❖</span>
-            <Link 
-              href={addLanguageToPath("/tags", lang)} 
+            <Link
+              href={addLanguageToPath("/tags", lang)}
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
-            </Link>
-            <span className="text-primary text-md">❖</span>
-            <Link 
-              href={addLanguageToPath("/blog", lang)} 
-              className="hover:text-primary font-medium uppercase tracking-wider transition-colors relative group"
-            >
-              <span className="absolute -top-2 -right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-              INSIGHTS
             </Link>
           </nav>
         </div>
@@ -87,19 +79,12 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
             >
               <TranslatedText>{t('nav.issues')}</TranslatedText>
             </Link>
-            <Link 
-              href={addLanguageToPath("/tags", lang)} 
+            <Link
+              href={addLanguageToPath("/tags", lang)}
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
-            </Link>
-            <Link 
-              href={addLanguageToPath("/blog", lang)} 
-              className="hover:text-primary font-medium uppercase tracking-wider transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              INSIGHTS
             </Link>
           </nav>
         </div>
