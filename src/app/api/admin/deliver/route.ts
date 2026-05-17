@@ -36,8 +36,8 @@ export async function POST(req: Request) {
   const issue = (claimed as { id: number; channel: string; delivery_attempt_count: number }[] | null)?.[0];
   if (!issue) return NextResponse.json({ error: 'already delivered or being delivered' }, { status: 409 });
 
-  const deliverUrl = DELIVER_URLS[issue.channel];
-  if (!deliverUrl) {
+  const baseDeliverUrl = DELIVER_URLS[issue.channel];
+  if (!baseDeliverUrl) {
     await sb.from('issues').update({ delivering_at: null } as never).eq('id', issue.id);
     return NextResponse.json({ error: `no deliver url for channel ${issue.channel}` }, { status: 500 });
   }
@@ -59,6 +59,8 @@ export async function POST(req: Request) {
   }
 
   try {
+    const sep = baseDeliverUrl.includes('?') ? '&' : '?';
+    const deliverUrl = `${baseDeliverUrl}${sep}issue_id=${issue.id}`;
     const resp = await fetch(deliverUrl, { method: 'GET', signal: AbortSignal.timeout(30_000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
     await sb.from('issues').update({

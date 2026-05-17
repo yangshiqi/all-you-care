@@ -2,31 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * 模式配置
+ * 模式配置 — 现在统一读 pipeline `issues` 表，按 channel 区分。
  */
 const MODES = {
   ai: {
     campaignId: 6,
-    tableName: 'n8n-ai-contents',
+    channel: 'ai',
     displayName: 'AI',
     senderName: '[AI]News',
-    // 时间限制：null 表示无限制
     timeRestriction: null,
   },
   snow: {
     campaignId: 10,
-    tableName: 'n8n-good-contents',
+    channel: 'snow',
     displayName: 'Snow',
     senderName: '[Snow]News',
-    // 时间限制：null 表示无限制
     timeRestriction: null,
-    // 时间限制：只能在周三和周五的早上 8:00-9:00 之间执行
-    // allowedDays: 0=周日, 1=周一, 2=周二, 3=周三, 4=周四, 5=周五, 6=周六
-    // allowedHours: { start: 8, end: 9 } 表示 8:00-8:59（包含开始时间，不包含结束时间）
-    /*timeRestriction: {
-      allowedDays: [3, 5], // 周三和周五
-      allowedHours: { start: 8, end: 19 }, // 8:00-8:59（即 8:00 到 8:59:59）
-    },*/
   },
 } as const;
 
@@ -137,10 +128,11 @@ async function getListContacts(listId: number, apiKey: string) {
 }
 
 /**
- * 从 Supabase 获取最后一个 lang=zh_CN 的记录
- * @param table - 表名（n8n-ai-contents 或 n8n-good-contents）
+ * 从 Supabase issues 表获取要发送的内容
+ * @param channel - 'ai' 或 'snow'
+ * @param issueId - 可选：直接指定 issue id；否则取最新的 lang=zh_CN AND delivered=false
  */
-async function getLatestZhCNContent(table: string) {
+async function getIssueForDelivery(channel: string, issueId?: number) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -150,53 +142,31 @@ async function getLatestZhCNContent(table: string) {
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+  if (issueId != null) {
+    const { data, error } = await supabase
+      .from('issues')
+      .select('id, title, content_html, published_at, lang, channel')
+      .eq('id', issueId)
+      .eq('channel', channel)
+      .eq('lang', 'zh_CN')
+      .maybeSingle();
+    if (error) throw new Error(`Failed to fetch issue ${issueId}: ${error.message}`);
+    if (!data) throw new Error(`Issue ${issueId} not found in channel ${channel} (lang=zh_CN). 仅支持 zh_CN deliver。`);
+    return data;
+  }
+
   const { data, error } = await supabase
-    .from(table)
-    .select('*')
+    .from('issues')
+    .select('id, title, content_html, published_at, lang, channel')
+    .eq('channel', channel)
     .eq('lang', 'zh_CN')
-    .eq('is_published', false)
-    .order('created_at', { ascending: false })
+    .eq('delivered', false)
+    .order('published_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      throw new Error(`未找到 lang=zh_CN 且 is_published=false 的记录（表: ${table}）`);
-    }
-    console.error('Error fetching latest content:', error);
-    throw new Error(`Failed to fetch latest content: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
- * 更新 Supabase 表中记录的 is_published 字段为 true
- * @param table - 表名（n8n-ai-contents 或 n8n-good-contents）
- * @param recordId - 记录 ID
- */
-async function updateIsPublished(table: string, recordId: string) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase 环境变量未配置: NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-  const { data, error } = await supabase
-    .from(table)
-    .update({ is_published: true })
-    .eq('id', recordId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error updating is_published:', error);
-    throw new Error(`Failed to update is_published: ${error.message}`);
-  }
-
+  if (error) throw new Error(`Failed to fetch latest content: ${error.message}`);
+  if (!data) throw new Error(`未找到 channel=${channel} 且 lang=zh_CN 且 delivered=false 的 issue`);
   return data;
 }
 
@@ -380,9 +350,9 @@ function checkTimeRestriction(timeRestriction: TimeRestriction) {
  * 执行单个模式的邮件发送任务
  * @param mode - 模式名称（ai 或 snow）
  */
-async function executeMode(mode: ModeType) {
+async function executeMode(mode: ModeType, issueId?: number) {
   const modeConfig = MODES[mode];
-  const { campaignId, tableName, displayName, senderName: defaultSenderName, timeRestriction } = modeConfig;
+  const { campaignId, channel, displayName, senderName: defaultSenderName, timeRestriction } = modeConfig;
 
   // 检查时间限制
   const timeCheck = checkTimeRestriction(timeRestriction);
@@ -400,7 +370,9 @@ async function executeMode(mode: ModeType) {
   console.log(`${'='.repeat(60)}`);
   console.log(`📋 模式: ${mode}`);
   console.log(`📋 Campaign ID: ${campaignId}`);
-  console.log(`📋 表名: ${tableName}\n`);
+  console.log(`📋 Channel: ${channel}`);
+  if (issueId != null) console.log(`📋 Issue ID: ${issueId}`);
+  console.log();
 
   // 检查环境变量
   const brevoApiKey = process.env.BREVO_API_KEY;
@@ -414,16 +386,17 @@ async function executeMode(mode: ModeType) {
     throw new Error('未找到 Supabase 环境变量');
   }
 
-  // 1. 获取最新的中文内容
-  console.log(`📰 正在从 Supabase 表 ${tableName} 获取最新的中文内容...`);
-  const latestContent = await getLatestZhCNContent(tableName);
-  console.log('✅ 获取到最新内容:');
-  console.log(`   标题: ${latestContent.title}`);
-  console.log(`   创建时间: ${latestContent.created_at}`);
-  console.log(`   内容长度: ${latestContent.content?.length || 0} 字符\n`);
+  // 1. 获取要发送的 issue
+  console.log(`📰 正在从 issues 表 (channel=${channel}) 获取内容...`);
+  const issue = await getIssueForDelivery(channel, issueId);
+  console.log('✅ 获取到 issue:');
+  console.log(`   ID: ${issue.id}`);
+  console.log(`   标题: ${issue.title}`);
+  console.log(`   发布时间: ${issue.published_at}`);
+  console.log(`   内容长度: ${issue.content_html?.length || 0} 字符\n`);
 
-  if (!latestContent.title || !latestContent.content) {
-    throw new Error('获取的内容缺少标题或内容');
+  if (!issue.title || !issue.content_html) {
+    throw new Error('Issue 缺少标题或内容');
   }
 
   // 2. 获取订阅者邮件列表
@@ -439,12 +412,12 @@ async function executeMode(mode: ModeType) {
   console.log('📤 开始发送邮件...\n');
   const senderEmail = process.env.BREVO_SENDER_EMAIL || 'yangshiqi1089@gmail.com';
   const senderName = process.env.BREVO_SENDER_NAME || defaultSenderName;
-  
+
   const sendResults = await sendTransactionalEmail(
     recipients,
-    latestContent.title, // 使用记录的 title 作为邮件标题
-    latestContent.content, // 使用记录的 content 作为邮件内容
-    undefined, // 不提供纯文本版本
+    issue.title,
+    issue.content_html,
+    undefined,
     senderEmail,
     senderName,
     brevoApiKey
@@ -473,31 +446,16 @@ async function executeMode(mode: ModeType) {
     }
   }
 
-  // 5. 如果邮件发送成功，更新 is_published 字段为 true
-  if (sendResults.success > 0) {
-    console.log(`\n🔄 正在更新记录状态（is_published = true）...`);
-    try {
-      await updateIsPublished(tableName, latestContent.id);
-      console.log(`✅ 成功更新记录 ${latestContent.id} 的 is_published 字段为 true`);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`❌ 更新 is_published 字段失败: ${errorMessage}`);
-      // 不抛出错误，因为邮件已经发送成功，更新失败不应该影响整体流程
-      console.warn('⚠️  警告: 邮件已发送，但更新发布状态失败，请手动检查数据库');
-    }
-  } else {
-    console.log('\n⚠️  没有成功发送的邮件，跳过更新 is_published 字段');
-  }
-
   console.log(`\n✅ ${displayName} 模式邮件发送任务完成！`);
-  
+  console.log(`   注: delivered 状态由调用方 (admin/deliver 或 pipeline deliver step) 维护`);
+
   return {
     mode,
     success: true,
     results: sendResults,
     latestContent: {
-      title: latestContent.title,
-      createdAt: latestContent.created_at,
+      title: issue.title,
+      createdAt: issue.published_at,
     },
   };
 }
@@ -542,16 +500,25 @@ async function handleRequest(request: NextRequest) {
     // 获取 type 参数，支持通过查询参数或请求体传递
     const searchParams = request.nextUrl.searchParams;
     let typeArg: string | null = null;
-    
+    let issueIdArg: number | undefined;
+
     if (searchParams.has('type')) {
       typeArg = searchParams.get('type')?.toLowerCase() || null;
     } else if (request.method === 'POST') {
       try {
         const body = await request.json();
         typeArg = body.type?.toLowerCase() || null;
+        if (body.issue_id != null) {
+          const n = Number(body.issue_id);
+          if (Number.isFinite(n)) issueIdArg = n;
+        }
       } catch {
         // 如果解析失败，使用默认值
       }
+    }
+    if (issueIdArg == null && searchParams.has('issue_id')) {
+      const n = Number(searchParams.get('issue_id'));
+      if (Number.isFinite(n)) issueIdArg = n;
     }
 
     // 验证 type 参数
@@ -599,7 +566,7 @@ async function handleRequest(request: NextRequest) {
       const mode = modesToExecute[i];
       
       try {
-        const result = await executeMode(mode);
+        const result = await executeMode(mode, issueIdArg);
         allResults.push(result);
         
         // 如果模式被跳过，显示跳过信息
