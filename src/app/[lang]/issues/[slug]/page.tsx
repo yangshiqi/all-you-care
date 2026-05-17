@@ -112,15 +112,26 @@ function removeTagsSection(content: string): string {
 // 辅助函数：从 HTML 中提取 body 内容
 function extractBodyContent(html: string): string {
   if (!html) return '';
-  
+
   // 尝试匹配 body 标签内的内容
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   if (bodyMatch && bodyMatch[1]) {
     return bodyMatch[1].trim();
   }
-  
+
   // 如果没有 body 标签，返回原始内容（可能已经是片段）
   return html;
+}
+
+// 新 pipeline 的 render 输出在 body 顶部带 <h1> 标题 / <p class="subtitle"> 日期 /
+// <img class="hero-img"> 封面三件套，与外层 header 重复。这里剥掉避免重复展示。
+function stripDuplicateHeader(content: string): string {
+  if (!content) return '';
+  let cleaned = content;
+  cleaned = cleaned.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, '');
+  cleaned = cleaned.replace(/<p[^>]*class=["'][^"']*\bsubtitle\b[^"']*["'][^>]*>[\s\S]*?<\/p>/i, '');
+  cleaned = cleaned.replace(/<img[^>]*class=["'][^"']*\bhero-img\b[^"']*["'][^>]*\/?>/i, '');
+  return cleaned;
 }
 
 // 辅助函数：解析 HTML 内容
@@ -129,7 +140,10 @@ function formatHtmlContent(htmlContent: string) {
   
   // 1. 提取 body 内容
   let content = extractBodyContent(htmlContent).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  
+
+  // 1.5 移除与外层 header 重复的 h1/subtitle/hero-img（新 pipeline render 输出）
+  content = stripDuplicateHeader(content);
+
   // 2. 移除 tags 区域
   content = removeTagsSection(content);
   
