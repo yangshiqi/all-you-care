@@ -161,6 +161,7 @@ async function main(): Promise<void> {
 
   let created = 0;
   let skipped = 0;
+  let failed = 0;
   for (const spec of JOBS) {
     const fullTitle = TITLE_PREFIX + spec.title;
     if (existingTitles.has(fullTitle)) {
@@ -168,11 +169,20 @@ async function main(): Promise<void> {
       skipped++;
       continue;
     }
-    const id = await createJob(cjToken, ghToken, spec);
-    console.log(`  created #${id}: ${fullTitle}  (cron: ${spec.cron} UTC)`);
-    created++;
+    try {
+      const id = await createJob(cjToken, ghToken, spec);
+      console.log(`  created #${id}: ${fullTitle}  (cron: ${spec.cron} UTC)`);
+      created++;
+    } catch (e) {
+      failed++;
+      console.error(`  FAIL  ${fullTitle}\n        ${(e as Error).message}`);
+    }
+    // cron-job.org's free tier sometimes throttles bursts of PUTs; pace
+    // ourselves a bit so we don't lose subsequent creates to 429s.
+    await new Promise((r) => setTimeout(r, 1500));
   }
-  console.log(`Done. ${created} created, ${skipped} skipped.`);
+  console.log(`Done. ${created} created, ${skipped} skipped, ${failed} failed.`);
+  if (failed > 0) process.exit(1);
 }
 
 main().catch((e) => {
