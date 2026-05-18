@@ -222,6 +222,83 @@ export function fuzzyEquivalent(titleA: string, titleB: string): boolean {
   return true;
 }
 
+// ---- description-similarity fallback -------------------------------------
+
+// When two titles paraphrase the same event but have unequal latin-token sets
+// (e.g. ChatGPT/Codex/API vs ChatGPT/Codex, or "Brockman" vs "布罗克曼"), the
+// strict multiset rule misses them. We fall back to comparing descriptions:
+// if both descriptions are non-trivial in length, share a strong entity anchor
+// (≥ N shared latin tokens across title+description), AND their normalized
+// bigram Jaccard is high, treat as duplicates.
+
+const FUZZY_DESC_MIN_LEN = 30;
+const FUZZY_DESC_MIN_SHARED_TOKENS = 3;
+// Asymmetric overlap (|A∩B| / min(|A|,|B|)) lets a short summary match a long
+// article when one description is a near-subset of the other. Bigram captures
+// ordered phrasing; charset is order-free but stricter on shared vocabulary —
+// both must clear, which gives clean separation between true paraphrases and
+// unrelated stories about the same company.
+const FUZZY_DESC_BIGRAM_OVERLAP_THRESHOLD = 0.25;
+const FUZZY_DESC_CHARSET_OVERLAP_THRESHOLD = 0.35;
+
+// Extract latin tokens without first running normalizeForFuzzy (which strips
+// ASCII spaces and would glue "Greg Brockman" into a single "gregbrockman"
+// token). For the description-similarity fallback we want true word-level
+// tokens so the shared-entity-token check is meaningful.
+function extractLatinTokensFromRaw(s: string): string[] {
+  const lower = s.toLowerCase().normalize('NFKC');
+  const out: string[] = [];
+  for (const m of lower.matchAll(LATIN_TOKEN_RE)) out.push(m[0]);
+  return out;
+}
+
+function combinedLatinTokenSet(title: string, description: string): Set<string> {
+  const out = new Set<string>();
+  for (const t of extractLatinTokensFromRaw(title)) out.add(t);
+  for (const t of extractLatinTokensFromRaw(description)) out.add(t);
+  return out;
+}
+
+function setIntersectionSize(a: Set<string>, b: Set<string>): number {
+  let n = 0;
+  for (const x of a) if (b.has(x)) n++;
+  return n;
+}
+
+function overlapCoefficient(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0;
+  return setIntersectionSize(a, b) / Math.min(a.size, b.size);
+}
+
+export function descriptionsLikelySameEvent(
+  a: { title: string; description: string },
+  b: { title: string; description: string },
+): boolean {
+  if (!a.description || !b.description) return false;
+  if (a.description.length < FUZZY_DESC_MIN_LEN) return false;
+  if (b.description.length < FUZZY_DESC_MIN_LEN) return false;
+
+  // Version guard: if either title has a unique latin token containing a digit
+  // (e.g. gpt-5 / llama-3 / sora-2), the two events are likely different
+  // releases of the same product line — refuse to merge regardless of
+  // description similarity.
+  const titleTokensA = new Set(extractLatinTokensFromRaw(a.title));
+  const titleTokensB = new Set(extractLatinTokensFromRaw(b.title));
+  for (const t of titleTokensA) if (!titleTokensB.has(t) && /\d/.test(t)) return false;
+  for (const t of titleTokensB) if (!titleTokensA.has(t) && /\d/.test(t)) return false;
+
+  const tokensA = combinedLatinTokenSet(a.title, a.description);
+  const tokensB = combinedLatinTokenSet(b.title, b.description);
+  if (setIntersectionSize(tokensA, tokensB) < FUZZY_DESC_MIN_SHARED_TOKENS) return false;
+
+  const nA = normalizeForFuzzy(a.description);
+  const nB = normalizeForFuzzy(b.description);
+  if (nA.length < 20 || nB.length < 20) return false;
+  if (overlapCoefficient(bigramSet(nA), bigramSet(nB)) < FUZZY_DESC_BIGRAM_OVERLAP_THRESHOLD) return false;
+  if (overlapCoefficient(charSet(nA), charSet(nB)) < FUZZY_DESC_CHARSET_OVERLAP_THRESHOLD) return false;
+  return true;
+}
+
 // ---- dedup ----------------------------------------------------------------
 
 /**
@@ -277,6 +354,23 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
       for (let i = 0; i < buckets.length; i++) {
         const b = buckets[i];
         if (b && fuzzyEquivalent(e.title, b.title)) {
+          target = i;
+          break;
+        }
+      }
+    }
+    if (target === undefined) {
+      // Description-similarity fallback: catches cross-source paraphrases
+      // where the title's latin tokens differ (subset relationships, mixed
+      // 拉丁/CJK transliteration). Gated by length + shared-entity-token
+      // anchor to avoid merging unrelated stories that happen to share a
+      // company name.
+      for (let i = 0; i < buckets.length; i++) {
+        const b = buckets[i];
+        if (b && descriptionsLikelySameEvent(
+          { title: e.title, description: e.description },
+          { title: b.title, description: b.description },
+        )) {
           target = i;
           break;
         }
