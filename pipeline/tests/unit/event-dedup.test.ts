@@ -271,4 +271,95 @@ describe('deduplicateEvents', () => {
     // dedup to catch). Documented limitation.
     expect(out).toHaveLength(2);
   });
+
+  // ── description-similarity fallback ─────────────────────────────────────
+
+  it('merges cross-source paraphrases via description fallback (Brockman case)', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI 重组高管团队：Greg Brockman 接管产品战略，ChatGPT/Codex/API 整合为核心产品团队',
+        description: 'Greg Brockman 全面负责产品战略，同时主管 AI 基础设施，旗下 ChatGPT、Codex、API 整合至同一产品团队，统一产品线管理。',
+        links: ['https://a.example/brockman-1'],
+        score: 8.2,
+      },
+      {
+        title: 'OpenAI 联合创始人 Greg Brockman 接管产品战略，ChatGPT 或与 Codex 合并',
+        description: 'Greg Brockman 重新出山主导 OpenAI 产品战略，公司同步计划整合 ChatGPT 与 Codex 编程产品，是近期内部架构调整的重要组成部分。',
+        links: ['https://b.example/brockman-2'],
+        score: 8.2,
+      },
+      {
+        title: 'OpenAI联合创始人布罗克曼正式接管产品战略，计划整合ChatGPT与Codex',
+        description: 'OpenAI总裁格雷格·布罗克曼正式接手产品战略统筹，计划将ChatGPT与代码工具Codex整合为一体化体验，此前因CEO菲吉·西莫病假临时代管。',
+        links: ['https://c.example/brockman-3'],
+        score: 8.2,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.source_count).toBe(3);
+    // All three "view details" links preserved
+    expect(out[0]?.links).toEqual([
+      'https://a.example/brockman-1',
+      'https://b.example/brockman-2',
+      'https://c.example/brockman-3',
+    ]);
+  });
+
+  it('does NOT merge two unrelated OpenAI stories via description fallback', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI 联合创始人 Greg Brockman 接管产品战略',
+        description: 'Greg Brockman 重新出山主导 OpenAI 产品战略，公司同步计划整合 ChatGPT 与 Codex 编程产品。',
+        links: ['https://a.example/p'],
+        score: 8.0,
+      },
+      {
+        title: 'OpenAI 发布 Sora 2 视频模型',
+        description: 'OpenAI 正式上线下一代视频生成模型 Sora 2，支持 1080p 输出与连续镜头，面向 Plus 与 Pro 订阅用户开放。',
+        links: ['https://b.example/q'],
+        score: 8.0,
+      },
+    ]);
+    // Only "openai" is shared — below the 3-token entity-anchor threshold.
+    expect(out).toHaveLength(2);
+  });
+
+  it('does NOT merge via description fallback when descriptions are too short', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI 发布新版 ChatGPT API',
+        description: '简短一句话。', // < 30 chars, fallback should be skipped
+        links: ['https://a.example/x'],
+        score: 7,
+      },
+      {
+        title: 'OpenAI ChatGPT API 更新',
+        description: 'OpenAI ChatGPT API 新版上线。', // < 30 chars
+        links: ['https://b.example/y'],
+        score: 7,
+      },
+    ]);
+    expect(out).toHaveLength(2);
+  });
+
+  it('description fallback still allows GPT-5 vs GPT-6 to stay separate', () => {
+    // Even with similar long descriptions, version differentiation in titles
+    // means these stay as separate model announcements (token "gpt-5" vs
+    // "gpt-6" are unique anchors, fall below shared-token threshold).
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI 发布 GPT-5',
+        description: 'OpenAI 正式发布旗下下一代大模型，性能在数学、编码、推理等基准上较前代有明显提升，面向 Plus / Pro 用户先行开放。',
+        links: ['https://a.example/g5'],
+        score: 9,
+      },
+      {
+        title: 'OpenAI 发布 GPT-6',
+        description: 'OpenAI 正式发布旗下下一代大模型，性能在数学、编码、推理等基准上较前代有明显提升，面向 Plus / Pro 用户先行开放。',
+        links: ['https://b.example/g6'],
+        score: 9,
+      },
+    ]);
+    expect(out).toHaveLength(2);
+  });
 });
