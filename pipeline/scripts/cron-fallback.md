@@ -70,3 +70,36 @@ After setup, watch the cron-job.org console → Job History. Each job
 should fire on schedule and return HTTP 204 from GitHub (which is the
 success code for `workflow_dispatch`). The corresponding GitHub Actions
 run will appear with event = `workflow_dispatch`.
+
+## Free-tier limits and operational notes
+
+Cron-job.org adjusts these periodically — verify the current numbers in
+the Console before assuming. Snapshot as of 2026-05:
+
+| Dimension | Free tier | Our usage | Headroom |
+|---|---|---|---|
+| Jobs per account | 50 | 6 | ample |
+| Minimum interval | 1 min | hourly | irrelevant |
+| Request timeout | 30 s | < 1 s (GitHub returns 204 immediately) | irrelevant |
+| Body size | undocumented, ≥ 8 KB works | 16 bytes (`{"ref":"main"}`) | irrelevant |
+| Execution history retention | ~30 days per job | sufficient for triage |
+| Failure notifications | email | enabled (`onFailure`) | sufficient |
+| API access | full | used by setup script | sufficient |
+| API create-rate | not published; we observed 429s after ~6 burst PUTs | one-time setup | known issue, mitigated |
+
+Watch-outs:
+
+1. **Account hibernation.** Free accounts that go un-logged-in for ~1-2 months
+   may auto-disable jobs. Bookmark the console and glance once a month.
+2. **Truncated response logs.** Free tier truncates saved responses to ~1 KB.
+   GitHub `workflow_dispatch` returns an empty body, so this only matters when
+   debugging an endpoint that returns a verbose error.
+3. **Aggregate stats limited to 7 days.** Per-job history goes further back,
+   but the success-rate dashboard view only covers the last week.
+4. **Shared-worker fire latency.** Free jobs run on a shared cluster. Doc
+   promise is "within a minute of scheduled time." We've observed 20-40 s
+   typical delays. They do not skip — only delay.
+5. **API burst limit.** Recreating all jobs at once (e.g. after rotating a
+   PAT) needs ≥ 5 s spacing between PUTs to avoid 429. The setup script
+   uses 1.5 s and survives small batches via try/catch; for full rebuilds,
+   bump the spacing in the script or just rerun (idempotent).
