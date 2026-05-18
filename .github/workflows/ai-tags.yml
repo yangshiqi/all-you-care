@@ -1,7 +1,7 @@
 name: ai · tags
 on:
   schedule:
-    - cron: '30 0,12 * * *'     # 08:30 / 20:30 Asia/Shanghai
+    - cron: '0 1 * * *'         # 09:00 Asia/Shanghai, runs after morning publish
   workflow_dispatch: {}
 
 jobs:
