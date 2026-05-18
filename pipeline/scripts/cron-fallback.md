@@ -45,9 +45,10 @@ call on schedule.
 | `[fallback] ai · reuters-image (07:00 SH)` | `0 23 * * *` | `reuters-image.yml` |
 | `[fallback] ai · publish-pipeline (08:30 SH)` | `30 0 * * *` | `ai-publish.yml` |
 | `[fallback] ai · tags (09:00 SH)` | `0 1 * * *` | `ai-tags.yml` |
-| `[fallback] snow · fetch (09:00 / 19:00 SH)` | `0 1,11 * * *` | `snow-fetch.yml` |
-| `[fallback] snow · compress (every 6h)` | `0 */6 * * *` | `snow-compress.yml` |
-| `[fallback] snow · publish-pipeline (Tue/Fri 20:00 SH)` | `0 12 * * 2,5` | `snow-publish.yml` |
+
+Snow channel is not currently in active use — its entries are commented
+out in `setup-cronjob-fallback.ts`. Uncomment them and rerun the script
+if Snow goes live.
 
 ## Double-fire risk
 

@@ -37,9 +37,10 @@ const JOBS: ScheduleSpec[] = [
   { workflow: 'reuters-image.yml', cron: '0 23 * * *', title: 'ai · reuters-image (07:00 SH)' },
   { workflow: 'ai-publish.yml', cron: '30 0 * * *', title: 'ai · publish-pipeline (08:30 SH)' },
   { workflow: 'ai-tags.yml', cron: '0 1 * * *', title: 'ai · tags (09:00 SH)' },
-  { workflow: 'snow-fetch.yml', cron: '0 1,11 * * *', title: 'snow · fetch (09:00 / 19:00 SH)' },
-  { workflow: 'snow-compress.yml', cron: '0 */6 * * *', title: 'snow · compress (every 6h)' },
-  { workflow: 'snow-publish.yml', cron: '0 12 * * 2,5', title: 'snow · publish-pipeline (Tue/Fri 20:00 SH)' },
+  // Snow channel not currently in active use — add these back if it goes live:
+  // { workflow: 'snow-fetch.yml', cron: '0 1,11 * * *', title: 'snow · fetch (09:00 / 19:00 SH)' },
+  // { workflow: 'snow-compress.yml', cron: '0 */6 * * *', title: 'snow · compress (every 6h)' },
+  // { workflow: 'snow-publish.yml', cron: '0 12 * * 2,5', title: 'snow · publish-pipeline (Tue/Fri 20:00 SH)' },
 ];
 
 interface CronJobSchedule {
