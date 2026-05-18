@@ -1,7 +1,7 @@
 name: ai · publish-pipeline
 on:
   schedule:
-    - cron: '30 0,11 * * 1-5'   # 08:30 / 19:30 Asia/Shanghai (UTC+8)
+    - cron: '30 0 * * *'        # 08:30 Asia/Shanghai (UTC+8), daily morning paper
   workflow_dispatch: {}
 
 jobs:

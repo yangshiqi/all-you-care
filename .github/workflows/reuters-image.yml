@@ -1,7 +1,7 @@
 name: ai · reuters-image
 on:
   schedule:
-    - cron: '5 12 * * *'       # 20:05 Asia/Shanghai
+    - cron: '0 23 * * *'       # 07:00 Asia/Shanghai, refresh before 08:30 morning paper
   workflow_dispatch: {}
 
 jobs:
