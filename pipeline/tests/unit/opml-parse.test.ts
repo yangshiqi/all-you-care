@@ -25,4 +25,19 @@ describe('parseOpmlFeeds', () => {
   it('returns empty for no matches', () => {
     expect(parseOpmlFeeds('<opml></opml>', 't')).toEqual([]);
   });
+
+  it('extracts single-quoted xmlUrl', () => {
+    const opml = `<outline xmlUrl='https://a.example/feed' />`;
+    expect(parseOpmlFeeds(opml, 't')).toEqual(['https://a.example/feed']);
+  });
+
+  it('decodes decimal numeric entities (&#38;)', () => {
+    const opml = `<x xmlUrl="https://a.example/feed?x=1&#38;y=2"/>`;
+    expect(parseOpmlFeeds(opml, 't')).toEqual(['https://a.example/feed?x=1&y=2']);
+  });
+
+  it('decodes hex numeric entities (&#x26;)', () => {
+    const opml = `<x xmlUrl="https://a.example/feed?x=1&#x26;y=2"/>`;
+    expect(parseOpmlFeeds(opml, 't')).toEqual(['https://a.example/feed?x=1&y=2']);
+  });
 });

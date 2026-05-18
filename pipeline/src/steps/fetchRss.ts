@@ -5,6 +5,8 @@ import { fetchOpmlFeeds } from '../lib/opml.js';
 import { canonicalizeLink } from '../lib/linkCanonical.js';
 import { ageHours } from '../lib/time.js';
 
+const FEED_CONCURRENCY = 8;
+
 export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, db, log, now } = ctx;
   const staticFeeds = channel.sources.rss.filter(r => r.enabled).map(r => r.url);
@@ -24,7 +26,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   const feeds = [...new Set<string>([...staticFeeds, ...opmlFeeds])];
   let processed = 0, skipped = 0, failed = 0;
 
-  for (const url of feeds) {
+  async function handleFeed(url: string): Promise<void> {
     try {
       const items = await fetchFeed(url, log);
       for (const it of items) {
@@ -61,10 +63,21 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       failed++;
     }
   }
+
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(FEED_CONCURRENCY, feeds.length) }, async () => {
+    while (true) {
+      const idx = cursor++;
+      if (idx >= feeds.length) return;
+      await handleFeed(feeds[idx]!);
+    }
+  });
+  await Promise.all(workers);
+
   return {
     processed,
     skipped,
     failed,
-    notes: `${feeds.length} feeds (static=${staticFeeds.length}, opml=${opmlFeeds.length})`,
+    notes: `${feeds.length} feeds (static=${staticFeeds.length}, opml=${opmlFeeds.length}, concurrency=${FEED_CONCURRENCY})`,
   };
 }
