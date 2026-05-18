@@ -1,17 +1,34 @@
 // pipeline/src/steps/fetchRss.ts
 import type { StepContext, StepResult } from '../cli.js';
 import { fetchFeed } from '../lib/rss.js';
+import { fetchOpmlFeeds } from '../lib/opml.js';
 import { canonicalizeLink } from '../lib/linkCanonical.js';
 import { ageHours } from '../lib/time.js';
 
+const FEED_CONCURRENCY = 8;
+
 export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, db, log, now } = ctx;
-  const enabled = channel.sources.rss.filter(r => r.enabled);
+  const staticFeeds = channel.sources.rss.filter(r => r.enabled).map(r => r.url);
+  const opmlSources = (channel.sources.opml ?? []).filter(r => r.enabled);
+
+  const opmlFeeds: string[] = [];
+  for (const src of opmlSources) {
+    try {
+      const urls = await fetchOpmlFeeds(src.url, log);
+      opmlFeeds.push(...urls);
+      log.info({ event: 'opml_ok', url: src.url, count: urls.length }, 'opml feeds loaded');
+    } catch (e) {
+      log.warn({ event: 'opml_fail', url: src.url, err: (e as Error).message }, 'opml fetch failed');
+    }
+  }
+
+  const feeds = [...new Set<string>([...staticFeeds, ...opmlFeeds])];
   let processed = 0, skipped = 0, failed = 0;
 
-  for (const src of enabled) {
+  async function handleFeed(url: string): Promise<void> {
     try {
-      const items = await fetchFeed(src.url, log);
+      const items = await fetchFeed(url, log);
       for (const it of items) {
         if (ageHours(it.pub_date, now) > channel.windows.fetch_rss_age_hours) {
           skipped++;
@@ -42,9 +59,25 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         }
       }
     } catch (e) {
-      log.warn({ event: 'feed_fail', url: src.url, err: (e as Error).message }, 'feed fetch failed');
+      log.warn({ event: 'feed_fail', url, err: (e as Error).message }, 'feed fetch failed');
       failed++;
     }
   }
-  return { processed, skipped, failed, notes: `${enabled.length} feeds` };
+
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(FEED_CONCURRENCY, feeds.length) }, async () => {
+    while (true) {
+      const idx = cursor++;
+      if (idx >= feeds.length) return;
+      await handleFeed(feeds[idx]!);
+    }
+  });
+  await Promise.all(workers);
+
+  return {
+    processed,
+    skipped,
+    failed,
+    notes: `${feeds.length} feeds (static=${staticFeeds.length}, opml=${opmlFeeds.length}, concurrency=${FEED_CONCURRENCY})`,
+  };
 }
