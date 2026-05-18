@@ -10,6 +10,7 @@ export const ChannelConfigSchema = z.object({
   display_name: z.string(),
   sources: z.object({
     rss: z.array(RssSourceSchema).default([]),
+    opml: z.array(RssSourceSchema).default([]),
     email: z.array(z.string()).default([]),
   }),
   windows: z.object({

@@ -3,30 +3,33 @@ display_name: "AI Daily"
 
 sources:
   rss:
-    - { url: "https://www.geekpark.net/rss",                                enabled: true }
-    - { url: "https://36kr.com/feed",                                       enabled: true }
-    - { url: "https://www.inside.com.tw/feed/all",                          enabled: true }
-    - { url: "https://blog.research.google/feeds/posts/default",            enabled: true }
-    - { url: "https://www.theverge.com/rss/index.xml",                      enabled: true }
-    - { url: "https://techcrunch.com/feed/",                                enabled: true }
-    - { url: "https://hnrss.org/frontpage",                                 enabled: true }
-    - { url: "https://www.technologyreview.com/feed/",                      enabled: true }
-    - { url: "https://www.wired.com/feed/rss",                              enabled: true }
-    - { url: "https://www.microsoft.com/en-us/research/feed/",              enabled: true }
-    - { url: "https://www.cio.com/feed/",                                   enabled: true }
-    - { url: "https://www.infoq.com/ai-ml-data-eng/feed/",                  enabled: true }
-    - { url: "https://www.cnbeta.com.tw/backend.php",                       enabled: true }
-    - { url: "https://www.artificialintelligence-news.com/feed/",           enabled: true }
-    - { url: "https://www.analyticsvidhya.com/blog/feed/",                  enabled: true }
-    - { url: "https://news.mit.edu/rss/topic/artificial-intelligence2",     enabled: true }
-    - { url: "https://www.marktechpost.com/feed/",                          enabled: true }
-    - { url: "https://www.tmtpost.com/rss/feed",                            enabled: true }
-    - { url: "https://aiquantumcomputing.substack.com/feed",                enabled: true }
-    - { url: "https://www.edge-ai-vision.com/feed/",                        enabled: true }
-    - { url: "https://www.thoughtworks.com/insights/insights.rss",          enabled: true }
-    - { url: "https://news.google.com/rss/search?q=ai&hl=en-US&gl=US",      enabled: true }
-    - { url: "https://a16z.com/feed/",                                      enabled: true }
-    - { url: "https://pitchbook.com/feed",                                  enabled: true }
+    - { url: "https://mainssl.geekpark.net/rss.rss",                                                                                          enabled: true }
+    - { url: "https://36kr.com/feed",                                                                                                         enabled: true }
+    - { url: "https://www.inside.com.tw/feed/rss",                                                                                            enabled: true }
+    - { url: "https://blog.google/technology/ai/rss/",                                                                                        enabled: true }
+    - { url: "https://www.theverge.com/rss/index.xml",                                                                                        enabled: true }
+    - { url: "https://techcrunch.com/feed/",                                                                                                  enabled: true }
+    - { url: "https://news.ycombinator.com/rss",                                                                                              enabled: true }
+    - { url: "https://www.technologyreview.com/feed",                                                                                         enabled: true }
+    - { url: "https://www.wired.com/feed/rss",                                                                                                enabled: true }
+    - { url: "https://www.microsoft.com/en-us/research/feed/",                                                                                enabled: true }
+    - { url: "https://www.cio.com/feed/",                                                                                                     enabled: true }
+    - { url: "https://feed.infoq.com/ai-ml-data-eng/",                                                                                        enabled: true }
+    - { url: "https://rss.cnbeta.com.tw/",                                                                                                    enabled: true }
+    - { url: "https://www.artificialintelligence-news.com/feed/",                                                                             enabled: true }
+    - { url: "https://www.analyticsvidhya.com/feed/",                                                                                         enabled: true }
+    - { url: "https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml",                                                                enabled: true }
+    - { url: "https://www.marktechpost.com/feed/",                                                                                            enabled: true }
+    - { url: "https://www.tmtpost.com/rss.xml",                                                                                               enabled: true }
+    - { url: "https://aiquantumcomputing.substack.com/feed",                                                                                  enabled: true }
+    - { url: "https://www.edge-ai-vision.com/feed/",                                                                                          enabled: true }
+    - { url: "https://www.thoughtworks.com/rss/engineering.xml",                                                                              enabled: true }
+    - { url: "https://www.thoughtworks.com/rss/insights.xml",                                                                                 enabled: true }
+    - { url: "https://news.google.com/rss/topics/CAAqIAgKIhpDQkFTRFFvSEwyMHZNRzFyZWhJQ1pXNG9BQVAB?hl=en-US&gl=US&ceid=US%3Aen&oc=11",         enabled: true }
+    - { url: "https://www.a16z.news/feed",                                                                                                    enabled: true }
+    - { url: "https://pitchbook.com/news/artificial-intelligence.rss",                                                                        enabled: true }
+  opml:
+    - { url: "https://gist.githubusercontent.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b/raw/426957f043dc0054f95aae6c19de1d0b4ecc2bb2/hn-popular-blogs-2025.opml", enabled: true }
   email:
     - aivalley@mail.beehiiv.com
     - hello@newsletters.venturebeat.com
