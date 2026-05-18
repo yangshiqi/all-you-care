@@ -1,0 +1,192 @@
+/* eslint-disable no-console */
+//
+// Register fallback cron jobs at cron-job.org that hit GitHub's
+// `workflow_dispatch` endpoint for each pipeline workflow.
+//
+// Why this exists: GitHub Actions scheduled workflows are documented to be
+// unreliable during peak periods (delays and dropped runs are common). A
+// 3-hour outage in the hourly chain was observed on 2026-05-18. cron-job.org
+// is a free third-party service whose only job is firing HTTP requests on
+// schedule — much more reliable for the trigger side, while the real work
+// still runs on GitHub-hosted runners.
+//
+// Usage
+// -----
+//   cd pipeline
+//   CRONJOB_TOKEN=<from console.cron-job.org → Settings → API Keys> \
+//   GITHUB_TOKEN=<PAT with `workflow` scope on this repo> \
+//   ./node_modules/.bin/tsx scripts/setup-cronjob-fallback.ts
+//
+// The script is idempotent-by-title: it lists existing jobs first and skips
+// any whose title already matches.
+
+interface ScheduleSpec {
+  workflow: string; // .github/workflows/<file>
+  cron: string; // 5-field cron in UTC
+  title: string;
+}
+
+const REPO_OWNER = 'yangshiqi';
+const REPO_NAME = 'all-you-care';
+const TITLE_PREFIX = '[fallback] ';
+
+const JOBS: ScheduleSpec[] = [
+  { workflow: 'ai-fetch.yml', cron: '0 * * * *', title: 'ai · fetch (hourly)' },
+  { workflow: 'ai-compress.yml', cron: '10 * * * *', title: 'ai · compress (hourly+10)' },
+  { workflow: 'ai-score.yml', cron: '20 * * * *', title: 'ai · score (hourly+20)' },
+  { workflow: 'reuters-image.yml', cron: '0 23 * * *', title: 'ai · reuters-image (07:00 SH)' },
+  { workflow: 'ai-publish.yml', cron: '30 0 * * *', title: 'ai · publish-pipeline (08:30 SH)' },
+  { workflow: 'ai-tags.yml', cron: '0 1 * * *', title: 'ai · tags (09:00 SH)' },
+  // Snow channel not currently in active use — add these back if it goes live:
+  // { workflow: 'snow-fetch.yml', cron: '0 1,11 * * *', title: 'snow · fetch (09:00 / 19:00 SH)' },
+  // { workflow: 'snow-compress.yml', cron: '0 */6 * * *', title: 'snow · compress (every 6h)' },
+  // { workflow: 'snow-publish.yml', cron: '0 12 * * 2,5', title: 'snow · publish-pipeline (Tue/Fri 20:00 SH)' },
+];
+
+interface CronJobSchedule {
+  timezone: string;
+  expiresAt: number;
+  minutes: number[];
+  hours: number[];
+  mdays: number[];
+  months: number[];
+  wdays: number[];
+}
+
+function expandField(expr: string, range: [number, number]): number[] {
+  if (expr === '*') return [-1];
+  const [lo, hi] = range;
+  if (expr.startsWith('*/')) {
+    const step = Number(expr.slice(2));
+    if (!Number.isInteger(step) || step <= 0) {
+      throw new Error(`invalid step in cron field: ${expr}`);
+    }
+    const out: number[] = [];
+    for (let i = lo; i <= hi; i += step) out.push(i);
+    return out;
+  }
+  return expr.split(',').map((p) => {
+    const n = Number(p);
+    if (!Number.isInteger(n) || n < lo || n > hi) {
+      throw new Error(`out-of-range cron value: ${p} (expected ${lo}..${hi})`);
+    }
+    return n;
+  });
+}
+
+function parseCron(expr: string): CronJobSchedule {
+  const parts = expr.trim().split(/\s+/);
+  if (parts.length !== 5) throw new Error(`cron must have 5 fields, got: ${expr}`);
+  const [m, h, dom, mo, dow] = parts as [string, string, string, string, string];
+  return {
+    timezone: 'UTC',
+    expiresAt: 0,
+    minutes: expandField(m, [0, 59]),
+    hours: expandField(h, [0, 23]),
+    mdays: expandField(dom, [1, 31]),
+    months: expandField(mo, [1, 12]),
+    wdays: expandField(dow, [0, 6]),
+  };
+}
+
+interface ExistingJob {
+  jobId: number;
+  title: string;
+  enabled: boolean;
+}
+
+async function listExistingJobs(cjToken: string): Promise<ExistingJob[]> {
+  const res = await fetch('https://api.cron-job.org/jobs', {
+    headers: { Authorization: `Bearer ${cjToken}` },
+  });
+  if (!res.ok) {
+    throw new Error(`cron-job.org list failed: ${res.status} ${await res.text()}`);
+  }
+  const data = (await res.json()) as { jobs: ExistingJob[] };
+  return data.jobs ?? [];
+}
+
+async function createJob(
+  cjToken: string,
+  ghToken: string,
+  spec: ScheduleSpec,
+): Promise<number> {
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${spec.workflow}/dispatches`;
+  const body = {
+    job: {
+      url,
+      enabled: true,
+      saveResponses: true,
+      title: TITLE_PREFIX + spec.title,
+      requestMethod: 1, // POST
+      requestTimeout: 30,
+      extendedData: {
+        headers: {
+          Authorization: `Bearer ${ghToken}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json',
+        },
+        body: '{"ref":"main"}',
+      },
+      schedule: parseCron(spec.cron),
+      notification: { onFailure: true, onSuccess: false, onDisable: true },
+    },
+  };
+  const res = await fetch('https://api.cron-job.org/jobs', {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${cjToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(
+      `cron-job.org create failed for ${spec.workflow}: ${res.status} ${await res.text()}`,
+    );
+  }
+  const data = (await res.json()) as { jobId: number };
+  return data.jobId;
+}
+
+async function main(): Promise<void> {
+  const cjToken = process.env.CRONJOB_TOKEN?.trim();
+  const ghToken = process.env.GITHUB_TOKEN?.trim();
+  if (!cjToken) throw new Error('CRONJOB_TOKEN env var is required');
+  if (!ghToken) throw new Error('GITHUB_TOKEN env var is required (needs `workflow` scope)');
+
+  console.log('Listing existing jobs at cron-job.org…');
+  const existing = await listExistingJobs(cjToken);
+  const existingTitles = new Set(existing.map((j) => j.title));
+
+  let created = 0;
+  let skipped = 0;
+  let failed = 0;
+  for (const spec of JOBS) {
+    const fullTitle = TITLE_PREFIX + spec.title;
+    if (existingTitles.has(fullTitle)) {
+      console.log(`  skip (already exists): ${fullTitle}`);
+      skipped++;
+      continue;
+    }
+    try {
+      const id = await createJob(cjToken, ghToken, spec);
+      console.log(`  created #${id}: ${fullTitle}  (cron: ${spec.cron} UTC)`);
+      created++;
+    } catch (e) {
+      failed++;
+      console.error(`  FAIL  ${fullTitle}\n        ${(e as Error).message}`);
+    }
+    // cron-job.org's free tier sometimes throttles bursts of PUTs; pace
+    // ourselves a bit so we don't lose subsequent creates to 429s.
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  console.log(`Done. ${created} created, ${skipped} skipped, ${failed} failed.`);
+  if (failed > 0) process.exit(1);
+}
+
+main().catch((e) => {
+  console.error((e as Error).message);
+  process.exit(1);
+});
