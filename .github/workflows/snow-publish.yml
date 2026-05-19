@@ -1,7 +1,5 @@
 name: snow · publish-pipeline
 on:
-  schedule:
-    - cron: '0 12 * * 2,5'     # Tue / Fri 20:00 Asia/Shanghai
   workflow_dispatch: {}
 
 jobs:

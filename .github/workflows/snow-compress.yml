@@ -1,7 +1,5 @@
 name: snow · compress
 on:
-  schedule:
-    - cron: '0 */6 * * *'       # every 6h
   workflow_dispatch: {}
 
 jobs:

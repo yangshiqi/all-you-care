@@ -51,6 +51,8 @@ function isRetryable(e: unknown): boolean {
   if (/429|rate.?limit/i.test(msg)) return true;
   if (/5\d\d/.test(msg)) return true;
   if (/ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|fetch failed/i.test(msg)) return true;
+  if (/aborted|abort error|timed out|timeout/i.test(msg)) return true;
+  if (/malformed llm response/i.test(msg)) return true;
   return false;
 }
 
@@ -255,7 +257,7 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
     const t0 = Date.now();
     try {
       const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 180_000);
+      const to = setTimeout(() => ctrl.abort(), 600_000);
       const resp = await client().messages.create(
         {
           model,
@@ -268,6 +270,10 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
       );
       clearTimeout(to);
 
+      if (!Array.isArray(resp?.content)) {
+        const preview = JSON.stringify(resp).slice(0, 300);
+        throw new Error(`malformed llm response: content missing or not array; resp=${preview}`);
+      }
       const text = resp.content
         .filter((c): c is Extract<typeof c, { type: 'text' }> => c.type === 'text')
         .map((c) => c.text)
