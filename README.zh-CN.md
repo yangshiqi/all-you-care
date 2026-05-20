@@ -16,7 +16,7 @@
 
 LLM 多步流水线接力：抓取 → 压缩 → 打分 → 合并 → 渲染。我们不生产新闻，**我们反编译真相**。
 
-**[读今天的日报 →](https://snapallx.com)** · [订阅](https://snapallx.com/subscribe) · [已有数千名工程师接入](https://snapallx.com/subscribe)
+**[读今天的日报 →](https://snapallx.com)** —— 已有数千名工程师接入
 
 ---
 

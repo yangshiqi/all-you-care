@@ -16,7 +16,7 @@ The internet is flooded with PR boilerplate and AI slop. SnapAI is a **noise-can
 
 A multi-step LLM pipeline does the rest: fetch → compress → score → merge → render. We don't produce news; **we decompile truth**.
 
-**[Read today's issue →](https://snapallx.com)** · [Subscribe](https://snapallx.com/subscribe) · [Thousands of engineers already plugged in](https://snapallx.com/subscribe)
+**[Read today's issue →](https://snapallx.com)** — thousands of engineers already plugged in
 
 ---
 
