@@ -270,17 +270,24 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
       );
       clearTimeout(to);
 
-      if (!Array.isArray(resp?.content)) {
-        const preview = JSON.stringify(resp).slice(0, 300);
+      // Bedrock proxy occasionally returns the body as a JSON-encoded string
+      // instead of an object. Unwrap before validating shape.
+      let body: unknown = resp;
+      if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch { /* falls through to guard */ }
+      }
+      if (!Array.isArray((body as { content?: unknown })?.content)) {
+        const preview = JSON.stringify(body).slice(0, 300);
         throw new Error(`malformed llm response: content missing or not array; resp=${preview}`);
       }
-      const text = resp.content
+      const typedBody = body as typeof resp;
+      const text = typedBody.content
         .filter((c): c is Extract<typeof c, { type: 'text' }> => c.type === 'text')
         .map((c) => c.text)
         .join('');
-      const inputTokens = resp.usage.input_tokens ?? 0;
-      const outputTokens = resp.usage.output_tokens;
-      const stopReason = resp.stop_reason ?? null;
+      const inputTokens = typedBody.usage?.input_tokens ?? 0;
+      const outputTokens = typedBody.usage?.output_tokens ?? 0;
+      const stopReason = typedBody.stop_reason ?? null;
 
       log.info(
         {
