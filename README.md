@@ -1,20 +1,33 @@
 # SnapAI News
 
+[![License: AGPL v3](https://img.shields.io/github/license/yangshiqi/all-you-care?color=blue)](./LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/yangshiqi/all-you-care)](https://github.com/yangshiqi/all-you-care/commits)
+[![Stars](https://img.shields.io/github/stars/yangshiqi/all-you-care?style=social)](https://github.com/yangshiqi/all-you-care/stargazers)
+
 > 不要让算法决定你看到什么。
 
 互联网充斥着 PR 通稿和 AI 生成的垃圾。SnapAI 是一台**去噪引擎**，每天把多个信号源压缩成一份 **5 分钟能读完的中文日报**：
 
 - **25+ 个手工精选的 RSS** —— 36kr / TechCrunch / The Verge / MIT Tech Review / a16z / PitchBook 等
-- **跟着 HN 的口味动态扩展** —— 通过 OPML 实时拉取 [`emschwartz/hn-popular-blogs-2025`](https://github.com/emschwartz)，Hacker News 在追的博客我们自动跟进，**无需手动维护源列表**
+- **跟着 HN 的口味动态扩展** —— 通过 OPML 实时拉取 [@emschwartz 维护的 HN popular blogs gist](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b)，Hacker News 在追的博客我们自动跟进，**无需手动维护源列表**
 - **十多个开发者 newsletter** —— 站长本人订阅 / 维护的邮箱
 
 LLM 多步流水线接力：抓取 → 压缩 → 打分 → 合并 → 渲染。我们不生产新闻，**我们反编译真相**。
 
-**[读今天的日报 →](https://snapallx.com)** · [订阅](https://snapallx.com/subscribe) · [已有 2,937+ 工程师接入](https://snapallx.com/subscribe)
+**[读今天的日报 →](https://snapallx.com)** · [订阅](https://snapallx.com/subscribe) · [已有数千名工程师接入](https://snapallx.com/subscribe)
 
 ---
 
 仓库布局：上层是前端（Next.js + Supabase），[`pipeline/`](./pipeline) 是独立子项目（TypeScript 内容流水线，跑在 GitHub Actions 上）。
+
+## 它和别的工具有什么不同
+
+| | SnapAI | Beehiiv / Substack | 自己拼 cron + LLM |
+|---|---|---|---|
+| 内容生产 | 全流水线自动化（compress → score → merge → render） | 你自己写 | 你自己拼 |
+| 订阅者数据归属 | 100% 自有 | 平台代管 | 自有 |
+| 换垂直领域 | fork + 改信号源即可 | 重新开账号 | 重头开始 |
+| LLM 成本 | 你自己的 API key | 平台收费 | 你的 key |
 
 ## 技术栈
 
@@ -79,7 +92,6 @@ NEXT_PUBLIC_SITE_URL=https://snapallx.com
 | `/[lang]/issues/[slug]` | 期刊详情（slug = `journal_id`）|
 | `/[lang]/tags` | 标签总览 |
 | `/[lang]/tags/[tag]` | 单标签下的期刊 |
-| `/[lang]/blog` | 长文 blog（内部隐藏入口）|
 | `/[lang]/subscribe` | 邮件订阅 |
 | `/admin` | 管理后台（token 鉴权）|
 
@@ -166,6 +178,12 @@ all-you-care/
 - [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](./docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md) —— pipeline 完整设计文档
 - [`CLAUDE.md`](./CLAUDE.md) —— 给 Claude Code 的项目说明
 - [`changelog.md`](./changelog.md) —— 更新记录
+
+## 贡献
+
+新人入门挑 [contribute 页面](https://github.com/yangshiqi/all-you-care/contribute)（GitHub 自动列 `good first issue` / `help wanted`）里的任务上手最快。
+
+报 bug、提需求、聊设计 → [开 Issue](https://github.com/yangshiqi/all-you-care/issues)。
 
 ## License
 
