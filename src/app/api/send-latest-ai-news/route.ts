@@ -410,7 +410,10 @@ async function executeMode(mode: ModeType, issueId?: number) {
 
   // 3. 发送邮件
   console.log('📤 开始发送邮件...\n');
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'yangshiqi1089@gmail.com';
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+  if (!senderEmail) {
+    throw new Error('未找到 BREVO_SENDER_EMAIL 环境变量');
+  }
   const senderName = process.env.BREVO_SENDER_NAME || defaultSenderName;
 
   const sendResults = await sendTransactionalEmail(
