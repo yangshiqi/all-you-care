@@ -1,0 +1,9 @@
+name: ai · diag-reuters
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diag:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: diagReuters }
+    secrets: inherit
