@@ -59,16 +59,28 @@ export async function withImap<T>(
   }
 }
 
+export interface FetchOpts {
+  mailbox?: string;       // default 'INBOX'
+  onlyUnseen?: boolean;   // default true
+}
+
 export async function fetchUnreadFrom(
   client: ImapFlow,
   fromAddress: string,
   sinceDays: number,
   log: Logger,
+  opts: FetchOpts = {},
 ): Promise<EmailItem[]> {
-  const lock = await client.getMailboxLock('INBOX');
+  const mailbox = opts.mailbox ?? 'INBOX';
+  const onlyUnseen = opts.onlyUnseen ?? true;
+  const lock = await client.getMailboxLock(mailbox);
   try {
     const since = new Date(Date.now() - sinceDays * 86_400_000);
-    const uids = await client.search({ from: fromAddress, since, seen: false });
+    const uids = await client.search({
+      from: fromAddress,
+      since,
+      ...(onlyUnseen ? { seen: false } : {}),
+    });
     const out: EmailItem[] = [];
     if (!uids) return out;
     for (const uid of uids) {

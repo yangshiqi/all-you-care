@@ -18,7 +18,13 @@ export async function run(ctx: StepContext): Promise<StepResult> {
 
   try {
     await withImap(log, async client => {
-    const messages = await fetchUnreadFrom(client, REUTERS_FROM, 2, log);
+    // Reuters daily briefing is often read/archived by the user before the
+    // bot runs. Search All Mail (covers archived) without the seen filter;
+    // DB-side subject dedup keeps re-runs idempotent.
+    const messages = await fetchUnreadFrom(client, REUTERS_FROM, 7, log, {
+      mailbox: '[Gmail]/All Mail',
+      onlyUnseen: false,
+    });
     for (const m of messages) {
       try {
         // Slice "And Finally..." → "Sponsors are not involved" segment
