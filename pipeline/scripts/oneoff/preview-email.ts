@@ -4,27 +4,43 @@
 //
 // Usage:
 //   set -a; source .env.local; set +a
-//   ./node_modules/.bin/tsx scripts/oneoff/preview-email.ts                    # → latest ai/zh_CN, PREVIEW_EMAIL_TO env or fallback
-//   ./node_modules/.bin/tsx scripts/oneoff/preview-email.ts you@example.com    # → override recipient
-//   ./node_modules/.bin/tsx scripts/oneoff/preview-email.ts you@example.com 21 # → specific issue id
+//   ./node_modules/.bin/tsx scripts/oneoff/preview-email.ts you@example.com        # → latest ai/zh_CN
+//   ./node_modules/.bin/tsx scripts/oneoff/preview-email.ts you@example.com 21     # → specific issue id
+//   PREVIEW_EMAIL_TO=you@example.com ./node_modules/.bin/tsx scripts/oneoff/preview-email.ts
 import { createDb } from '../../src/lib/db.js';
 import { sendPreviewEmail } from '../../src/lib/previewEmail.js';
 import { createLogger } from '../../src/lib/log.js';
 
-const FALLBACK_RECIPIENT = 'yangshiqi1089@gmail.com';
+function usage(msg?: string): never {
+  if (msg) console.error(`error: ${msg}\n`);
+  console.error('usage: preview-email.ts <recipient-email> [issue-id]');
+  console.error('   or: PREVIEW_EMAIL_TO=<email> preview-email.ts [issue-id]');
+  process.exit(2);
+}
 
 async function main() {
   const recipientArg = process.argv[2];
   const issueIdArg = process.argv[3];
 
-  if (recipientArg) process.env.PREVIEW_EMAIL_TO = recipientArg;
-  if (!process.env.PREVIEW_EMAIL_TO) process.env.PREVIEW_EMAIL_TO = FALLBACK_RECIPIENT;
+  // Recipient resolution order: CLI arg → PREVIEW_EMAIL_TO env → error
+  if (recipientArg && recipientArg.includes('@')) {
+    process.env.PREVIEW_EMAIL_TO = recipientArg;
+  } else if (recipientArg && !issueIdArg && /^\d+$/.test(recipientArg)) {
+    // Allow `preview-email.ts 21` when PREVIEW_EMAIL_TO is set
+    if (!process.env.PREVIEW_EMAIL_TO) usage('first arg looks like an issue id but PREVIEW_EMAIL_TO is not set');
+  } else if (recipientArg) {
+    usage(`first arg "${recipientArg}" does not look like an email`);
+  }
+  if (!process.env.PREVIEW_EMAIL_TO) usage('no recipient — pass as first arg or set PREVIEW_EMAIL_TO');
+
+  // If recipientArg was actually an issue id, shift it
+  const issueId = issueIdArg ?? (recipientArg && /^\d+$/.test(recipientArg) ? recipientArg : undefined);
 
   const log = createLogger({ channel: 'ai', step: 'preview-email-oneoff' });
   const db = createDb();
   let query = db.from('issues').select('id, title, content_html, lang, delivered').eq('channel', 'ai');
-  if (issueIdArg) {
-    query = query.eq('id', Number(issueIdArg));
+  if (issueId) {
+    query = query.eq('id', Number(issueId));
   } else {
     query = query.eq('lang', 'zh_CN').order('id', { ascending: false }).limit(1);
   }
