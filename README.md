@@ -177,9 +177,8 @@ Frontend env vars live in Vercel Project Settings. GitHub Actions secrets live s
 ## Docs
 
 - [`pipeline/README.md`](./pipeline/README.md) — pipeline design, steps, local dev
-- [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](./docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md) — full pipeline design doc
+- [`docs/2026-05-13-n8n-to-pipeline-design.md`](./docs/2026-05-13-n8n-to-pipeline-design.md) — full pipeline design doc
 - [`CLAUDE.md`](./CLAUDE.md) — project notes for Claude Code
-- [`changelog.md`](./changelog.md) — release notes
 
 ## Contributing
 

@@ -6,7 +6,7 @@ A content pipeline for people who've had it with n8n / Dify / Coze. Drag-and-dro
 
 Every day it pulls RSS + email subscriptions → compresses, scores, and merges with Claude → renders an HTML newspaper → writes to Supabase for the frontend. Running in production at [snapallx.com](https://snapallx.com).
 
-> Full design doc: [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](../docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md)
+> Full design doc: [`docs/2026-05-13-n8n-to-pipeline-design.md`](../docs/2026-05-13-n8n-to-pipeline-design.md)
 
 ## Channels
 

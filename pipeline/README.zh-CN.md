@@ -6,7 +6,7 @@
 
 每天自动抓取 RSS / 邮件订阅 → 用 Claude 压缩、打分、合并 → 渲染成日报 HTML → 写入 Supabase 供前端读取。生产在 [snapallx.com](https://snapallx.com) 跑着。
 
-> 完整设计文档：[`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](../docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md)
+> 完整设计文档：[`docs/2026-05-13-n8n-to-pipeline-design.md`](../docs/2026-05-13-n8n-to-pipeline-design.md)
 
 ## 频道
 

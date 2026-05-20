@@ -177,9 +177,8 @@ all-you-care/
 ## 文档
 
 - [`pipeline/README.md`](./pipeline/README.md) —— 流水线设计、各步骤、本地调试
-- [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](./docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md) —— pipeline 完整设计文档
+- [`docs/2026-05-13-n8n-to-pipeline-design.md`](./docs/2026-05-13-n8n-to-pipeline-design.md) —— pipeline 完整设计文档
 - [`CLAUDE.md`](./CLAUDE.md) —— 给 Claude Code 的项目说明
-- [`changelog.md`](./changelog.md) —— 更新记录
 
 ## 贡献
 
