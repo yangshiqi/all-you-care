@@ -1,178 +1,176 @@
-# AINews - AI工程师每日资讯精选
+# SnapAI News
 
-一个现代化的AI新闻聚合平台，采用Next.js 16服务端渲染(SSR)技术，为AI工程师提供每日精选的AI资讯。
+> 不要让算法决定你看到什么。
 
-## ✨ 特性
+互联网充斥着 PR 通稿和 AI 生成的垃圾。SnapAI 是一台**去噪引擎**，每天把多个信号源压缩成一份 **5 分钟能读完的中文日报**：
 
-- 🚀 **服务端渲染(SSR)**: 完全支持SEO优化，搜索引擎友好
-- 🌍 **多语言支持**: 中英文界面切换
-- 📱 **响应式设计**: 完美适配移动端和桌面端
-- 🎨 **复古报纸风格**: 独特的视觉设计体验
-- ⚡ **高性能**: Next.js 16 + React 19 最新技术栈
-- 🔍 **SEO优化**: 完整的meta标签、Open Graph、Twitter Card支持
+- **25+ 个手工精选的 RSS** —— 36kr / TechCrunch / The Verge / MIT Tech Review / a16z / PitchBook 等
+- **跟着 HN 的口味动态扩展** —— 通过 OPML 实时拉取 [`emschwartz/hn-popular-blogs-2025`](https://github.com/emschwartz)，Hacker News 在追的博客我们自动跟进，**无需手动维护源列表**
+- **十多个开发者 newsletter** —— 站长本人订阅 / 维护的邮箱
 
-## 🛠️ 技术栈
+LLM 多步流水线接力：抓取 → 压缩 → 打分 → 合并 → 渲染。我们不生产新闻，**我们反编译真相**。
 
-- **框架**: Next.js 16 (App Router)
-- **前端**: React 19, TypeScript
-- **样式**: Tailwind CSS, shadcn/ui
-- **国际化**: react-i18next
-- **状态管理**: TanStack Query
-- **表单**: React Hook Form + Zod
-- **主题**: next-themes
+**[读今天的日报 →](https://snapallx.com)** · [订阅](https://snapallx.com/subscribe) · [已有 2,937+ 工程师接入](https://snapallx.com/subscribe)
 
-## 🚀 快速开始
+---
 
-### 安装依赖
+仓库布局：上层是前端（Next.js + Supabase），[`pipeline/`](./pipeline) 是独立子项目（TypeScript 内容流水线，跑在 GitHub Actions 上）。
+
+## 技术栈
+
+**前端**
+- Next.js 16（App Router）+ React 19 + TypeScript
+- Tailwind CSS v4 + shadcn/ui（Radix Primitives）
+- TanStack Query / next-themes / motion / sonner
+- react-i18next（zh-CN / en 双语）
+
+**数据 & 服务**
+- Supabase（Postgres + RLS）—— 唯一持久层
+- HubSpot —— 邮件订阅
+- Vercel —— 部署
+
+**内容流水线**（详见 [`pipeline/README.md`](./pipeline/README.md)）
+- TypeScript + tsx，运行在 GitHub Actions cron
+- Anthropic Claude（compress / score / merge / render）
+- Gmail IMAP（邮件源 + 头图抽取）
+- RSS / OPML / 邮件 三类数据源
+
+## 快速开始
 
 ```bash
+# 1. 装依赖
 npm install
-# 或
-yarn install
-# 或
-pnpm install
-# 或
-bun install
-```
 
-### 启动开发服务器
+# 2. 配 .env.local
+cp .env.example .env.local   # 然后填 SUPABASE / HUBSPOT key
 
-```bash
+# 3. 启动 dev server（端口 1717）
 npm run dev
-# 或
-yarn dev
-# 或
-pnpm dev
-# 或
-bun dev
 ```
 
-在浏览器中打开 [http://localhost:3000](http://localhost:3000) 查看结果。
+打开 <http://localhost:1717> 即可。
 
-### 环境变量配置
-
-创建 `.env.local` 文件并配置以下环境变量：
+### 环境变量
 
 ```bash
-# Supabase 配置（必需）
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+# Supabase（必需）
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
-# HubSpot 配置（邮件订阅功能）
-HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
+# 服务端（API routes 用）
+SUPABASE_SERVICE_ROLE_KEY=...
 
-# 网站 URL（可选，用于 sitemap 生成）
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
+# HubSpot 邮件订阅（可选）
+HUBSPOT_ACCESS_TOKEN=...
+
+# 后台接口鉴权
+ADMIN_TOKEN=...
+
+# sitemap / canonical URL（可选）
+NEXT_PUBLIC_SITE_URL=https://snapallx.com
 ```
 
-#### 获取 HubSpot Access Token
+## 路由
 
-1. 登录 [HubSpot](https://app.hubspot.com/)
-2. 进入 **Settings** → **Integrations** → **Private Apps**
-3. 点击 **Create a private app**
-4. 在 **Scopes** 选项卡中，授予以下权限：
-   - `crm.objects.contacts.read`
-   - `crm.objects.contacts.write`
-5. 点击 **Create app** 并复制生成的 Access Token
+| 路径 | 说明 |
+|---|---|
+| `/[lang]/` | 首页：最新一期 + 历史卡片 |
+| `/[lang]/issues` | 期刊分页列表 |
+| `/[lang]/issues/[slug]` | 期刊详情（slug = `journal_id`）|
+| `/[lang]/tags` | 标签总览 |
+| `/[lang]/tags/[tag]` | 单标签下的期刊 |
+| `/[lang]/blog` | 长文 blog（内部隐藏入口）|
+| `/[lang]/subscribe` | 邮件订阅 |
+| `/admin` | 管理后台（token 鉴权）|
 
-### 构建生产版本
+`[lang]` 支持 `zh-CN` / `en`，根 `/` 会按浏览器 `Accept-Language` 重定向。
 
-```bash
-npm run build
-npm run start
+### API
+
+| 路径 | 用途 |
+|---|---|
+| `POST /api/subscribe` | HubSpot 订阅 |
+| `POST /api/send-campaign-email` | 后台广播 |
+| `POST /api/send-latest-ai-news` | 给订阅者发当期日报 |
+| `GET  /api/check-email-status` | 投递状态轮询 |
+| `* /api/admin/*` | 后台操作（手动触发 deliver、置顶 issue 等）|
+
+## 项目结构
+
+```
+all-you-care/
+├── src/
+│   ├── app/
+│   │   ├── [lang]/             # i18n 路由
+│   │   │   ├── issues/         # 期刊列表 / 详情
+│   │   │   ├── tags/           # 标签
+│   │   │   ├── subscribe/      # 订阅页
+│   │   │   └── layout.tsx
+│   │   ├── admin/              # 后台
+│   │   ├── api/                # API routes
+│   │   ├── sitemap.ts          # 动态 sitemap
+│   │   └── providers.tsx       # Query / Theme / i18n providers
+│   ├── components/             # UI 组件（Header, IssuesList, ...）
+│   │   └── ui/                 # shadcn/ui 原语
+│   └── lib/
+│       ├── api.ts              # Supabase 查询（所有取数走这里）
+│       ├── supabase.ts         # client 实例
+│       ├── i18n.ts             # 翻译字典
+│       └── i18n-utils.ts
+├── pipeline/                   # ← 独立子项目，内容流水线
+└── .github/workflows/          # 调度（每条流水线对应一个 .yml）
 ```
 
-## 📁 项目结构
+## 数据流
 
 ```
-src/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # 根布局
-│   ├── page.tsx           # 首页
-│   ├── providers.tsx      # 客户端提供者
-│   ├── issues/            # 期刊相关页面
-│   │   ├── page.tsx       # 期刊列表页
-│   │   └── [slug]/        # 动态期刊详情页
-│   └── test/              # 测试页面
-├── components/            # React组件
-│   ├── ui/               # shadcn/ui基础组件
-│   ├── Header.tsx        # 页面头部
-│   ├── Hero.tsx          # 首页英雄区
-│   ├── RecentIssues.tsx  # 最近期刊
-│   └── ...               # 其他组件
-├── lib/                  # 工具库
-│   ├── i18n.ts          # 国际化配置
-│   └── utils.ts         # 工具函数
-└── hooks/               # 自定义Hooks
+                       ┌────────────────────────────┐
+                       │  GitHub Actions cron       │
+                       │  (.github/workflows/*.yml) │
+                       └─────────────┬──────────────┘
+                                     │
+                       ┌─────────────▼──────────────┐
+                       │  pipeline/  (npm run cli)  │
+                       │                            │
+                       │  fetch → compress → score  │
+                       │     → merge → render       │
+                       │     → publish (+ tags,     │
+                       │     reutersImage, deliver) │
+                       └─────────────┬──────────────┘
+                                     │
+                              writes ▼
+                       ┌────────────────────────────┐
+                       │     Supabase Postgres      │
+                       └─────────────┬──────────────┘
+                                     │  reads
+                       ┌─────────────▼──────────────┐
+                       │   Next.js (this repo)      │
+                       │   src/lib/api.ts           │
+                       └────────────────────────────┘
 ```
 
-## 🌐 页面路由
+前端从来不直接调 LLM 或 RSS —— 所有内容生成都在 pipeline 完成后落库，前端只做 SSR + 静态化。
 
-- `/` - 首页
-- `/issues` - 期刊列表页
-- `/issues/[slug]` - 期刊详情页
-- `/issues-demo` - 期刊演示页面
-- `/test` - SSR测试页面
+## 部署
 
-## 🔧 开发指南
+主分支推送即触发 Vercel 自动部署。
 
-### 添加新期刊
+- 生产：`main`
+- 预览：任意 PR
 
-在 `src/app/issues/[slug]/page.tsx` 中的 `getIssueData` 函数里添加新的期刊数据：
+环境变量在 Vercel Project Settings 配置；GitHub Actions 用到的密钥单独在仓库 Settings → Secrets and variables → Actions 里。
 
-```typescript
-const issues = {
-  "2024-12-20": {
-    title: "新期刊标题",
-    date: "2024-12-20",
-    summary: "期刊摘要",
-    // ... 其他数据
-  },
-  // ... 现有期刊
-};
-```
+## 文档
 
-### 自定义样式
+- [`pipeline/README.md`](./pipeline/README.md) —— 流水线设计、各步骤、本地调试
+- [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](./docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md) —— pipeline 完整设计文档
+- [`CLAUDE.md`](./CLAUDE.md) —— 给 Claude Code 的项目说明
+- [`changelog.md`](./changelog.md) —— 更新记录
 
-项目使用Tailwind CSS，自定义样式在 `src/app/globals.css` 中定义。
+## License
 
-### 国际化
+[AGPL-3.0-or-later](./LICENSE)。简单说：
 
-翻译文件在 `src/lib/i18n.ts` 中管理，支持中英文切换。
-
-## 📈 SEO优化
-
-- ✅ 服务端渲染(SSR)
-- ✅ 动态meta标签生成
-- ✅ Open Graph支持
-- ✅ Twitter Card支持
-- ✅ 结构化数据
-- ✅ 多语言hreflang
-- ✅ 搜索引擎友好的URL结构
-
-## 🚀 部署
-
-### Vercel部署
-
-1. 将代码推送到GitHub
-2. 在Vercel中导入项目
-3. 自动部署完成
-
-### 其他平台
-
-```bash
-npm run build
-npm run start
-```
-
-## 📝 更新日志
-
-查看 [changelog.md](./changelog.md) 了解详细更新记录。
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request！
-
-## 📄 许可证
-
-MIT License
+- 自己用、改、内部跑 —— 自由
+- 跑成对外服务（SaaS / 网站） —— 必须把你的改动也按 AGPL 开源
+- 不想被这条约束 —— 可联系作者获取商业授权
