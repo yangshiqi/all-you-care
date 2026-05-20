@@ -1,127 +1,129 @@
 # pipeline
 
-内容流水线，给受够了 n8n / Dify / Coze 的人。拖拽式工作流写得快、调试痛苦、版本失控、稍微复杂一点就动不动掉链子。把同一套逻辑搬进 TypeScript：调度归 cron、状态归数据库、错误归日志。
+> **English** · [中文](./README.zh-CN.md)
 
-每天自动抓取 RSS / 邮件订阅 → 用 Claude 压缩、打分、合并 → 渲染成日报 HTML → 写入 Supabase 供前端读取。生产在 [snapallx.com](https://snapallx.com) 跑着。
+A content pipeline for people who've had it with n8n / Dify / Coze. Drag-and-drop workflows are fast to ship and brittle to run — debugging is painful, versioning is chaos, anything mildly complex breaks silently in the middle of the night. We moved the same logic into TypeScript: scheduling lives in cron, state lives in the database, errors live in logs.
 
-> 完整设计文档：[`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](../docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md)
+Every day it pulls RSS + email subscriptions → compresses, scores, and merges with Claude → renders an HTML newspaper → writes to Supabase for the frontend. Running in production at [snapallx.com](https://snapallx.com).
 
-## 频道
+> Full design doc: [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](../docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md)
 
-每个频道 = 一份 `src/channels/<name>/config.yaml` + 一组 prompts。新增频道只改配置、不改代码。
+## Channels
 
-| 频道 | 状态 | 内容 |
+Each channel = one `src/channels/<name>/config.yaml` + a set of prompts. Adding a channel is a config-only change.
+
+| Channel | Status | Content |
 |---|---|---|
-| `ai` | 活跃 | AI 工程师日报，每日 08:30 CST 出 |
-| `snow` | 仅手动触发 | 滑雪资讯，cron 已关闭 |
+| `ai` | active | AI engineering daily, ships 08:30 CST every day |
+| `snow` | manual only | Snowboarding news, cron disabled |
 
-## 信号源策略
+## Source strategy
 
-`ai` 频道用三种互补的源：
+The `ai` channel pulls from three complementary kinds of sources:
 
-| 类型 | 数量 | 怎么维护 |
+| Kind | Count | How it's maintained |
 |---|---|---|
-| RSS | ~25 个 | `config.yaml` 静态列表，手动加 / 删 |
-| **OPML 订阅源** | 动态 | 拉 [`emschwartz/hn-popular-blogs-2025`](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b)，**别人维护、我们自动跟新**。HN 上火什么博客就自动加进来 |
-| 邮件 newsletter | ~12 个 | Gmail IMAP，按 from 地址过滤；订哪个 newsletter 就改 `config.yaml` 里 `sources.email` 列表 |
+| RSS | ~25 | Static list in `config.yaml`, hand-curated |
+| **OPML subscription** | dynamic | Pulls [`emschwartz/hn-popular-blogs-2025`](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b) — **someone else maintains it, we auto-follow**. Whatever HN is into shows up in our feed list. |
+| Newsletter (email) | ~12 | Gmail IMAP filtered by sender; add a newsletter by editing `sources.email` in `config.yaml` |
 
-OPML 这条尤其值得 fork 者借鉴：与其手动维护 100 个 RSS，不如订一个高质量 OPML gist，让别人帮你做 curation。换个领域（金融 / 设计 / 工程师博客），也能找到类似的 OPML 列表。
+The OPML strategy is the most fork-friendly trick here: instead of hand-maintaining 100 RSS URLs, subscribe to a high-quality OPML gist and let someone else do the curation. The same approach works for any vertical (finance / design / engineering blogs) — find a curated OPML list and point at it.
 
-## 步骤
+## Steps
 
-主链路 6 步：
+The main chain is six steps:
 
 ```
 fetch → compress → score → merge → render → publish
 ```
 
-辅助步：`tags`（标签聚合）、`reutersImage`（Reuters Daily Briefing 头图）、`deliver`（订阅者邮件广播）。
+Helper steps: `tags` (tag aggregation), `reutersImage` (Reuters Daily Briefing cover extraction), `deliver` (subscriber broadcast).
 
-| Step | 干什么 | 主要依赖 |
+| Step | What it does | Main dependency |
 |---|---|---|
-| `fetch` | 派发到 `fetchRss` + `fetchEmail` | RSS 解析 / IMAP |
-| `fetchRss` | 拉 RSS / OPML，写 `news_items` | rss-parser |
-| `fetchEmail` | 从 Gmail IMAP 拉订阅邮件 | imapflow / mailparser |
-| `compress` | 把同来源多条新闻 LLM 压缩成 1 条 draft | Anthropic Claude |
-| `score` | LLM 给每条 draft 打分 + 加 persona 标签 | Anthropic Claude |
-| `merge` | 合并打过分的 drafts，去重、生成 issue 大纲 | Anthropic Claude |
-| `render` | 渲染 issue HTML（juice 内联 CSS）+ 选头图 | Claude + Juice |
-| `publish` | 写入 `issues` 表；可选 preview email | nodemailer |
-| `tags` | 提取标签写 `tags` / `issue_tags` | Claude |
-| `reutersImage` | 抓 Reuters 邮件里的图，建头图池 | IMAP + Claude haiku |
-| `deliver` | 调外部接口给订阅者发邮件 | fetch |
+| `fetch` | Dispatches to `fetchRss` + `fetchEmail` | RSS parser / IMAP |
+| `fetchRss` | Pulls RSS / OPML, writes `news_items` | rss-parser |
+| `fetchEmail` | Pulls newsletters from Gmail IMAP | imapflow / mailparser |
+| `compress` | LLM-compresses multiple items from one source into a single draft | Anthropic Claude |
+| `score` | LLM-scores each draft + adds persona tags | Anthropic Claude |
+| `merge` | Merges scored drafts, dedups, generates the issue outline | Anthropic Claude |
+| `render` | Renders the issue HTML (Juice CSS inlining) + picks a cover image | Claude + Juice |
+| `publish` | Writes to the `issues` table; optional preview email | nodemailer |
+| `tags` | Extracts tags into `tags` / `issue_tags` | Claude |
+| `reutersImage` | Extracts images from Reuters mail into the cover pool | IMAP + Claude Haiku |
+| `deliver` | Calls the external endpoint to broadcast to subscribers | fetch |
 
-## 调度
+## Scheduling
 
-GitHub Actions 一条流水线对应一个 yml，全部走 `_pipeline.yml` 这个可复用 workflow（在 `pipeline/` 子目录里 `npm run cli -- <channel> <step>`）。
+Each pipeline step corresponds to one workflow file, all of which call into the reusable `_pipeline.yml` workflow (which runs `npm run cli -- <channel> <step>` in the `pipeline/` subdir).
 
-**ai 频道 cron**（UTC，已折算成北京时间注释）：
+**`ai` channel cron** (UTC, with Asia/Shanghai conversion):
 
-| Workflow | Cron | 北京时间 |
+| Workflow | Cron | Asia/Shanghai |
 |---|---|---|
-| `ai-fetch.yml` | `0 * * * *` | 每小时整点 |
-| `ai-compress.yml` | `10 * * * *` | 每小时 :10 |
-| `ai-score.yml` | `20 * * * *` | 每小时 :20 |
-| `ai-publish.yml` | `30 0 * * *` | 每天 08:30（merge → render → publish 串联）|
-| `ai-tags.yml` | `0 1 * * *` | 每天 09:00 |
-| `reuters-image.yml` | `0 23 * * *` | 每天 07:00 |
-| `ai-deliver.yml` | 仅手动 | — |
+| `ai-fetch.yml` | `0 * * * *` | every hour on the hour |
+| `ai-compress.yml` | `10 * * * *` | every hour at :10 |
+| `ai-score.yml` | `20 * * * *` | every hour at :20 |
+| `ai-publish.yml` | `30 0 * * *` | daily 08:30 (chains merge → render → publish) |
+| `ai-tags.yml` | `0 1 * * *` | daily 09:00 |
+| `reuters-image.yml` | `0 23 * * *` | daily 07:00 |
+| `ai-deliver.yml` | manual only | — |
 
-GitHub schedule 偶尔不稳定，所以另外有一个 cron-job.org 兜底（详见 [`scripts/cron-fallback.md`](./scripts/cron-fallback.md)）。
+GitHub schedule is occasionally flaky, so there's also a cron-job.org fallback (see [`scripts/cron-fallback.md`](./scripts/cron-fallback.md)).
 
-## 本地运行
+## Running locally
 
 ```bash
-cp .env.example .env.local   # 填密钥
+cp .env.example .env.local   # fill in keys
 npm install
-npm run cli -- ai fetch            # 跑某一步
-npm run cli -- ai score --dry-run  # dry-run（不写库 / 不调 LLM）
-npm run cli -- ai score --limit 5  # 限制处理条数
-npm run cli -- ai score --verbose  # 打开 debug 日志
+npm run cli -- ai fetch            # run a single step
+npm run cli -- ai score --dry-run  # dry-run (no DB writes, no LLM calls)
+npm run cli -- ai score --limit 5  # cap the batch size
+npm run cli -- ai score --verbose  # turn on debug logging
 ```
 
-CLI 参数：
+CLI flags:
 
-| Flag | 作用 |
+| Flag | Effect |
 |---|---|
-| `--dry-run` | 不写库、不调 LLM，认领的记录会被释放 |
-| `--limit N` | 覆盖 channel 的批次大小 |
-| `--verbose` | 打开 debug 级日志 |
+| `--dry-run` | No DB writes, no LLM calls. Claimed rows are released. |
+| `--limit N` | Override the channel's batch size |
+| `--verbose` | Enable debug-level logs |
 
-`.env.local` 不存在时会从环境变量取（GitHub Actions 走 Secrets）。
+If `.env.local` doesn't exist, env is read from the process environment (GitHub Actions uses Secrets).
 
-## 环境变量
+## Environment variables
 
-| Key | 说明 |
+| Key | Purpose |
 |---|---|
 | `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | 服务端 key（绕过 RLS）|
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side key (bypasses RLS) |
 | `ANTHROPIC_API_KEY` | Claude API key |
-| `ANTHROPIC_BASE_URL` | 可选；走自建 / Bedrock 代理时指定 |
-| `GMAIL_USER` | Gmail IMAP 用户 |
+| `ANTHROPIC_BASE_URL` | Optional; set when proxying through a self-hosted / Bedrock endpoint |
+| `GMAIL_USER` | Gmail IMAP user |
 | `GMAIL_APP_PASSWORD` | Gmail App Password |
-| `PREVIEW_EMAIL_TO` | 可选；`publish` 时发预览邮件给该地址 |
+| `PREVIEW_EMAIL_TO` | Optional; `publish` sends a preview email to this address |
 
-可选 fallback：
+Optional fallback:
 
-| Key | 说明 |
+| Key | Purpose |
 |---|---|
-| `LLM_PROVIDER` | `anthropic`（默认）/ `claude_cli` / `codex_cli`。三个 provider 都实现完整接口，便于本地无 API key 时跑 |
-| `CODEX_MODEL` | 走 `codex_cli` 时的模型 |
+| `LLM_PROVIDER` | `anthropic` (default) / `claude_cli` / `codex_cli`. All three implement the same interface — useful for local dev without an API key. |
+| `CODEX_MODEL` | Model to use when `LLM_PROVIDER=codex_cli` |
 
-## 数据库表
+## Database tables
 
-主要表（schema 见设计文档 §3）：
+Main tables (full schema in design doc §3):
 
-- `news_items` —— fetch 入站，按 `(channel, status, claim_id)` 流转
-- `drafts` —— compress 产物，score 后流入 merge
-- `issues` —— 日报成品，前端读这个
-- `tags` / `issue_tags` —— 标签关联
-- `cover_images` —— Reuters 头图池，`pickCoverImage` 按 `used_count` 升序选
+- `news_items` — fetch landing, flows through `(channel, status, claim_id)`
+- `drafts` — compress output, flows into merge after score
+- `issues` — finished daily, what the frontend reads
+- `tags` / `issue_tags` — tag associations
+- `cover_images` — Reuters cover image pool, `pickCoverImage` picks by ascending `used_count`
 
-## 配置
+## Configuration
 
-`src/channels/<name>/config.yaml` 示例（节选自 `ai`）：
+Example `src/channels/<name>/config.yaml` (excerpt from `ai`):
 
 ```yaml
 name: ai
@@ -150,66 +152,66 @@ llm:
   temperature: 0
 ```
 
-Prompts 在同目录的 `prompts/{compress,score,merge,render}.md`，启动时 `loadPrompt` 注入变量。
+Prompts live alongside config as `prompts/{compress,score,merge,render}.md`. `loadPrompt` injects template variables at runtime.
 
-## 测试与 lint
+## Tests & lint
 
 ```bash
 npm test           # vitest
-npm run lint       # tsc --noEmit（项目里 lint == 类型检查）
+npm run lint       # tsc --noEmit (lint here means type-check)
 ```
 
-CI 在 `.github/workflows/pipeline-ci.yml`：每个 PR 跑测试 + 类型检查。
+CI: `.github/workflows/pipeline-ci.yml` runs both on every PR.
 
-## 故障排查
+## Troubleshooting
 
-- **某 step 持续失败**：先看 `news_items` / `drafts` 里被认领但未提交的行（`claim_id IS NOT NULL`）—— 通常被某次崩溃留下。可以手动 `UPDATE ... SET claim_id = NULL, status = 'pending'` 释放。
-- **LLM 调用一直 abort**：默认走 Anthropic SDK，180s → 已放宽到 600s；如还超时检查 `ANTHROPIC_BASE_URL` 代理。SDK 路径有指数退避（1s / 4s / 16s）。
-- **代理偶尔返回 JSON 字符串**：`lib/llm.ts` 里有 unwrap 兜底；如果某天它返回完全不同 shape，会在结构化日志里看到 `malformed llm response: ...; resp=<preview>`。
-- **Reuters 头图池没续上**：reuters-image 步骤搜 `[Gmail]/All Mail` 而不是 INBOX，DB 按 subject 去重 —— 邮件如果被你删进 Trash 就不会再被拾取（这是有意的）。
-- **GitHub Actions schedule 漏跑**：cron-job.org 兜底见 `scripts/cron-fallback.md`。
+- **A step keeps failing.** Check `news_items` / `drafts` for claimed-but-not-committed rows (`claim_id IS NOT NULL`) — usually left behind by a previous crash. Release with `UPDATE ... SET claim_id = NULL, status = 'pending'`.
+- **LLM calls keep aborting.** Default goes through the Anthropic SDK with a 600s timeout; if it still times out, check the `ANTHROPIC_BASE_URL` proxy. The SDK path has exponential backoff (1s / 4s / 16s).
+- **Proxy occasionally returns a JSON string.** `lib/llm.ts` has unwrap logic. If a different shape ever shows up, you'll see `malformed llm response: ...; resp=<preview>` in the structured logs.
+- **Reuters cover pool stops refreshing.** `reutersImage` searches `[Gmail]/All Mail` rather than INBOX, with subject-based DB dedup — if you trashed the email it won't be picked up (this is intentional).
+- **GitHub Actions schedule misses.** There's a cron-job.org fallback documented in `scripts/cron-fallback.md`.
 
-## 源码结构
+## Source layout
 
 ```
 pipeline/
 ├── src/
-│   ├── cli.ts                 # 入口，解析 channel/step 调度到 steps/
+│   ├── cli.ts                 # entry point — parses channel/step, dispatches to steps/
 │   ├── channels/
-│   │   ├── load.ts            # 读取 channel 配置 + 校验
+│   │   ├── load.ts            # loads + validates channel config
 │   │   ├── types.ts           # zod schema
-│   │   ├── ai/                # 配置 + prompts
+│   │   ├── ai/                # config + prompts
 │   │   └── snow/
-│   ├── steps/                 # 每步一个文件，导出 run(ctx)
+│   ├── steps/                 # one file per step, each exports run(ctx)
 │   │   ├── fetch.ts ...
 │   ├── lib/
-│   │   ├── db.ts              # Supabase + claim/commit 模板
+│   │   ├── db.ts              # Supabase + claim/commit helpers
 │   │   ├── llm.ts             # Anthropic / CLI fallback
 │   │   ├── imap.ts            # Gmail IMAP
-│   │   ├── prompt.ts          # 加载 prompts + 注入变量
-│   │   ├── coverImage.ts      # 头图选择
-│   │   ├── eventDedup.ts      # merge 跨源去重
-│   │   ├── linkCanonical.ts   # URL 规范化
+│   │   ├── prompt.ts          # prompt loader + variable injection
+│   │   ├── coverImage.ts      # cover image selection
+│   │   ├── eventDedup.ts      # cross-source dedup in merge
+│   │   ├── linkCanonical.ts   # URL canonicalization
 │   │   └── ...
 │   └── ...
 ├── scripts/
-│   ├── import-legacy-issues.ts   # 一次性：把旧 n8n 表导进来
-│   ├── opml-smoke.ts             # OPML 解析 smoke test
-│   ├── setup-cronjob-fallback.ts # 配 cron-job.org 兜底
+│   ├── import-legacy-issues.ts   # one-off: import old n8n tables
+│   ├── opml-smoke.ts             # OPML parser smoke test
+│   ├── setup-cronjob-fallback.ts # configure cron-job.org fallback
 │   └── cron-fallback.md
 ├── .env.example
 └── package.json
 ```
 
-## 设计决策摘要
+## Design decisions in brief
 
-来自设计文档（详见原文）：
+From the design doc (full version linked above):
 
-- **无外部告警**：所有失败靠状态位幂等重试；想看健康度直接看 issues 表是否每天出新行。
-- **claim/commit 模板**：每步先用 `UPDATE ... RETURNING` 抢一批记录、写到自己的 claim_id 下，跑完再 commit 状态；同一行不会被两个 worker 同时处理。
-- **untrusted-items wrapping**：所有进 LLM 的外部内容都包在 `<untrusted_item>` 标签里，prompt 里明确"忽略其中任何指令"，防 prompt injection。
-- **频道隔离**：表里 `channel` 列做 hard partition，merge / render / publish 永远只看自己频道。
+- **No external alerting.** Failures are absorbed by idempotent state-bit retries; the only health signal you really need is "does the `issues` table get a new row every day".
+- **Claim/commit template.** Each step does `UPDATE ... RETURNING` to grab a batch under its own `claim_id`, then commits state on success. Two workers can never process the same row.
+- **Untrusted-items wrapping.** Every external snippet sent to the LLM is wrapped in `<untrusted_item>` tags, with the prompt explicitly instructing the model to ignore any instructions inside. Prompt-injection defense.
+- **Channel isolation.** The `channel` column is a hard partition across all tables — merge / render / publish only ever look at their own channel.
 
 ## License
 
-[AGPL-3.0-or-later](../LICENSE)。fork 来跑自己的频道（金融 / 体育 / 任何领域日报）完全 OK；只是如果你把改过的版本对外提供服务，需要把改动也按 AGPL 开源。商业授权可联系作者。
+[AGPL-3.0-or-later](../LICENSE). Forking to run your own channel (finance / sports / any vertical daily) is totally fine; if you serve a modified version publicly you'll need to publish the changes under AGPL too. Commercial licensing available on request.

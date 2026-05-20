@@ -4,136 +4,138 @@
 [![Last Commit](https://img.shields.io/github/last-commit/yangshiqi/all-you-care)](https://github.com/yangshiqi/all-you-care/commits)
 [![Stars](https://img.shields.io/github/stars/yangshiqi/all-you-care?style=social)](https://github.com/yangshiqi/all-you-care/stargazers)
 
-> 不要让算法决定你看到什么。
+> **English** · [中文](./README.zh-CN.md)
 
-互联网充斥着 PR 通稿和 AI 生成的垃圾。SnapAI 是一台**去噪引擎**，每天把多个信号源压缩成一份 **5 分钟能读完的中文日报**：
+> Don't let the algorithm decide what you see.
 
-- **25+ 个手工精选的 RSS** —— 36kr / TechCrunch / The Verge / MIT Tech Review / a16z / PitchBook 等
-- **跟着 HN 的口味动态扩展** —— 通过 OPML 实时拉取 [@emschwartz 维护的 HN popular blogs gist](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b)，Hacker News 在追的博客我们自动跟进，**无需手动维护源列表**
-- **十多个开发者 newsletter** —— 站长本人订阅 / 维护的邮箱
+The internet is flooded with PR boilerplate and AI slop. SnapAI is a **noise-cancellation engine** that compresses dozens of signal sources into a single **5-minute daily digest**:
 
-LLM 多步流水线接力：抓取 → 压缩 → 打分 → 合并 → 渲染。我们不生产新闻，**我们反编译真相**。
+- **25+ hand-picked RSS feeds** — TechCrunch / The Verge / MIT Tech Review / a16z / PitchBook / 36kr and friends
+- **Pulls from Hacker News's collective taste** — Live-subscribes via OPML to [@emschwartz's HN popular blogs gist](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b). Whatever HN is into, we follow automatically — **no source list to maintain by hand**.
+- **A dozen developer newsletters** — Mailboxes the maintainer personally subscribes to
 
-**[读今天的日报 →](https://snapallx.com)** · [订阅](https://snapallx.com/subscribe) · [已有数千名工程师接入](https://snapallx.com/subscribe)
+A multi-step LLM pipeline does the rest: fetch → compress → score → merge → render. We don't produce news; **we decompile truth**.
+
+**[Read today's issue →](https://snapallx.com)** · [Subscribe](https://snapallx.com/subscribe) · [Thousands of engineers already plugged in](https://snapallx.com/subscribe)
 
 ---
 
-仓库布局：上层是前端（Next.js + Supabase），[`pipeline/`](./pipeline) 是独立子项目（TypeScript 内容流水线，跑在 GitHub Actions 上）。
+Repo layout: the top level is the Next.js + Supabase frontend; [`pipeline/`](./pipeline) is a standalone TypeScript content pipeline running on GitHub Actions.
 
-## 它和别的工具有什么不同
+## How it compares
 
-| | SnapAI | Beehiiv / Substack | 自己拼 cron + LLM |
+| | SnapAI | Beehiiv / Substack | Roll your own (cron + LLM) |
 |---|---|---|---|
-| 内容生产 | 全流水线自动化（compress → score → merge → render） | 你自己写 | 你自己拼 |
-| 订阅者数据归属 | 100% 自有 | 平台代管 | 自有 |
-| 换垂直领域 | fork + 改信号源即可 | 重新开账号 | 重头开始 |
-| LLM 成本 | 你自己的 API key | 平台收费 | 你的 key |
+| Content production | Fully automated pipeline (compress → score → merge → render) | You write it | You wire it |
+| Subscriber ownership | 100% yours | Platform-hosted | Yours |
+| Switch verticals | Fork + change source list | Open a new account | Start from scratch |
+| LLM cost | Your own API key | Bundled in plan | Your key |
 
-## 技术栈
+## Stack
 
-**前端**
-- Next.js 16（App Router）+ React 19 + TypeScript
-- Tailwind CSS v4 + shadcn/ui（Radix Primitives）
+**Frontend**
+- Next.js 16 (App Router) + React 19 + TypeScript
+- Tailwind CSS v4 + shadcn/ui (Radix Primitives)
 - TanStack Query / next-themes / motion / sonner
-- react-i18next（zh-CN / en 双语）
+- react-i18next (zh-CN / en bilingual)
 
-**数据 & 服务**
-- Supabase（Postgres + RLS）—— 唯一持久层
-- HubSpot —— 邮件订阅
-- Vercel —— 部署
+**Data & Services**
+- Supabase (Postgres + RLS) — sole persistence layer
+- HubSpot — email subscription
+- Vercel — hosting
 
-**内容流水线**（详见 [`pipeline/README.md`](./pipeline/README.md)）
-- TypeScript + tsx，运行在 GitHub Actions cron
-- Anthropic Claude（compress / score / merge / render）
-- Gmail IMAP（邮件源 + 头图抽取）
-- RSS / OPML / 邮件 三类数据源
+**Content pipeline** (see [`pipeline/README.md`](./pipeline/README.md))
+- TypeScript + tsx, running on GitHub Actions cron
+- Anthropic Claude (compress / score / merge / render)
+- Gmail IMAP (newsletter ingestion + cover image extraction)
+- RSS / OPML / email — three source kinds
 
-## 快速开始
+## Quick start
 
 ```bash
-# 1. 装依赖
+# 1. Install deps
 npm install
 
-# 2. 配 .env.local
-cp .env.example .env.local   # 然后填 SUPABASE / HUBSPOT key
+# 2. Configure .env.local
+cp .env.example .env.local   # then fill in SUPABASE / HUBSPOT keys
 
-# 3. 启动 dev server（端口 1717）
+# 3. Start dev server (port 1717)
 npm run dev
 ```
 
-打开 <http://localhost:1717> 即可。
+Open <http://localhost:1717>.
 
-### 环境变量
+### Environment variables
 
 ```bash
-# Supabase（必需）
+# Supabase (required)
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
-# 服务端（API routes 用）
+# Server-side (for API routes)
 SUPABASE_SERVICE_ROLE_KEY=...
 
-# HubSpot 邮件订阅（可选）
+# HubSpot email subscription (optional)
 HUBSPOT_ACCESS_TOKEN=...
 
-# 后台接口鉴权
+# Admin endpoint auth
 ADMIN_TOKEN=...
 
-# sitemap / canonical URL（可选）
+# Sitemap / canonical URL (optional)
 NEXT_PUBLIC_SITE_URL=https://snapallx.com
 ```
 
-## 路由
+## Routes
 
-| 路径 | 说明 |
+| Path | Purpose |
 |---|---|
-| `/[lang]/` | 首页：最新一期 + 历史卡片 |
-| `/[lang]/issues` | 期刊分页列表 |
-| `/[lang]/issues/[slug]` | 期刊详情（slug = `journal_id`）|
-| `/[lang]/tags` | 标签总览 |
-| `/[lang]/tags/[tag]` | 单标签下的期刊 |
-| `/[lang]/subscribe` | 邮件订阅 |
-| `/admin` | 管理后台（token 鉴权）|
+| `/[lang]/` | Homepage: latest issue + history cards |
+| `/[lang]/issues` | Paginated issue list |
+| `/[lang]/issues/[slug]` | Issue detail (slug = `journal_id`) |
+| `/[lang]/tags` | Tag index |
+| `/[lang]/tags/[tag]` | Issues under one tag |
+| `/[lang]/subscribe` | Email subscribe |
+| `/admin` | Admin (token-auth) |
 
-`[lang]` 支持 `zh-CN` / `en`，根 `/` 会按浏览器 `Accept-Language` 重定向。
+`[lang]` supports `zh-CN` / `en`. Root `/` redirects by browser `Accept-Language`.
 
 ### API
 
-| 路径 | 用途 |
+| Path | Purpose |
 |---|---|
-| `POST /api/subscribe` | HubSpot 订阅 |
-| `POST /api/send-campaign-email` | 后台广播 |
-| `POST /api/send-latest-ai-news` | 给订阅者发当期日报 |
-| `GET  /api/check-email-status` | 投递状态轮询 |
-| `* /api/admin/*` | 后台操作（手动触发 deliver、置顶 issue 等）|
+| `POST /api/subscribe` | HubSpot subscribe |
+| `POST /api/send-campaign-email` | Admin broadcast |
+| `POST /api/send-latest-ai-news` | Send today's issue to subscribers |
+| `GET  /api/check-email-status` | Delivery status polling |
+| `* /api/admin/*` | Admin ops (trigger deliver, pin issue, etc.) |
 
-## 项目结构
+## Project layout
 
 ```
 all-you-care/
 ├── src/
 │   ├── app/
-│   │   ├── [lang]/             # i18n 路由
-│   │   │   ├── issues/         # 期刊列表 / 详情
-│   │   │   ├── tags/           # 标签
-│   │   │   ├── subscribe/      # 订阅页
+│   │   ├── [lang]/             # i18n routes
+│   │   │   ├── issues/         # list / detail
+│   │   │   ├── tags/           # tags
+│   │   │   ├── subscribe/      # subscribe
 │   │   │   └── layout.tsx
-│   │   ├── admin/              # 后台
+│   │   ├── admin/              # admin
 │   │   ├── api/                # API routes
-│   │   ├── sitemap.ts          # 动态 sitemap
+│   │   ├── sitemap.ts          # dynamic sitemap
 │   │   └── providers.tsx       # Query / Theme / i18n providers
-│   ├── components/             # UI 组件（Header, IssuesList, ...）
-│   │   └── ui/                 # shadcn/ui 原语
+│   ├── components/             # UI components (Header, IssuesList, …)
+│   │   └── ui/                 # shadcn/ui primitives
 │   └── lib/
-│       ├── api.ts              # Supabase 查询（所有取数走这里）
-│       ├── supabase.ts         # client 实例
-│       ├── i18n.ts             # 翻译字典
+│       ├── api.ts              # all Supabase queries go through here
+│       ├── supabase.ts         # client instance
+│       ├── i18n.ts             # translation dict
 │       └── i18n-utils.ts
-├── pipeline/                   # ← 独立子项目，内容流水线
-└── .github/workflows/          # 调度（每条流水线对应一个 .yml）
+├── pipeline/                   # ← standalone content pipeline subproject
+└── .github/workflows/          # one workflow per pipeline step
 ```
 
-## 数据流
+## Data flow
 
 ```
                        ┌────────────────────────────┐
@@ -161,34 +163,34 @@ all-you-care/
                        └────────────────────────────┘
 ```
 
-前端从来不直接调 LLM 或 RSS —— 所有内容生成都在 pipeline 完成后落库，前端只做 SSR + 静态化。
+The frontend never calls an LLM or hits an RSS feed directly — every piece of content is produced by the pipeline and landed in Supabase first. The frontend does SSR + static rendering only.
 
-## 部署
+## Deployment
 
-主分支推送即触发 Vercel 自动部署。
+Pushing to `main` auto-deploys to Vercel.
 
-- 生产：`main`
-- 预览：任意 PR
+- Production: `main`
+- Preview: any PR
 
-环境变量在 Vercel Project Settings 配置；GitHub Actions 用到的密钥单独在仓库 Settings → Secrets and variables → Actions 里。
+Frontend env vars live in Vercel Project Settings. GitHub Actions secrets live separately under repo Settings → Secrets and variables → Actions.
 
-## 文档
+## Docs
 
-- [`pipeline/README.md`](./pipeline/README.md) —— 流水线设计、各步骤、本地调试
-- [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](./docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md) —— pipeline 完整设计文档
-- [`CLAUDE.md`](./CLAUDE.md) —— 给 Claude Code 的项目说明
-- [`changelog.md`](./changelog.md) —— 更新记录
+- [`pipeline/README.md`](./pipeline/README.md) — pipeline design, steps, local dev
+- [`docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md`](./docs/superpowers/specs/2026-05-13-n8n-to-pipeline-design.md) — full pipeline design doc
+- [`CLAUDE.md`](./CLAUDE.md) — project notes for Claude Code
+- [`changelog.md`](./changelog.md) — release notes
 
-## 贡献
+## Contributing
 
-新人入门挑 [contribute 页面](https://github.com/yangshiqi/all-you-care/contribute)（GitHub 自动列 `good first issue` / `help wanted`）里的任务上手最快。
+The fastest way in: pick a task from the [contribute page](https://github.com/yangshiqi/all-you-care/contribute) — GitHub auto-curates `good first issue` and `help wanted` items.
 
-报 bug、提需求、聊设计 → [开 Issue](https://github.com/yangshiqi/all-you-care/issues)。
+Bugs, ideas, design discussions → [open an issue](https://github.com/yangshiqi/all-you-care/issues).
 
 ## License
 
-[AGPL-3.0-or-later](./LICENSE)。简单说：
+[AGPL-3.0-or-later](./LICENSE). In short:
 
-- 自己用、改、内部跑 —— 自由
-- 跑成对外服务（SaaS / 网站） —— 必须把你的改动也按 AGPL 开源
-- 不想被这条约束 —— 可联系作者获取商业授权
+- Use, modify, run internally — free
+- Run it as a public service (SaaS / site) — you must publish your modifications under AGPL too
+- Want out of that obligation — contact the author for a commercial license
