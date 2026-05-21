@@ -80,6 +80,9 @@ export interface IssueRow {
   delivered_at: string | null;
   delivery_attempt_count: number;
   delivery_last_error: string | null;
+  delivery_success_count: number | null;
+  delivery_failed_count: number | null;
+  delivery_response: unknown;
   created_at: string;
   published_at: string;
 }

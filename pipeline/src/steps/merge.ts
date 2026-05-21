@@ -1,9 +1,11 @@
 // pipeline/src/steps/merge.ts
 import type { StepContext, StepResult } from '../cli.js';
+import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
 import { pickCoverImage } from '../lib/coverImage.js';
+import { todayCst } from '../lib/time.js';
 import {
   parseScoredEvents,
   deduplicateEvents,
@@ -15,8 +17,7 @@ import {
 type Persona = 'creator' | 'engineer' | 'investor';
 
 interface MergeMetaOutput {
-  title: string;
-  date: string;
+  headline: string;
   summary: string;
   tags: string[];
   top_pick_ids: number[];
@@ -71,7 +72,12 @@ const PERSONA_THRESHOLD = 6.5;
 // ----- AI channel: deterministic dedup + small LLM metadata call ----------
 
 async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedIds: number[]) {
-  const { channel, channelDir, db, log, dryRun } = ctx;
+  const { channel, channelDir, db, log, dryRun, now } = ctx;
+  const today = todayCst(now);
+  // Chinese-style M月D日 with no leading zeros (e.g., "5月21日").
+  const cnMonth = parseInt(today.date.slice(5, 7), 10);
+  const cnDay = parseInt(today.date.slice(8, 10), 10);
+  const cnDateLabel = `${cnMonth}月${cnDay}日`;
 
   // 1. parse + dedup all incoming events.
   const allEvents = claimedContents.flatMap((c) => parseScoredEvents(c));
@@ -86,14 +92,30 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   );
 
   // 2. build a slim LLM payload — just id/title/score + 1-line description.
-  const llmEvents = merged.map((e) => ({
-    id: e.id,
-    title: e.title,
-    score: e.score,
-    description: e.description.length > 100
-      ? `${e.description.slice(0, 100)}…`
-      : e.description,
-  }));
+  // Drop low-score noise: the LLM only decides top_picks + persona_assignments,
+  // both of which only consider score >= PERSONA_THRESHOLD. Anything well below
+  // that goes straight to the deterministic `general` bucket and doesn't need
+  // to burn LLM input tokens.
+  const LLM_PAYLOAD_FLOOR = PERSONA_THRESHOLD - 0.5; // small buffer for surprise top-picks
+  const llmEvents = merged
+    .filter((e) => e.score >= LLM_PAYLOAD_FLOOR)
+    .map((e) => ({
+      id: e.id,
+      title: e.title,
+      score: e.score,
+      description: e.description.length > 100
+        ? `${e.description.slice(0, 100)}…`
+        : e.description,
+    }));
+  log.info(
+    {
+      event: 'merge_payload_trim',
+      total: merged.length,
+      sent_to_llm: llmEvents.length,
+      floor: LLM_PAYLOAD_FLOOR,
+    },
+    'trimmed low-score events from llm payload',
+  );
 
   // 3. fetch recent issue titles (72h) — used by the LLM only as anti-dup ref.
   const oldCutoff = new Date(
@@ -112,6 +134,8 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   const payload = { events: llmEvents, old_titles: oldTitles };
   const prompt = await loadPrompt(channelDir, 'merge', {
     json_payload: JSON.stringify(payload),
+    today_date: today.date,
+    weekday: today.weekday,
   });
 
   if (dryRun) {
@@ -129,12 +153,13 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   }
 
   // 4. small LLM call — metadata only. Lower max_tokens; input is ~5-10x smaller now.
+  const llmCfg = resolveLlm(channel, 'merge');
   const llm = await callLlm<MergeMetaOutput>({
     prompt,
     expectJson: true,
-    model: channel.llm.model,
-    maxTokens: channel.llm.max_tokens,
-    temperature: channel.llm.temperature,
+    model: llmCfg.model,
+    maxTokens: llmCfg.maxTokens,
+    temperature: llmCfg.temperature,
     log,
   });
   const meta = llm.json;
@@ -209,10 +234,20 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
     .map((e) => ({ title: e.title, link: e.links[0] ?? '' }))
     .sort((a, b) => a.title.localeCompare(b.title, 'zh-Hans-CN'));
 
+  // Compose the email-subject-style title. headline is required; if the LLM
+  // forgets it (rare), fall back to a generic phrase so the morning paper
+  // still ships rather than crashes.
+  let headline = typeof meta.headline === 'string' ? meta.headline.trim() : '';
+  if (!headline) {
+    log.warn({ event: 'merge_missing_headline', pre_publish_today: today.date }, 'LLM did not return a headline; using fallback');
+    headline = '今日 AI 行业要闻';
+  }
+  const issueTitle = `[AI]news - ${cnDateLabel}新闻早报：${headline}`;
+
   const cover = await pickCoverImage(db, channel, channel.name, log);
   const finalPayload: AiFinalPayload = {
-    title: meta.title,
-    date: meta.date,
+    title: issueTitle,
+    date: today.date,
     summary: meta.summary,
     tags: Array.isArray(meta.tags) ? meta.tags : [],
     top_picks: topPicks,
@@ -222,7 +257,7 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   };
 
   const newId = await commit.merge(db, channel.name, {
-    title: meta.title,
+    title: issueTitle,
     summary: meta.summary ?? null,
     contentMd: JSON.stringify(finalPayload),
     tags: finalPayload.tags,
@@ -233,6 +268,8 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
     {
       event: 'merge_ok',
       pre_publish_id: newId,
+      title: issueTitle,
+      date: today.date,
       source_count: claimedIds.length,
       unique_events: merged.length,
       top_picks: topPicks.length,
@@ -287,12 +324,13 @@ async function runLegacyMerge(
     return;
   }
 
+  const llmCfg = resolveLlm(channel, 'merge');
   const llm = await callLlm<LegacyMergeOutput>({
     prompt,
     expectJson: true,
-    model: channel.llm.model,
-    maxTokens: channel.llm.max_tokens,
-    temperature: channel.llm.temperature,
+    model: llmCfg.model,
+    maxTokens: llmCfg.maxTokens,
+    temperature: llmCfg.temperature,
     log,
   });
   const out = llm.json;
@@ -315,7 +353,36 @@ async function runLegacyMerge(
 // ----- entrypoint ----------------------------------------------------------
 
 export async function run(ctx: StepContext): Promise<StepResult> {
-  const { channel, db, log } = ctx;
+  const { channel, db, log, now } = ctx;
+  const today = todayCst(now);
+
+  // Idempotency guard: refuse to create a second pre_publish for the same CST
+  // day. Without this, a manual `ai-publish` workflow_dispatch after the 08:30
+  // cron silently builds a duplicate same-day issue from whatever scored_drafts
+  // arrived in between (this is how issues 29 and pp 12 happened historically).
+  // To force a regenerate, delete today's pre_publish row first.
+  const { data: existing } = await db.from('pre_publish')
+    .select('id, title, created_at')
+    .eq('channel', channel.name)
+    .gte('created_at', today.isoStart)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  const existingRow = (existing as { id: number; title: string; created_at: string }[] | null)?.[0];
+  if (existingRow) {
+    log.info({
+      event: 'merge_skip_today_exists',
+      existing_id: existingRow.id,
+      existing_title: existingRow.title,
+      existing_created_at: existingRow.created_at,
+      today: today.date,
+    }, 'today already has a merged issue for this channel; skipping');
+    return {
+      processed: 0,
+      skipped: 0,
+      failed: 0,
+      notes: `today already merged as pre_publish ${existingRow.id}`,
+    };
+  }
 
   const claimed = await claim.forMerge(db, channel.name, 50);
   if (claimed.length === 0) {

@@ -36,7 +36,31 @@ export const ChannelConfigSchema = z.object({
     model: z.string(),
     max_tokens: z.number().int().positive(),
     temperature: z.number().min(0).max(2),
+    steps: z.record(
+      z.enum(['compress', 'score', 'merge', 'render']),
+      z.object({
+        model: z.string().optional(),
+        max_tokens: z.number().int().positive().optional(),
+        temperature: z.number().min(0).max(2).optional(),
+      }),
+    ).optional(),
   }),
 });
 
 export type ChannelConfig = z.infer<typeof ChannelConfigSchema>;
+
+export type LlmStep = 'compress' | 'score' | 'merge' | 'render';
+
+export function resolveLlm(channel: ChannelConfig, step: LlmStep): {
+  model: string;
+  maxTokens: number;
+  temperature: number;
+} {
+  const base = channel.llm;
+  const override = base.steps?.[step] ?? {};
+  return {
+    model: override.model ?? base.model,
+    maxTokens: override.max_tokens ?? base.max_tokens,
+    temperature: override.temperature ?? base.temperature,
+  };
+}

@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
 import Anthropic from '@anthropic-ai/sdk';
 import type { Logger } from './log.js';
+// `claude` CLI fallback was removed in favor of SDK + codex CLI. If you need to
+// resurrect it, see git history pre-2026-05-21.
 
 export interface LlmCallOpts {
   prompt: string;
@@ -70,55 +72,6 @@ function client(): Anthropic {
   return _client;
 }
 
-async function callViaClaudeCli(opts: {
-  prompt: string;
-  model: string;
-  log: Logger;
-  timeoutMs: number;
-}): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(
-      'claude',
-      ['-p', '--output-format', 'text', '--model', opts.model],
-      { stdio: ['pipe', 'pipe', 'pipe'] },
-    );
-
-    let stdout = '';
-    let stderr = '';
-    let killed = false;
-
-    const timer = setTimeout(() => {
-      killed = true;
-      proc.kill('SIGKILL');
-    }, opts.timeoutMs);
-
-    proc.stdout.setEncoding('utf8');
-    proc.stderr.setEncoding('utf8');
-    proc.stdout.on('data', (c) => {
-      stdout += c;
-    });
-    proc.stderr.on('data', (c) => {
-      stderr += c;
-    });
-    proc.on('error', (e) => {
-      clearTimeout(timer);
-      reject(e);
-    });
-    proc.on('close', (code) => {
-      clearTimeout(timer);
-      if (killed) return reject(new Error(`claude cli timed out after ${opts.timeoutMs}ms`));
-      if (code !== 0) return reject(new Error(`claude cli exit ${code}: ${stderr.slice(0, 500)}`));
-      resolve(stdout.trim());
-    });
-
-    proc.stdin.on('error', () => {
-      /* ignore EPIPE */
-    });
-    proc.stdin.write(opts.prompt);
-    proc.stdin.end();
-  });
-}
-
 async function callViaCodexCli(opts: {
   prompt: string;
   model?: string;
@@ -174,14 +127,13 @@ async function callViaCodexCli(opts: {
   });
 }
 
-type Provider = 'anthropic' | 'claude_cli' | 'codex_cli';
+type Provider = 'anthropic' | 'codex_cli';
 
 function pickProvider(): Provider {
   const explicit = (process.env.LLM_PROVIDER ?? '').toLowerCase().trim();
   if (explicit === 'codex' || explicit === 'codex_cli') return 'codex_cli';
-  if (explicit === 'claude' || explicit === 'claude_cli') return 'claude_cli';
   if (explicit === 'anthropic' || explicit === 'sdk' || explicit === 'api') return 'anthropic';
-  // auto: SDK if API key set, else local codex CLI (more reliable on big batches than claude cli)
+  // auto: SDK if API key set, else local codex CLI (offline fallback for dev)
   if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim()) return 'anthropic';
   return 'codex_cli';
 }
@@ -210,34 +162,6 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
     log.info(
       { event: 'llm_codex_ok', ms: Date.now() - t0, bytes: text.length },
       'codex cli ok',
-    );
-    const result: LlmResult<T> = {
-      text,
-      inputTokens: 0,
-      outputTokens: 0,
-      stopReason: null,
-    };
-    if (opts.expectJson) {
-      result.json = extractJsonObject(text) as T;
-    }
-    return result;
-  }
-
-  if (provider === 'claude_cli') {
-    log.info(
-      { event: 'llm_via_cli', model },
-      'using local claude cli (no ANTHROPIC_API_KEY)',
-    );
-    const t0 = Date.now();
-    const text = await callViaClaudeCli({
-      prompt: opts.prompt,
-      model,
-      log,
-      timeoutMs: 600_000, // 10min — render with ~15KB JSON input often takes 4-5min
-    });
-    log.info(
-      { event: 'llm_cli_ok', model, ms: Date.now() - t0, bytes: text.length },
-      'llm cli ok',
     );
     const result: LlmResult<T> = {
       text,
