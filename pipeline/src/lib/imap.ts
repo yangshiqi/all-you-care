@@ -76,15 +76,20 @@ export async function fetchUnreadFrom(
   const lock = await client.getMailboxLock(mailbox);
   try {
     const since = new Date(Date.now() - sinceDays * 86_400_000);
+    // CRITICAL: pass { uid: true } so search returns UIDs (not sequence numbers).
+    // Without it, downstream markRead+UID STORE silently targets the wrong
+    // message (UID and sequence are different — a search hit at seq 907 might
+    // be UID 125044). This was the root cause of "messages stay unread despite
+    // markRead reporting success".
     const uids = await client.search({
       from: fromAddress,
       since,
       ...(onlyUnseen ? { seen: false } : {}),
-    });
+    }, { uid: true });
     const out: EmailItem[] = [];
     if (!uids) return out;
     for (const uid of uids) {
-      const msg = await client.fetchOne(uid, { source: true, envelope: true });
+      const msg = await client.fetchOne(String(uid), { source: true, envelope: true }, { uid: true });
       if (!msg || !msg.source) continue;
       const parsed = await simpleParser(msg.source);
       out.push({
@@ -117,7 +122,14 @@ export async function markRead(
   // (\\Seen itself is shared across Gmail labels once set in any mailbox.)
   const lock = await client.getMailboxLock(mailbox);
   try {
-    await client.messageFlagsAdd(uids, ['\\Seen'], { uid: true });
+    const range = uids.join(',');
+    const ok = await client.messageFlagsAdd(range, ['\\Seen'], { uid: true });
+    if (!ok) {
+      // STORE returned false: server NO/BAD reply, or flags filtered against
+      // permanentFlags. Re-fetch will retry on next tick — safe via DB unique
+      // constraint on external_id.
+      throw new Error(`messageFlagsAdd returned false (mailbox=${mailbox}, uids=${range})`);
+    }
   } finally {
     lock.release();
   }

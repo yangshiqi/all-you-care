@@ -50,6 +50,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         if (toMarkRead.length > 0) {
           try {
             await markRead(client, toMarkRead);
+            log.debug({ event: 'mark_read_ok', from, count: toMarkRead.length }, '');
           } catch (e) {
             log.warn({
               event: 'mark_read_fail',
