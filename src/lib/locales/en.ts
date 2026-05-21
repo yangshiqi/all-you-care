@@ -38,7 +38,7 @@ export const en = {
       "emailPlaceholder": "your@work.email",
       "firstNamePlaceholder": "First Name",
       "lastNamePlaceholder": "Last Name",
-      "ctaButton": "Send Me The Signal",
+      "ctaButton": "Subscribe to Daily Briefing",
       "privacyText": "No spam. No AI slop. Just pure signal.",
       "subscribeBoxTitle": "Escape the Algorithm",
       "subscribeBoxSubtitle": "Your time is expensive. Don't waste it on noise. 5 minutes a day, we compress the global chaos into CORE signals, to provide you with the most relevant information.",

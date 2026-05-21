@@ -1,7 +1,6 @@
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { RecentIssues } from "@/components/RecentIssues";
-import { Manifesto } from "@/components/Manifesto";
 import { Metadata } from "next";
 import { getAbsoluteUrl } from "@/lib/utils";
 
@@ -46,7 +45,6 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <Manifesto />
         <RecentIssues />
       </main>
     </div>
