@@ -21,10 +21,16 @@ export async function run(ctx: StepContext): Promise<StepResult> {
     // Reuters daily briefing is often read/archived by the user before the
     // bot runs. Search All Mail (covers archived) without the seen filter;
     // DB-side subject dedup keeps re-runs idempotent.
+    const REUTERS_MAILBOX = '[Gmail]/All Mail';
     const messages = await fetchUnreadFrom(client, REUTERS_FROM, 7, log, {
-      mailbox: '[Gmail]/All Mail',
+      mailbox: REUTERS_MAILBOX,
       onlyUnseen: false,
     });
+    // Batch IMAP STORE at the end — see fetchEmail.ts for rationale.
+    // The mailbox MUST match fetchUnreadFrom's; All-Mail UIDs are not valid in
+    // INBOX (Gmail's per-mailbox UID space). Previously markRead defaulted to
+    // INBOX and silently no-op'd here.
+    const toMarkRead: number[] = [];
     for (const m of messages) {
       try {
         // Slice "And Finally..." → "Sponsors are not involved" segment
@@ -33,7 +39,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         const end   = html.indexOf('Sponsors are not involved');
         if (start < 0 || end < 0 || end <= start) {
           skipped++;
-          await markRead(client, m.message_uid).catch(() => { /* ignore */ });
+          toMarkRead.push(m.message_uid);
           continue;
         }
         const slice = html.slice(start, end);
@@ -43,7 +49,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
           .select('id').eq('source', m.subject).limit(1);
         if (dup && dup[0]) {
           skipped++;
-          await markRead(client, m.message_uid).catch(() => { /* ignore */ });
+          toMarkRead.push(m.message_uid);
           continue;
         }
 
@@ -73,7 +79,7 @@ ${wrapUntrustedItems([{ source: m.from, content: slice }])}`;
         const ext = result.json!;
         if (!ext?.imgUrl?.startsWith('https://')) {
           skipped++;
-          await markRead(client, m.message_uid).catch(() => { /* ignore */ });
+          toMarkRead.push(m.message_uid);
           continue;
         }
 
@@ -84,11 +90,22 @@ ${wrapUntrustedItems([{ source: m.from, content: slice }])}`;
           link: ext.link ?? null,
           source: m.subject,
         } as never);
-        await markRead(client, m.message_uid).catch(() => { /* ignore */ });
+        toMarkRead.push(m.message_uid);
         processed++;
       } catch (e) {
         failed++;
         log.warn({ event: 'reuters_fail', err: (e as Error).message }, '');
+      }
+    }
+    if (toMarkRead.length > 0) {
+      try {
+        await markRead(client, toMarkRead, REUTERS_MAILBOX);
+      } catch (e) {
+        log.warn({
+          event: 'mark_read_fail',
+          count: toMarkRead.length,
+          err: (e as Error).message,
+        }, 'reuters batch mark-read failed');
       }
     }
   });
