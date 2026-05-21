@@ -19,3 +19,8 @@ jobs:
     uses: ./.github/workflows/_pipeline.yml
     with: { channel: ai, step: publish }
     secrets: inherit
+  deliver:
+    needs: publish
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: deliver }
+    secrets: inherit

@@ -37,4 +37,7 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           PREVIEW_EMAIL_TO: ${{ secrets.PREVIEW_EMAIL_TO }}
+          # Only the `deliver` step reads this. CI = always live; the safety
+          # gate exists to protect local dev / staging against accidental sends.
+          DELIVER_LIVE: '1'
         run: npm run cli -- ${{ inputs.channel }} ${{ inputs.step }} ${{ inputs.flags }}
