@@ -119,6 +119,13 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       }
     } catch {
       log.warn({ event: 'deliver_response_parse_fail', issue_id: issue.id, head: bodyText.slice(0, 200) }, '');
+      // On HTTP 207 the route is telling us SOMETHING failed inside; the body
+      // is the only source of truth about which mode/why. If we can't parse
+      // it, we cannot prove success — treat as failure rather than optimistically
+      // marking delivered=true. 200 + unparseable body is a rarer mid-flight
+      // truncation scenario where the route most likely succeeded, so we stay
+      // optimistic there.
+      if (resp.status === 207) bodySuccess = false;
     }
 
     if (!bodySuccess) {
