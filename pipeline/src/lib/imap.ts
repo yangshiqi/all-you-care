@@ -104,10 +104,20 @@ export async function fetchUnreadFrom(
   }
 }
 
-export async function markRead(client: ImapFlow, uid: number): Promise<void> {
-  const lock = await client.getMailboxLock('INBOX');
+export async function markRead(
+  client: ImapFlow,
+  uid: number | number[],
+  mailbox: string = 'INBOX',
+): Promise<void> {
+  const uids = Array.isArray(uid) ? uid : [uid];
+  if (uids.length === 0) return;
+  // Gmail UIDs are per-mailbox: a UID returned by an All-Mail search is a
+  // different number than the same message's INBOX UID. The mailbox arg MUST
+  // match wherever the UID came from, or `messageFlagsAdd` silently no-ops.
+  // (\\Seen itself is shared across Gmail labels once set in any mailbox.)
+  const lock = await client.getMailboxLock(mailbox);
   try {
-    await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
+    await client.messageFlagsAdd(uids, ['\\Seen'], { uid: true });
   } finally {
     lock.release();
   }
