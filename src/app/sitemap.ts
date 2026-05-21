@@ -34,10 +34,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     } catch (e) { console.error('Sitemap Tag Error', e) }
     
-    // 4. Issues (All - Flattened for single sitemap)
+    // 4. Issues — only delivered ones, so half-published drafts (pre-deliver
+    // window, or stale undelivered carry-overs) don't get advertised to crawlers.
+    // The `/[lang]/issues/[slug]` route still serves them for direct visits.
     try {
-      // Use lightweight ID fetch
-      const allIssues = await getAllAiContentIds(lang)
+      const allIssues = await getAllAiContentIds(lang, { deliveredOnly: true })
       for (const issue of allIssues) {
          issuesPages.push({
           url: `${baseUrl}/${lang}/issues/${issue.journal_id || issue.id}`,
