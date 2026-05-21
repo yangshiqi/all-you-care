@@ -107,7 +107,10 @@ export const getAllAiContentsPaginated = cache(async (
   }
 })
 
-export const getAllAiContentIds = cache(async (i18nLang?: string): Promise<{ id: string; journal_id?: string; created_at: string }[]> => {
+export const getAllAiContentIds = cache(async (
+  i18nLang?: string,
+  opts?: { deliveredOnly?: boolean },
+): Promise<{ id: string; journal_id?: string; created_at: string }[]> => {
   try {
     const dbLang = mapI18nLangToDbLang(i18nLang)
     let query = supabase
@@ -116,6 +119,7 @@ export const getAllAiContentIds = cache(async (i18nLang?: string): Promise<{ id:
       .eq('channel', 'ai')
       .order('published_at', { ascending: false })
     if (dbLang) query = query.eq('lang', dbLang)
+    if (opts?.deliveredOnly) query = query.eq('delivered', true)
     const { data, error } = await query
     if (error) throw new Error(`Failed to fetch AI content IDs: ${error.message}`)
     const rows = (data ?? []) as Pick<IssueRow, 'id' | 'journal_id' | 'published_at'>[]

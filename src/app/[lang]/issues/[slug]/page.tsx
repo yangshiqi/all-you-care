@@ -316,16 +316,55 @@ export default async function IssueDetailPage({ params }: Props) {
     content: s.content.trim().replace(/\r\n/g, '\n')
   }))
 
+  // ---- schema.org NewsArticle JSON-LD ---------------------------------------
+  // Helps Google Discover / News surface daily issues; matches the OpenGraph
+  // metadata above so social previews and search structured data stay in sync.
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snapallx.com'
+  const articleUrl = `${baseUrl}/${lang}/issues/${issue.journal_id || issue.id}`
+  const articleImage = issue.imgUrl
+    ? (issue.imgUrl.startsWith('http')
+        ? issue.imgUrl
+        : `${baseUrl}${issue.imgUrl.startsWith('/') ? '' : '/'}${issue.imgUrl}`)
+    : `${baseUrl}/x_welcome.jpg`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: issue.title,
+    description: issue.summary,
+    image: [articleImage],
+    datePublished: issue.created_at,
+    dateModified: issue.created_at,
+    inLanguage: lang === 'zh-CN' ? 'zh-CN' : 'en',
+    articleSection: 'AI',
+    keywords: tags.join(', '),
+    author: { '@type': 'Organization', name: 'SnapAllX', url: baseUrl },
+    publisher: {
+      '@type': 'Organization',
+      name: 'SnapAllX',
+      logo: { '@type': 'ImageObject', url: `${baseUrl}/x_welcome.jpg` },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+  }
+  // Escape `<` to prevent any LLM-generated `</script>` substring from breaking
+  // out of the script tag. `<` is JSON-safe and parses back as `<`.
+  const jsonLdSafe = JSON.stringify(jsonLd).replace(/</g, '\\u003c')
+
   return (
-    <IssueDetailContent 
-      issue={{
-        ...issueData,
-        sections: sanitizedSections
-      }} 
-      issueId={slug}
-      hasEnVersion={hasEnVersion}
-      initialLang={lang}
-      relatedInsight={relatedInsight}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdSafe }}
+      />
+      <IssueDetailContent
+        issue={{
+          ...issueData,
+          sections: sanitizedSections
+        }}
+        issueId={slug}
+        hasEnVersion={hasEnVersion}
+        initialLang={lang}
+        relatedInsight={relatedInsight}
+      />
+    </>
   )
 }
