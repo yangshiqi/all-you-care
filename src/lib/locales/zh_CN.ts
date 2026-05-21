@@ -38,7 +38,7 @@ export const zh_CN = {
       "emailPlaceholder": "你最常用的邮件地址",
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",
-      "ctaButton": "发送信号",
+      "ctaButton": "订阅每日早报",
       "privacyText": "拒绝垃圾邮件，拒绝 AI 废话，只有纯净信号。",
       "subscribeBoxTitle": "逃离算法推荐",
       "subscribeBoxSubtitle": "你的时间很贵，别浪费在 AI 生成的废话上。每天 5 分钟，我们将全球噪音压缩为有限个核心信号，供你参考。",
