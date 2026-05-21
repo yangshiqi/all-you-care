@@ -1,7 +1,7 @@
 name: ai · compress
 on:
   schedule:
-    - cron: '10 * * * *'        # hourly+10
+    - cron: '10 */3 * * *'      # every 3h at :10
   workflow_dispatch: {}
 
 jobs:

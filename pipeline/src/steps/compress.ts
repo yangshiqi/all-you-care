@@ -1,5 +1,6 @@
 // pipeline/src/steps/compress.ts
 import type { StepContext, StepResult } from '../cli.js';
+import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt, wrapUntrustedItems } from '../lib/prompt.js';
@@ -29,11 +30,12 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       for (const it of claimed) await markFailed.newsItem(db, it.id, 'dry_run_release');
       return { processed: 0, skipped: claimed.length, failed: 0, notes: 'dry-run' };
     }
+    const llmCfg = resolveLlm(channel, 'compress');
     const result = await callLlm({
       prompt,
-      model: channel.llm.model,
-      maxTokens: channel.llm.max_tokens,
-      temperature: channel.llm.temperature,
+      model: llmCfg.model,
+      maxTokens: llmCfg.maxTokens,
+      temperature: llmCfg.temperature,
       log,
     });
     const newDraftId = await commit.compress(

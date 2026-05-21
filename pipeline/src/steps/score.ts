@@ -1,5 +1,6 @@
 // pipeline/src/steps/score.ts
 import type { StepContext, StepResult } from '../cli.js';
+import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt, wrapUntrustedItems } from '../lib/prompt.js';
@@ -9,6 +10,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   const limit = ctx.limit ?? channel.thresholds.score_batch_size;
 
   const drafts = await claim.forScore(db, channel.name, limit);
+  const llmCfg = resolveLlm(channel, 'score');
   let processed = 0, failed = 0;
 
   for (const d of drafts) {
@@ -22,9 +24,9 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       }
       const result = await callLlm({
         prompt,
-        model: channel.llm.model,
-        maxTokens: channel.llm.max_tokens,
-        temperature: channel.llm.temperature,
+        model: llmCfg.model,
+        maxTokens: llmCfg.maxTokens,
+        temperature: llmCfg.temperature,
         log,
       });
       const newId = await commit.score(db, channel.name, d.id, result.text);

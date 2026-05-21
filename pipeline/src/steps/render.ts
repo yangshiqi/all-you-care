@@ -1,5 +1,6 @@
 // pipeline/src/steps/render.ts
 import type { StepContext, StepResult } from '../cli.js';
+import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed, type PrePublishRow } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
@@ -492,12 +493,13 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       } else {
         // SNOW channel still uses LLM (legacy markdown content_md).
         const prompt = await loadPrompt(channelDir, 'render', { markdown: pp.content_md });
+        const llmCfg = resolveLlm(channel, 'render');
         const llm = await callLlm<RenderOutput>({
           prompt,
           expectJson: true,
-          model: channel.llm.model,
-          maxTokens: channel.llm.max_tokens,
-          temperature: channel.llm.temperature,
+          model: llmCfg.model,
+          maxTokens: llmCfg.maxTokens,
+          temperature: llmCfg.temperature,
           log,
         });
         inner = llm.json!.content_html;
