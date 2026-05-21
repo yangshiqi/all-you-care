@@ -30,10 +30,13 @@ const REPO_OWNER = 'yangshiqi';
 const REPO_NAME = 'all-you-care';
 const TITLE_PREFIX = '[fallback] ';
 
+// Keep these crons in sync with .github/workflows/*.yml. Drift caused real
+// pain on 2026-05-21: GH was relaxed to every-3h compress/score, cron-job.org
+// kept firing hourly, and the per-3h cost-cut intent was silently negated.
 const JOBS: ScheduleSpec[] = [
   { workflow: 'ai-fetch.yml', cron: '0 * * * *', title: 'ai · fetch (hourly)' },
-  { workflow: 'ai-compress.yml', cron: '10 * * * *', title: 'ai · compress (hourly+10)' },
-  { workflow: 'ai-score.yml', cron: '20 * * * *', title: 'ai · score (hourly+20)' },
+  { workflow: 'ai-compress.yml', cron: '10 */3 * * *', title: 'ai · compress (every 3h +10)' },
+  { workflow: 'ai-score.yml', cron: '40 */3 * * *', title: 'ai · score (every 3h +40)' },
   { workflow: 'reuters-image.yml', cron: '0 23 * * *', title: 'ai · reuters-image (07:00 SH)' },
   { workflow: 'ai-publish.yml', cron: '30 0 * * *', title: 'ai · publish-pipeline (08:30 SH)' },
   { workflow: 'ai-tags.yml', cron: '0 1 * * *', title: 'ai · tags (09:00 SH)' },

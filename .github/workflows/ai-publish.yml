@@ -1,7 +1,7 @@
 name: ai · publish-pipeline
 on:
-  schedule:
-    - cron: '30 0 * * *'        # 08:30 Asia/Shanghai (UTC+8), daily morning paper
+  # Scheduled by cron-job.org at 30 0 * * * UTC = 08:30 Asia/Shanghai
+  # (see pipeline/scripts/cron-fallback.md).
   workflow_dispatch: {}
 
 jobs:
