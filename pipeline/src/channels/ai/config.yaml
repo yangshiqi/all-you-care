@@ -67,14 +67,15 @@ deliver:
 
 llm:
   model: "claude-sonnet-4-6"
-  max_tokens: 8000
+  max_tokens: 16000
   temperature: 0
   steps:
+    # All caps reverted to 16000 after 2026-05-22 — score truncated at 3000 on a
+    # busy news day. max_tokens is a CEILING not a budget; model only bills for
+    # actual output. Haiku output @ $5/M makes worst-case ~$2/day even if every
+    # call maxes out, well within noise. Original aggressive caps were a misread
+    # of cost mechanics.
     compress:
       model: "claude-haiku-4-5-20251001"
-      max_tokens: 6000
     score:
       model: "claude-haiku-4-5-20251001"
-      max_tokens: 3000
-    merge:
-      max_tokens: 4000
