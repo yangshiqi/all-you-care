@@ -69,9 +69,8 @@ llm:
   max_tokens: 16000
   temperature: 0
   steps:
+    # max_tokens inherits channel default (16000); see ai/config.yaml comment.
     compress:
       model: "claude-haiku-4-5-20251001"
-      max_tokens: 6000
     score:
       model: "claude-haiku-4-5-20251001"
-      max_tokens: 3000
