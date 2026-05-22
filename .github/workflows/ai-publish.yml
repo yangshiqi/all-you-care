@@ -19,11 +19,8 @@ jobs:
     uses: ./.github/workflows/_pipeline.yml
     with: { channel: ai, step: publish }
     secrets: inherit
-  # TEMPORARILY PAUSED 2026-05-21 — preview-first day. publish step still sends
-  # a [PREVIEW] copy to PREVIEW_EMAIL_TO; subscriber broadcast is gated below.
-  # To re-enable: uncomment this block (or `git revert` the commit that paused it).
-  # deliver:
-  #   needs: publish
-  #   uses: ./.github/workflows/_pipeline.yml
-  #   with: { channel: ai, step: deliver }
-  #   secrets: inherit
+  deliver:
+    needs: publish
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: deliver }
+    secrets: inherit
