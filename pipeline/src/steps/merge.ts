@@ -9,6 +9,9 @@ import { todayCst } from '../lib/time.js';
 import {
   parseScoredEvents,
   deduplicateEvents,
+  normalizeTitle,
+  fuzzyEquivalent,
+  descriptionsLikelySameEvent,
   type MergedEvent,
 } from '../lib/eventDedup.js';
 
@@ -79,17 +82,86 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   const cnDay = parseInt(today.date.slice(8, 10), 10);
   const cnDateLabel = `${cnMonth}月${cnDay}日`;
 
-  // 1. parse + dedup all incoming events.
+  // 1. parse + dedup all incoming events (within-issue).
   const allEvents = claimedContents.flatMap((c) => parseScoredEvents(c));
-  const merged = deduplicateEvents(allEvents);
+  const withinDeduped = deduplicateEvents(allEvents);
   log.info(
     {
       event: 'merge_dedup',
       raw_event_count: allEvents.length,
-      unique_event_count: merged.length,
+      unique_event_count: withinDeduped.length,
     },
-    'parsed + deduped events',
+    'parsed + deduped events (within-issue)',
   );
+
+  // 1b. Cross-issue dedup: drop events already published in recent issues.
+  // Same news from different sources can arrive days apart (TechCrunch on day 1,
+  // VentureBeat newsletter on day 2). Within-issue dedup catches same-batch dups
+  // but can't see what shipped in prior issues. We extract event titles from
+  // recent issues' structured JSON payload and filter today's events against them
+  // using the same 4-layer matching (exact title, URL overlap, fuzzy title,
+  // description similarity).
+  const oldCutoffForDedup = new Date(
+    Date.now() - channel.windows.merge_old_lookback_hours * 3_600_000,
+  ).toISOString();
+  const { data: recentPp } = await db.from('pre_publish')
+    .select('content_md')
+    .eq('channel', channel.name)
+    .eq('published', true)
+    .gte('created_at', oldCutoffForDedup)
+    .lt('created_at', today.isoStart)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  interface PhantomEvent { title: string; description: string; links: string[] }
+  const phantoms: PhantomEvent[] = [];
+  for (const row of (recentPp ?? []) as { content_md: string }[]) {
+    try {
+      const p = JSON.parse(row.content_md) as AiFinalPayload;
+      for (const tp of p.top_picks ?? []) {
+        phantoms.push({ title: tp.title, description: tp.description, links: tp.links ?? [] });
+      }
+      for (const pKey of PERSONA_KEYS) {
+        for (const card of p.by_persona?.[pKey] ?? []) {
+          phantoms.push({ title: card.title, description: card.description, links: card.links ?? [] });
+        }
+      }
+      for (const g of p.general ?? []) {
+        phantoms.push({ title: g.title, description: '', links: g.link ? [g.link] : [] });
+      }
+    } catch { /* not JSON (snow legacy) — skip */ }
+  }
+
+  const crossDupTitles: string[] = [];
+  const merged = phantoms.length > 0
+    ? withinDeduped.filter((e) => {
+        const eNorm = normalizeTitle(e.title);
+        for (const ph of phantoms) {
+          if (eNorm === normalizeTitle(ph.title)) { crossDupTitles.push(e.title); return false; }
+          if (e.links.some(u => ph.links.includes(u))) { crossDupTitles.push(e.title); return false; }
+          if (fuzzyEquivalent(e.title, ph.title)) { crossDupTitles.push(e.title); return false; }
+          if (e.description.length >= 30 && ph.description.length >= 30 &&
+              descriptionsLikelySameEvent(
+                { title: e.title, description: e.description },
+                { title: ph.title, description: ph.description },
+              )) { crossDupTitles.push(e.title); return false; }
+        }
+        return true;
+      })
+    : withinDeduped;
+
+  if (crossDupTitles.length > 0) {
+    log.info(
+      {
+        event: 'merge_cross_issue_dedup',
+        dropped: crossDupTitles.length,
+        phantom_pool: phantoms.length,
+        remaining: merged.length,
+        dropped_titles: crossDupTitles.slice(0, 10),
+      },
+      'dropped events already published in recent issues',
+    );
+  }
 
   // 2. build a slim LLM payload — just id/title/score + 1-line description.
   // Drop low-score noise: the LLM only decides top_picks + persona_assignments,
