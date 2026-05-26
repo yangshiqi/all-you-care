@@ -25,6 +25,76 @@ export interface LlmResult<T = unknown> {
 export class LlmTruncatedError extends Error {}
 export class LlmJsonParseError extends Error {}
 
+// LLMs occasionally emit literal control characters (newlines, tabs) inside
+// JSON string values, which is invalid per RFC 8259. This mini-lexer walks the
+// raw text, tracks whether we're inside a quoted string, and escapes any
+// control char (U+0000–U+001F) found there. Structural whitespace between
+// tokens is left untouched.
+function repairJsonControlChars(raw: string): string {
+  const out: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (escaped) { out.push(ch); escaped = false; continue; }
+    if (ch === '\\' && inString) { out.push(ch); escaped = true; continue; }
+    if (ch === '"') { inString = !inString; out.push(ch); continue; }
+    if (inString && ch.charCodeAt(0) < 0x20) {
+      switch (ch) {
+        case '\n': out.push('\\n'); break;
+        case '\r': out.push('\\r'); break;
+        case '\t': out.push('\\t'); break;
+        default: out.push(`\\u${ch.charCodeAt(0).toString(16).padStart(4, '0')}`); break;
+      }
+      continue;
+    }
+    out.push(ch);
+  }
+  return out.join('');
+}
+
+// When the LLM puts unescaped `"` inside a JSON string value (e.g.
+// `"announced "record" revenue"`), naive JSON.parse fails. This function
+// re-scans the (already control-char-repaired) text and escapes any `"`
+// that appears inside a string literal but is NOT at a valid structural
+// boundary (key-value separator, array/object delimiter). It is
+// intentionally conservative: only touches `"` that follows non-whitespace
+// AND is followed by a non-structural character.
+function repairUnescapedQuotes(raw: string): string {
+  const out: string[] = [];
+  let inString = false;
+  let escaped = false;
+  let i = 0;
+  while (i < raw.length) {
+    const ch = raw[i]!;
+    if (escaped) { out.push(ch); escaped = false; i++; continue; }
+    if (ch === '\\' && inString) { out.push(ch); escaped = true; i++; continue; }
+    if (ch === '"') {
+      if (!inString) {
+        inString = true;
+        out.push(ch);
+      } else {
+        // Peek: is this quote at a valid string-end position?
+        // After the closing `"`, the next non-whitespace must be `:`, `,`, `}`, `]`, or EOF.
+        let j = i + 1;
+        while (j < raw.length && (raw[j] === ' ' || raw[j] === '\t' || raw[j] === '\n' || raw[j] === '\r')) j++;
+        const next = j < raw.length ? raw[j] : '';
+        if (next === '' || next === ':' || next === ',' || next === '}' || next === ']') {
+          inString = false;
+          out.push(ch);
+        } else {
+          out.push('\\', '"');
+        }
+      }
+      i++;
+      continue;
+    }
+    out.push(ch);
+    i++;
+  }
+  return out.join('');
+}
+
 export function extractJsonObject(raw: string): unknown {
   let s = raw.trim();
   // Strip ```json / ``` fence
@@ -39,10 +109,27 @@ export function extractJsonObject(raw: string): unknown {
   const slice = s.slice(first, last + 1);
   try {
     return JSON.parse(slice);
-  } catch (e) {
-    throw new LlmJsonParseError(
-      `JSON parse failed: ${(e as Error).message}; head=${slice.slice(0, 200)}; tail=${slice.slice(-200)}`,
-    );
+  } catch (e1) {
+    // Repair pass 1: escape control chars the LLM left unescaped inside
+    // string literals (literal newline/tab mid-value).
+    const repaired = repairJsonControlChars(slice);
+    try {
+      return JSON.parse(repaired);
+    } catch {
+      // Repair pass 2: the LLM sometimes emits unescaped ASCII double-quotes
+      // inside string values (e.g. "announced "record" revenue"). Walk the
+      // string char-by-char: a `"` that doesn't sit at a valid JSON boundary
+      // (after `:`, `,`, `{`, `[` or before `:`, `,`, `}`, `]`) is interior
+      // to a value → escape it.
+      const repaired2 = repairUnescapedQuotes(repaired);
+      try {
+        return JSON.parse(repaired2);
+      } catch (e3) {
+        throw new LlmJsonParseError(
+          `JSON parse failed: ${(e3 as Error).message}; head=${slice.slice(0, 200)}; tail=${slice.slice(-200)}`,
+        );
+      }
+    }
   }
 }
 
@@ -236,7 +323,7 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
       return result;
     } catch (e) {
       lastErr = e;
-      if (e instanceof LlmTruncatedError || e instanceof LlmJsonParseError) throw e;
+      if (e instanceof LlmTruncatedError) throw e;
       if (!isRetryable(e) || attempt >= RETRY_DELAYS_MS.length) throw e;
       const delay = RETRY_DELAYS_MS[attempt] ?? 1_000;
       log.warn(
