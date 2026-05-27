@@ -158,17 +158,21 @@ async function callAnthropic(opts: {
     try {
       const ctrl = new AbortController();
       const to = setTimeout(() => ctrl.abort(), 600_000);
-      const resp = await anthropicClient().messages.create(
-        {
-          model,
-          max_tokens: maxTokens,
-          temperature,
-          ...(opts.systemPrompt ? { system: opts.systemPrompt } : {}),
-          messages: [{ role: 'user', content: opts.prompt }],
-        },
-        { signal: ctrl.signal },
-      );
-      clearTimeout(to);
+      let resp;
+      try {
+        resp = await anthropicClient().messages.create(
+          {
+            model,
+            max_tokens: maxTokens,
+            temperature,
+            ...(opts.systemPrompt ? { system: opts.systemPrompt } : {}),
+            messages: [{ role: 'user', content: opts.prompt }],
+          },
+          { signal: ctrl.signal },
+        );
+      } finally {
+        clearTimeout(to);
+      }
 
       let body: unknown = resp;
       if (typeof body === 'string') {
@@ -246,6 +250,7 @@ async function callGemini(opts: {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(600_000),
     }).catch((err: Error) => {
       if (attempt < GEMINI_RETRY_DELAYS.length) return null;
       throw err;
@@ -271,10 +276,10 @@ async function callGemini(opts: {
       usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number };
     };
 
-    const text = data.candidates?.[0]?.content?.parts?.map(p => p.text ?? '').join('') ?? '';
-    const inputTokens = data.usageMetadata?.promptTokenCount ?? 0;
-    const outputTokens = (data.usageMetadata?.candidatesTokenCount ?? 0) + (data.usageMetadata?.thoughtsTokenCount ?? 0);
-    const stopReason = data.candidates?.[0]?.finishReason ?? null;
+    const text = data?.candidates?.[0]?.content?.parts?.map(p => p?.text ?? '').join('') ?? '';
+    const inputTokens = data?.usageMetadata?.promptTokenCount ?? 0;
+    const outputTokens = (data?.usageMetadata?.candidatesTokenCount ?? 0) + (data?.usageMetadata?.thoughtsTokenCount ?? 0);
+    const stopReason = data?.candidates?.[0]?.finishReason ?? null;
 
     log.info(
       { event: 'llm', provider: 'gemini', model, ms: Date.now() - t0, input_tokens: inputTokens, output_tokens: outputTokens, stop_reason: stopReason },
@@ -404,8 +409,11 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
 
   const fullOpts = { ...opts, maxTokens, temperature };
 
+  // Bypass chain if codex_cli is explicitly forced (offline dev).
+  const forceProvider = pickProvider();
+
   // Chain mode: try each provider in order, fall back on failure.
-  if (opts.chain && opts.chain.length > 0) {
+  if (opts.chain && opts.chain.length > 0 && forceProvider !== 'codex_cli') {
     let lastErr: unknown;
     for (let i = 0; i < opts.chain.length; i++) {
       const entry = opts.chain[i]!;
@@ -434,7 +442,6 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
     throw lastErr ?? new Error('chain is empty after skipping providers with missing keys');
   }
 
-  // Legacy single-provider mode.
-  const provider = pickProvider();
-  return await callSingleProvider(provider, model, fullOpts) as LlmResult<T>;
+  // Legacy single-provider mode (or codex_cli forced).
+  return await callSingleProvider(forceProvider, model, fullOpts) as LlmResult<T>;
 }
