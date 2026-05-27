@@ -74,12 +74,20 @@ llm:
   max_tokens: 16000
   temperature: 0
   steps:
-    # All caps reverted to 16000 after 2026-05-22 — score truncated at 3000 on a
-    # busy news day. max_tokens is a CEILING not a budget; model only bills for
-    # actual output. Haiku output @ $5/M makes worst-case ~$2/day even if every
-    # call maxes out, well within noise. Original aggressive caps were a misread
-    # of cost mechanics.
     compress:
-      model: "claude-haiku-4-5-20251001"
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-haiku-4-5 }
     score:
-      model: "claude-haiku-4-5-20251001"
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-haiku-4-5 }
+    merge:
+      chain:
+        - { provider: anthropic, model: claude-sonnet-4-7 }
+        - { provider: gemini, model: gemini-3.5-flash }
+    reutersImage:
+      max_tokens: 500
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-haiku-4-5 }

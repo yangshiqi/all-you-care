@@ -37,9 +37,10 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       model: llmCfg.model,
       maxTokens: llmCfg.maxTokens,
       temperature: llmCfg.temperature,
+      chain: llmCfg.chain,
       log,
     });
-    await trackUsage(db, { channel: channel.name, step: 'compress', provider: 'anthropic', model: llmCfg.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens, duration_ms: 0 }, log);
+    await trackUsage(db, { channel: channel.name, step: 'compress', provider: result.provider, model: result.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens }, log);
     const newDraftId = await commit.compress(
       db, channel.name, result.text, claimed.map(c => c.id),
     );

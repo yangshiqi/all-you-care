@@ -501,9 +501,10 @@ export async function run(ctx: StepContext): Promise<StepResult> {
           model: llmCfg.model,
           maxTokens: llmCfg.maxTokens,
           temperature: llmCfg.temperature,
+          chain: llmCfg.chain,
           log,
         });
-        await trackUsage(db, { channel: channel.name, step: 'render', provider: 'anthropic', model: llmCfg.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
+        await trackUsage(db, { channel: channel.name, step: 'render', provider: llm.provider, model: llm.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
         inner = llm.json!.content_html;
       }
 

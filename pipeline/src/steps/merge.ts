@@ -361,9 +361,10 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
     model: llmCfg.model,
     maxTokens: llmCfg.maxTokens,
     temperature: llmCfg.temperature,
+    chain: llmCfg.chain,
     log,
   });
-  await trackUsage(db, { channel: channel.name, step: 'merge', provider: 'anthropic', model: llmCfg.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
+  await trackUsage(db, { channel: channel.name, step: 'merge', provider: llm.provider, model: llm.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
   const meta = llm.json;
   if (!meta) throw new Error('merge LLM returned no JSON');
 
@@ -558,9 +559,10 @@ async function runLegacyMerge(
     model: llmCfg.model,
     maxTokens: llmCfg.maxTokens,
     temperature: llmCfg.temperature,
+    chain: llmCfg.chain,
     log,
   });
-  await trackUsage(db, { channel: channel.name, step: 'merge', provider: 'anthropic', model: llmCfg.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
+  await trackUsage(db, { channel: channel.name, step: 'merge', provider: llm.provider, model: llm.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
   const out = llm.json;
   if (!out) throw new Error('merge LLM returned no JSON');
   const cover = await pickCoverImage(db, channel, channel.name, log);
