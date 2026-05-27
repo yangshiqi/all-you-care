@@ -84,7 +84,11 @@ llm:
         - { provider: anthropic, model: claude-haiku-4-5 }
     merge:
       chain:
-        - { provider: anthropic, model: claude-sonnet-4-7 }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+        - { provider: gemini, model: gemini-3.5-flash }
+    weekly:
+      chain:
+        - { provider: anthropic, model: claude-opus-4-7 }
         - { provider: gemini, model: gemini-3.5-flash }
     reutersImage:
       max_tokens: 500

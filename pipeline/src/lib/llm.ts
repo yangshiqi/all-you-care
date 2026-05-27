@@ -164,7 +164,7 @@ async function callAnthropic(opts: {
           {
             model,
             max_tokens: maxTokens,
-            temperature,
+            ...(model.includes('opus') ? {} : { temperature }),
             ...(opts.systemPrompt ? { system: opts.systemPrompt } : {}),
             messages: [{ role: 'user', content: opts.prompt }],
           },

@@ -84,7 +84,7 @@ type StepModule = { run: (ctx: StepContext) => Promise<StepResult> };
 // (resolution failure is reported at runtime when the step is invoked).
 const STEP_NAMES = [
   'fetch', 'fetchRss', 'fetchEmail', 'compress', 'score', 'merge',
-  'render', 'publish', 'reutersImage', 'tags', 'deliver',
+  'render', 'publish', 'reutersImage', 'tags', 'deliver', 'weekly',
 ] as const;
 type StepName = (typeof STEP_NAMES)[number];
 

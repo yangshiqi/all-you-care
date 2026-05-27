@@ -31,6 +31,7 @@ export interface IssueRow {
   tags: string[]
   cover_image: string | null
   journal_id: number | null
+  issue_type: 'daily' | 'weekly'
   published_at: string
   created_at: string
   delivered: boolean
