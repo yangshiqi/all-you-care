@@ -54,19 +54,20 @@ function escapeHtml(s: string): string {
 }
 
 function renderWeeklyContent(out: WeeklyLlmOutput): string {
+  const { top_events = [], actions = {} as Record<Persona, string[]>, one_number } = out ?? {};
   const parts: string[] = [];
 
   // 1. One number — hero position, first thing readers see
-  if (out.one_number) {
+  if (one_number) {
     parts.push(`<section class="number-hero">
-  <div class="number-value">${escapeHtml(out.one_number.value)}</div>
-  <div class="number-context">${escapeHtml(out.one_number.context)}</div>
+  <div class="number-value">${escapeHtml(one_number.value)}</div>
+  <div class="number-context">${escapeHtml(one_number.context)}</div>
 </section>`);
   }
 
   // 2. Top events
-  if (out.top_events.length > 0) {
-    const items = out.top_events.map((e, i) => `
+  if (top_events.length > 0) {
+    const items = top_events.map((e, i) => `
     <article class="event-card">
       <div class="event-content">
         <h3><span class="event-index">${String(i + 1).padStart(2, '0')}</span> ${escapeHtml(e.title)}</h3>
@@ -91,9 +92,9 @@ ${items}
   ];
   const actionSections: string[] = [];
   for (const meta of personaMeta) {
-    const actions = out.actions[meta.key] ?? [];
-    if (actions.length === 0) continue;
-    const items = actions.map(a => `      <li>${escapeHtml(a)}</li>`).join('\n');
+    const acts = actions[meta.key] ?? [];
+    if (acts.length === 0) continue;
+    const items = acts.map(a => `      <li>${escapeHtml(a)}</li>`).join('\n');
     actionSections.push(`
     <div class="action-card ${meta.cls}">
       <div class="action-body">
@@ -346,7 +347,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   const isoWeekEnd = `${weekEndStr}T23:59:59+08:00`;
 
   // Week number for journal_id slug (ISO week).
-  const jan4 = new Date(weekStart.getUTCFullYear(), 0, 4);
+  const jan4 = new Date(Date.UTC(weekStart.getUTCFullYear(), 0, 4));
   const weekNum = Math.ceil(((weekStart.getTime() - jan4.getTime()) / 86400_000 + jan4.getUTCDay() + 1) / 7);
   const weekSlug = `W${weekStart.getUTCFullYear()}-${String(weekNum).padStart(2, '0')}`;
 
@@ -412,7 +413,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   }
 
   // LLM call.
-  const payload = { events: events.map(e => ({ title: e.title, description: e.description.slice(0, 150), score: e.score, date: e.date })) };
+  const payload = { events: events.map(e => ({ title: e.title, description: (e.description ?? '').slice(0, 150), score: e.score, date: e.date })) };
   const prompt = await loadPrompt(channelDir, 'weekly', {
     week_start: weekStartStr,
     week_end: weekEndStr,
