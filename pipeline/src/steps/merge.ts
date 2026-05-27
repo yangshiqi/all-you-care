@@ -170,6 +170,13 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   const embedCfg = channel.embedding;
   const embeddingsToStore: { title: string; description: string; vec: number[] }[] = [];
 
+  if (embedCfg && !process.env.GEMINI_API_KEY) {
+    log.warn(
+      { event: 'embed_skip_no_key' },
+      'embedding configured but GEMINI_API_KEY not set; skipping semantic dedup',
+    );
+  }
+
   if (embedCfg && process.env.GEMINI_API_KEY) {
     try {
       const threshold = embedCfg.similarity_threshold;
@@ -187,16 +194,21 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
       );
 
       // Cross-issue: compare against stored embeddings from recent issues.
-      const { data: storedRows } = await db
+      const { data: storedRows, error: fetchErr } = await db
         .from('event_embeddings')
         .select('title, embedding')
         .eq('channel', channel.name)
         .gte('created_at', oldCutoffForDedup)
         .lt('created_at', today.isoStart);
-      const stored = (storedRows ?? []) as {
-        title: string;
-        embedding: number[];
-      }[];
+      if (fetchErr) {
+        log.warn({ event: 'embed_fetch_fail', err: fetchErr.message }, 'failed to fetch event embeddings');
+      }
+      const stored = (storedRows ?? []).map((row: { title: string; embedding: unknown }) => ({
+        title: row.title,
+        embedding: typeof row.embedding === 'string'
+          ? JSON.parse(row.embedding) as number[]
+          : row.embedding as number[],
+      }));
 
       const embCrossDrop: string[] = [];
       const crossSurvivors: { event: MergedEvent; vec: number[] }[] = [];

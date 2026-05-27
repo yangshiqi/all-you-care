@@ -32,10 +32,17 @@ export async function embedTexts(
     all.push(...vecs);
   }
 
+  if (all.length !== texts.length) {
+    throw new Error(`Embedding count mismatch: expected ${texts.length}, got ${all.length}`);
+  }
+
   return { embeddings: all, model };
 }
 
 export function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length) {
+    throw new Error(`Vector length mismatch: ${a.length} vs ${b.length}`);
+  }
   let dot = 0;
   let na = 0;
   let nb = 0;
@@ -44,6 +51,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
     na += a[i]! * a[i]!;
     nb += b[i]! * b[i]!;
   }
+  if (na === 0 || nb === 0) return 0;
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
 
@@ -92,8 +100,11 @@ async function batchEmbed(
     }
 
     const data = (await res.json()) as {
-      embeddings: { values: number[] }[];
+      embeddings?: { values: number[] }[];
     };
+    if (!data.embeddings || !Array.isArray(data.embeddings)) {
+      throw new Error('Invalid response structure from Gemini embedding API');
+    }
     return data.embeddings.map((e) => e.values);
   }
   throw new Error('unreachable');

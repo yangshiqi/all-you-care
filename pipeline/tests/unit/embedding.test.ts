@@ -27,6 +27,14 @@ describe('cosineSimilarity', () => {
     expect(cosineSimilarity(a, b)).toBeCloseTo(cosineSimilarity(b, a), 10);
   });
 
+  it('throws on length mismatch', () => {
+    expect(() => cosineSimilarity([1, 2], [1, 2, 3])).toThrow('length mismatch');
+  });
+
+  it('returns 0 for zero vectors', () => {
+    expect(cosineSimilarity([0, 0, 0], [1, 2, 3])).toBe(0);
+  });
+
   it('handles high-dimensional vectors (3072-dim like Gemini)', () => {
     const a = Array.from({ length: 3072 }, (_, i) => Math.sin(i));
     const b = Array.from({ length: 3072 }, (_, i) => Math.sin(i + 0.1));
