@@ -1,0 +1,16 @@
+name: ai · weekly-digest
+on:
+  # Scheduled by cron-job.org every Sunday ~00:30 UTC = 08:30 Asia/Shanghai
+  # Reviews Mon-Sat dailies. Sunday daily is skipped; Monday daily covers weekend.
+  workflow_dispatch: {}
+
+jobs:
+  weekly:
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: weekly }
+    secrets: inherit
+  publish:
+    needs: weekly
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: publish }
+    secrets: inherit

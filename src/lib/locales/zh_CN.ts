@@ -26,7 +26,8 @@ export const zh_CN = {
     },
     "nav": {
       "subscribe": "订阅",
-      "issues": "往期内容",
+      "issues": "日报",
+      "weekly": "周报",
       "tags": "标签",
       "search": "搜索 (Cmd+K)"
     },

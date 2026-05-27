@@ -48,7 +48,7 @@ export const ChannelConfigSchema = z.object({
     max_tokens: z.number().int().positive(),
     temperature: z.number().min(0).max(2),
     steps: z.record(
-      z.enum(['compress', 'score', 'merge', 'render', 'reutersImage']),
+      z.enum(['compress', 'score', 'merge', 'render', 'reutersImage', 'weekly']),
       z.object({
         model: z.string().optional(),
         max_tokens: z.number().int().positive().optional(),
@@ -61,7 +61,7 @@ export const ChannelConfigSchema = z.object({
 
 export type ChannelConfig = z.infer<typeof ChannelConfigSchema>;
 
-export type LlmStep = 'compress' | 'score' | 'merge' | 'render' | 'reutersImage';
+export type LlmStep = 'compress' | 'score' | 'merge' | 'render' | 'reutersImage' | 'weekly';
 
 export interface ResolvedLlm {
   model: string;

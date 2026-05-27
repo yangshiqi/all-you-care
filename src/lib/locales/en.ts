@@ -26,7 +26,8 @@ export const en = {
     },
     "nav": {
       "subscribe": "subscribe",
-      "issues": "issues",
+      "issues": "daily",
+      "weekly": "weekly",
       "tags": "tags",
       "search": "Search (Cmd+K)"
     },

@@ -78,6 +78,7 @@ export const getAllAiContentsPaginated = cache(async (
       .from('issues')
       .select('*', { count: 'exact', head: true })
       .eq('channel', 'ai')
+      .eq('issue_type', 'daily')
     if (dbLang) countQuery = countQuery.eq('lang', dbLang)
 
     const { count, error: countError } = await countQuery
@@ -90,6 +91,7 @@ export const getAllAiContentsPaginated = cache(async (
       .from('issues')
       .select(ISSUE_COLS_LIGHT)
       .eq('channel', 'ai')
+      .eq('issue_type', 'daily')
       .order('published_at', { ascending: false })
       .range(from, to)
     if (dbLang) dataQuery = dataQuery.eq('lang', dbLang)
@@ -433,5 +435,33 @@ export const getIssuesByMonth = cache(async (monthStr: string, i18nLang?: string
   } catch (error) {
     console.error(`Error fetching issues for month ${monthStr}:`, error);
     return [];
+  }
+});
+
+// -----------------------------------------------------------------------------
+// Weekly Digest API
+// -----------------------------------------------------------------------------
+
+export const getWeeklyIssues = cache(async (
+  i18nLang?: string,
+  limit: number = 20,
+): Promise<IssueSummary[]> => {
+  try {
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+    let query = supabase
+      .from('issues')
+      .select(ISSUE_COLS_LIGHT)
+      .eq('channel', 'ai')
+      .eq('issue_type', 'weekly')
+      .order('published_at', { ascending: false })
+      .limit(limit)
+    if (dbLang) query = query.eq('lang', dbLang)
+
+    const { data, error } = await query
+    if (error) throw new Error(`Failed to fetch weekly issues: ${error.message}`)
+    return ((data ?? []) as IssueLightRow[]).map(mapIssueRowToSummary)
+  } catch (error) {
+    console.error('Error in getWeeklyIssues:', error)
+    return []
   }
 });
