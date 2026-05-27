@@ -281,12 +281,10 @@ function splitVersion(token: string): { prefix: string; ver: string; suffix: str
 function hasVersionConflict(tokensA: Set<string>, tokensB: Set<string>): boolean {
   const uniqueA = [...tokensA].filter(t => !tokensB.has(t) && /\d/.test(t));
   const uniqueB = [...tokensB].filter(t => !tokensA.has(t) && /\d/.test(t));
-  for (const tA of uniqueA) {
-    const vA = splitVersion(tA);
-    if (!vA) continue;
-    for (const tB of uniqueB) {
-      const vB = splitVersion(tB);
-      if (!vB) continue;
+  const parsedA = uniqueA.map(splitVersion).filter((v): v is { prefix: string; ver: string; suffix: string } => v !== null);
+  const parsedB = uniqueB.map(splitVersion).filter((v): v is { prefix: string; ver: string; suffix: string } => v !== null);
+  for (const vA of parsedA) {
+    for (const vB of parsedB) {
       if (vA.prefix === vB.prefix && vA.suffix === vB.suffix && vA.ver !== vB.ver) return true;
     }
   }
