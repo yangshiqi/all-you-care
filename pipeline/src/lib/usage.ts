@@ -18,11 +18,15 @@ export interface UsageRecord {
 
 // Per-million-token pricing. Add new models here as needed.
 const PRICING: Record<string, { input: number; output: number }> = {
-  'claude-haiku-4-5-20251001': { input: 0.80, output: 4.00 },
+  'claude-haiku-4-5': { input: 0.80, output: 4.00 },
   'claude-sonnet-4-6':        { input: 3.00, output: 15.00 },
+  'claude-sonnet-4-7':        { input: 3.00, output: 15.00 },
   'claude-sonnet-4-5-20250514': { input: 3.00, output: 15.00 },
   'claude-opus-4-7':          { input: 15.00, output: 75.00 },
   'gemini-embedding-001':     { input: 0.00, output: 0.00 },
+  'gemini-3.5-flash':         { input: 0.00, output: 0.00 },
+  'gemini-2.5-flash':         { input: 0.00, output: 0.00 },
+  'gemini-3-flash-preview':   { input: 0.00, output: 0.00 },
 };
 
 export function estimateCost(model: string, inputTokens: number, outputTokens: number): number {

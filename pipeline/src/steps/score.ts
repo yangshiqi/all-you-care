@@ -28,9 +28,10 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         model: llmCfg.model,
         maxTokens: llmCfg.maxTokens,
         temperature: llmCfg.temperature,
+        chain: llmCfg.chain,
         log,
       });
-      await trackUsage(db, { channel: channel.name, step: 'score', provider: 'anthropic', model: llmCfg.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens }, log);
+      await trackUsage(db, { channel: channel.name, step: 'score', provider: result.provider, model: result.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens }, log);
       const newId = await commit.score(db, channel.name, d.id, result.text);
       log.info({ event: 'score_ok', draft_id: d.id, scored_id: newId }, '');
       processed++;

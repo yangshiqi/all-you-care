@@ -5,6 +5,13 @@ export const RssSourceSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
+const ChainEntrySchema = z.object({
+  provider: z.enum(['gemini', 'anthropic']),
+  model: z.string(),
+});
+
+export type ChainEntry = z.infer<typeof ChainEntrySchema>;
+
 export const ChannelConfigSchema = z.object({
   name: z.enum(['ai', 'snow']),
   display_name: z.string(),
@@ -41,11 +48,12 @@ export const ChannelConfigSchema = z.object({
     max_tokens: z.number().int().positive(),
     temperature: z.number().min(0).max(2),
     steps: z.record(
-      z.enum(['compress', 'score', 'merge', 'render']),
+      z.enum(['compress', 'score', 'merge', 'render', 'reutersImage']),
       z.object({
         model: z.string().optional(),
         max_tokens: z.number().int().positive().optional(),
         temperature: z.number().min(0).max(2).optional(),
+        chain: z.array(ChainEntrySchema).optional(),
       }),
     ).optional(),
   }),
@@ -53,18 +61,22 @@ export const ChannelConfigSchema = z.object({
 
 export type ChannelConfig = z.infer<typeof ChannelConfigSchema>;
 
-export type LlmStep = 'compress' | 'score' | 'merge' | 'render';
+export type LlmStep = 'compress' | 'score' | 'merge' | 'render' | 'reutersImage';
 
-export function resolveLlm(channel: ChannelConfig, step: LlmStep): {
+export interface ResolvedLlm {
   model: string;
   maxTokens: number;
   temperature: number;
-} {
+  chain?: ChainEntry[];
+}
+
+export function resolveLlm(channel: ChannelConfig, step: LlmStep): ResolvedLlm {
   const base = channel.llm;
   const override = base.steps?.[step] ?? {};
   return {
     model: override.model ?? base.model,
     maxTokens: override.max_tokens ?? base.max_tokens,
     temperature: override.temperature ?? base.temperature,
+    chain: override.chain,
   };
 }
