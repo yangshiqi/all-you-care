@@ -342,6 +342,25 @@ describe('deduplicateEvents', () => {
     expect(out).toHaveLength(2);
   });
 
+  it('merges DeepSeek pricing variants via description fallback (bare numbers are not versions)', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'DeepSeek 永久化 75% 折扣，输出 token 价格 $0.87/M',
+        description: 'DeepSeek 宣布永久下调 API 价格至原价 25%，V4-Pro 模型输出 token 价格降至 $0.87/M，输入价格同步大幅下调。',
+        links: ['https://a.example/ds-price-1'],
+        score: 7.5,
+      },
+      {
+        title: 'DeepSeek-V4-Pro API永久降价至原价25%',
+        description: 'DeepSeek 正式宣布旗舰模型 V4-Pro 的 API 价格永久降至原价的 25%，大幅降低开发者使用成本，输出 token 仅 $0.87/M。',
+        links: ['https://b.example/ds-price-2'],
+        score: 7.5,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.source_count).toBe(2);
+  });
+
   it('description fallback still allows GPT-5 vs GPT-6 to stay separate', () => {
     // Even with similar long descriptions, version differentiation in titles
     // means these stay as separate model announcements (token "gpt-5" vs
