@@ -31,6 +31,10 @@ export const ChannelConfigSchema = z.object({
     cdn_random_max: z.number().int().positive(),
     default: z.string(),
   }),
+  embedding: z.object({
+    model: z.string().default('gemini-embedding-001'),
+    similarity_threshold: z.number().min(0).max(1).default(0.79),
+  }).optional(),
   deliver: z.object({ url: z.string().url() }),
   llm: z.object({
     model: z.string(),

@@ -14,6 +14,7 @@ import {
   descriptionsLikelySameEvent,
   type MergedEvent,
 } from '../lib/eventDedup.js';
+import { embedTexts, cosineSimilarity } from '../lib/embedding.js';
 
 // ----- types ---------------------------------------------------------------
 
@@ -133,7 +134,7 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   }
 
   const crossDupTitles: string[] = [];
-  const merged = phantoms.length > 0
+  let merged = phantoms.length > 0
     ? withinDeduped.filter((e) => {
         const eNorm = normalizeTitle(e.title);
         for (const ph of phantoms) {
@@ -161,6 +162,131 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
       },
       'dropped events already published in recent issues',
     );
+  }
+
+  // 1c. Embedding-based semantic dedup (5th layer).
+  // Rule-based matching has blind spots for paraphrased titles with different
+  // numbers, transliterations, etc. Embeddings catch these by comparing meaning.
+  const embedCfg = channel.embedding;
+  const embeddingsToStore: { title: string; description: string; vec: number[] }[] = [];
+
+  if (embedCfg && !process.env.GEMINI_API_KEY) {
+    log.warn(
+      { event: 'embed_skip_no_key' },
+      'embedding configured but GEMINI_API_KEY not set; skipping semantic dedup',
+    );
+  }
+
+  if (embedCfg && process.env.GEMINI_API_KEY) {
+    try {
+      const threshold = embedCfg.similarity_threshold;
+
+      const texts = merged.map(
+        (e) => `${e.title} — ${e.description.slice(0, 200)}`,
+      );
+      const { embeddings: vecs } = await embedTexts(texts, {
+        model: embedCfg.model,
+        log,
+      });
+      log.info(
+        { event: 'embed_ok', count: vecs.length, dims: vecs[0]?.length },
+        'generated event embeddings',
+      );
+
+      // Cross-issue: compare against stored embeddings from recent issues.
+      const { data: storedRows, error: fetchErr } = await db
+        .from('event_embeddings')
+        .select('title, embedding')
+        .eq('channel', channel.name)
+        .gte('created_at', oldCutoffForDedup)
+        .lt('created_at', today.isoStart);
+      if (fetchErr) {
+        log.warn({ event: 'embed_fetch_fail', err: fetchErr.message }, 'failed to fetch event embeddings');
+      }
+      const stored = (storedRows ?? []).map((row: { title: string; embedding: unknown }) => ({
+        title: row.title,
+        embedding: typeof row.embedding === 'string'
+          ? JSON.parse(row.embedding) as number[]
+          : row.embedding as number[],
+      }));
+
+      const embCrossDrop: string[] = [];
+      const crossSurvivors: { event: MergedEvent; vec: number[] }[] = [];
+      for (let i = 0; i < merged.length; i++) {
+        const e = merged[i]!;
+        const v = vecs[i]!;
+        let hit = false;
+        for (const s of stored) {
+          if (cosineSimilarity(v, s.embedding) >= threshold) {
+            embCrossDrop.push(`${e.title} ≈ ${s.title}`);
+            hit = true;
+            break;
+          }
+        }
+        if (!hit) crossSurvivors.push({ event: e, vec: v });
+      }
+      if (embCrossDrop.length > 0) {
+        log.info(
+          {
+            event: 'embed_cross_dedup',
+            dropped: embCrossDrop.length,
+            stored_pool: stored.length,
+            remaining: crossSurvivors.length,
+            samples: embCrossDrop.slice(0, 5),
+          },
+          'dropped events by embedding similarity to recent issues',
+        );
+      }
+
+      // Within-issue: pairwise similarity among survivors.
+      const embWithinDrop: string[] = [];
+      const kept: { event: MergedEvent; vec: number[] }[] = [];
+      for (const item of crossSurvivors) {
+        let mergedInto = false;
+        for (const k of kept) {
+          if (cosineSimilarity(item.vec, k.vec) >= threshold) {
+            if (item.event.score > k.event.score) k.event.score = item.event.score;
+            if (item.event.description.length > k.event.description.length) {
+              k.event.description = item.event.description;
+            }
+            for (const u of item.event.links) {
+              if (!k.event.links.includes(u)) k.event.links.push(u);
+            }
+            k.event.source_count += item.event.source_count;
+            embWithinDrop.push(`${item.event.title} ≈ ${k.event.title}`);
+            mergedInto = true;
+            break;
+          }
+        }
+        if (!mergedInto) kept.push(item);
+      }
+      if (embWithinDrop.length > 0) {
+        log.info(
+          {
+            event: 'embed_within_dedup',
+            merged_count: embWithinDrop.length,
+            remaining: kept.length,
+            samples: embWithinDrop.slice(0, 5),
+          },
+          'merged within-issue events by embedding similarity',
+        );
+      }
+
+      // Reassign merged with fresh sequential IDs.
+      merged = kept.map((k, i) => ({ ...k.event, id: i + 1 }));
+      for (const k of kept) {
+        embeddingsToStore.push({
+          title: k.event.title,
+          description: k.event.description.slice(0, 500),
+          vec: k.vec,
+        });
+      }
+    } catch (err) {
+      log.warn(
+        { event: 'embed_dedup_skip', err: (err as Error).message },
+        'embedding dedup failed, continuing with rule-based results',
+      );
+    }
   }
 
   // 2. build a slim LLM payload — just id/title/score + 1-line description.
@@ -354,6 +480,31 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
     },
     '',
   );
+
+  // Store event embeddings for future cross-issue dedup.
+  if (embeddingsToStore.length > 0) {
+    const rows = embeddingsToStore.map((e) => ({
+      channel: channel.name,
+      pre_publish_id: newId,
+      title: e.title,
+      description: e.description,
+      embedding: JSON.stringify(e.vec),
+    }));
+    const { error: insErr } = await db
+      .from('event_embeddings')
+      .insert(rows);
+    if (insErr) {
+      log.warn(
+        { event: 'embed_store_fail', err: insErr.message },
+        'failed to store event embeddings',
+      );
+    } else {
+      log.info(
+        { event: 'embed_store_ok', count: rows.length, pre_publish_id: newId },
+        'stored event embeddings for future dedup',
+      );
+    }
+  }
 }
 
 // ----- SNOW channel: untouched legacy single-LLM flow ----------------------
