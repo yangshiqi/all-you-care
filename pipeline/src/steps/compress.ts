@@ -4,6 +4,7 @@ import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt, wrapUntrustedItems } from '../lib/prompt.js';
+import { trackUsage } from '../lib/usage.js';
 
 export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, channelDir, db, log, dryRun } = ctx;
@@ -38,6 +39,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       temperature: llmCfg.temperature,
       log,
     });
+    await trackUsage(db, { channel: channel.name, step: 'compress', provider: 'anthropic', model: llmCfg.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens, duration_ms: 0 }, log);
     const newDraftId = await commit.compress(
       db, channel.name, result.text, claimed.map(c => c.id),
     );
