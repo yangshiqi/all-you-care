@@ -5,6 +5,7 @@ import { claim, commit, markFailed, type PrePublishRow } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
 import { sanitizeIssueHtml } from '../lib/sanitize.js';
+import { trackUsage } from '../lib/usage.js';
 
 interface RenderOutput {
   content_html: string;
@@ -502,6 +503,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
           temperature: llmCfg.temperature,
           log,
         });
+        await trackUsage(db, { channel: channel.name, step: 'render', provider: 'anthropic', model: llmCfg.model, input_tokens: llm.inputTokens, output_tokens: llm.outputTokens }, log);
         inner = llm.json!.content_html;
       }
 

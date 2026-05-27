@@ -3,6 +3,7 @@ import type { StepContext, StepResult } from '../cli.js';
 import { withImap, fetchUnreadFrom, markRead } from '../lib/imap.js';
 import { callLlm } from '../lib/llm.js';
 import { wrapUntrustedItems } from '../lib/prompt.js';
+import { trackUsage } from '../lib/usage.js';
 
 const REUTERS_FROM = 'dailybriefing@thomsonreuters.com';
 
@@ -76,6 +77,7 @@ ${wrapUntrustedItems([{ source: m.from, content: slice }])}`;
           maxTokens: 500,
           log,
         });
+        await trackUsage(db, { channel: 'ai', step: 'reutersImage', provider: 'anthropic', model: 'claude-haiku-4-5-20251001', input_tokens: result.inputTokens, output_tokens: result.outputTokens }, log);
         const ext = result.json!;
         if (!ext?.imgUrl?.startsWith('https://')) {
           skipped++;

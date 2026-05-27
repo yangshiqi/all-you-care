@@ -4,6 +4,7 @@ import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt, wrapUntrustedItems } from '../lib/prompt.js';
+import { trackUsage } from '../lib/usage.js';
 
 export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, channelDir, db, log, dryRun } = ctx;
@@ -29,6 +30,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         temperature: llmCfg.temperature,
         log,
       });
+      await trackUsage(db, { channel: channel.name, step: 'score', provider: 'anthropic', model: llmCfg.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens }, log);
       const newId = await commit.score(db, channel.name, d.id, result.text);
       log.info({ event: 'score_ok', draft_id: d.id, scored_id: newId }, '');
       processed++;
