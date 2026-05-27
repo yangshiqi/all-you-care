@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 interface UsageRow {
+  id: number
   channel: string
   step: string
   provider: string
@@ -32,6 +33,7 @@ interface StepSummary {
 export default function AdminPage() {
   const [rows, setRows] = useState<UsageRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [days, setDays] = useState(30)
 
   useEffect(() => {
@@ -42,13 +44,15 @@ export default function AdminPage() {
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(5000)
-      .then(({ data }) => {
-        setRows((data as UsageRow[]) ?? [])
+      .then(({ data, error: err }) => {
+        if (err) setError(err.message)
+        else setRows((data as UsageRow[]) ?? [])
         setLoading(false)
       })
   }, [days])
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>
+  if (error) return <div className="p-8 text-center text-red-500">Failed to load: {error}</div>
   if (rows.length === 0) return <div className="p-8 text-center text-muted-foreground">No usage data yet. Data will appear after the next pipeline run.</div>
 
   // Aggregate by day
@@ -163,7 +167,7 @@ export default function AdminPage() {
           </thead>
           <tbody>
             {rows.slice(0, 20).map(r => (
-              <tr key={r.created_at + r.step} className="border-b border-border/50">
+              <tr key={r.id} className="border-b border-border/50">
                 <td className="py-1 text-muted-foreground">{new Date(r.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
                 <td>{r.step}</td>
                 <td className="text-muted-foreground">{r.model.replace('claude-', '').replace('-20251001', '')}</td>

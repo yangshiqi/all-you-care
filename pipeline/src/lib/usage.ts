@@ -36,12 +36,19 @@ export async function trackUsage(
   record: UsageRecord,
   log: Logger,
 ): Promise<void> {
-  const cost = estimateCost(record.model, record.input_tokens, record.output_tokens);
-  const { error } = await db.from('llm_usage').insert({
-    ...record,
-    cost_usd: cost,
-  });
-  if (error) {
-    log.warn({ event: 'usage_insert_fail', err: error.message }, 'failed to track LLM usage');
+  try {
+    const cost = estimateCost(record.model, record.input_tokens, record.output_tokens);
+    if (cost === 0 && (record.input_tokens > 0 || record.output_tokens > 0)) {
+      log.warn({ event: 'usage_unknown_model', model: record.model }, 'model not in pricing table, cost recorded as $0');
+    }
+    const { error } = await db.from('llm_usage').insert({
+      ...record,
+      cost_usd: cost,
+    });
+    if (error) {
+      log.warn({ event: 'usage_insert_fail', err: error.message }, 'failed to track LLM usage');
+    }
+  } catch (err) {
+    log.warn({ event: 'usage_insert_fail', err: (err as Error).message }, 'failed to track LLM usage');
   }
 }
