@@ -270,6 +270,27 @@ function overlapCoefficient(a: Set<string>, b: Set<string>): number {
   return setIntersectionSize(a, b) / Math.min(a.size, b.size);
 }
 
+const VERSION_SUFFIX_RE = /^(.*?[a-z][-.]?)(\d[\d.]*)(.*)$/;
+
+function splitVersion(token: string): { prefix: string; ver: string; suffix: string } | null {
+  const m = VERSION_SUFFIX_RE.exec(token);
+  if (!m || !m[1]) return null;
+  return { prefix: m[1], ver: m[2] ?? '', suffix: m[3] ?? '' };
+}
+
+function hasVersionConflict(tokensA: Set<string>, tokensB: Set<string>): boolean {
+  const uniqueA = [...tokensA].filter(t => !tokensB.has(t) && /\d/.test(t));
+  const uniqueB = [...tokensB].filter(t => !tokensA.has(t) && /\d/.test(t));
+  const parsedA = uniqueA.map(splitVersion).filter((v): v is { prefix: string; ver: string; suffix: string } => v !== null);
+  const parsedB = uniqueB.map(splitVersion).filter((v): v is { prefix: string; ver: string; suffix: string } => v !== null);
+  for (const vA of parsedA) {
+    for (const vB of parsedB) {
+      if (vA.prefix === vB.prefix && vA.suffix === vB.suffix && vA.ver !== vB.ver) return true;
+    }
+  }
+  return false;
+}
+
 export function descriptionsLikelySameEvent(
   a: { title: string; description: string },
   b: { title: string; description: string },
@@ -278,14 +299,14 @@ export function descriptionsLikelySameEvent(
   if (a.description.length < FUZZY_DESC_MIN_LEN) return false;
   if (b.description.length < FUZZY_DESC_MIN_LEN) return false;
 
-  // Version guard: if either title has a unique latin token containing a digit
-  // (e.g. gpt-5 / llama-3 / sora-2), the two events are likely different
-  // releases of the same product line — refuse to merge regardless of
-  // description similarity.
+  // Version guard: reject when the two titles look like different releases of
+  // the same product (e.g. "GPT-4" vs "GPT-5"). We only reject when there's a
+  // concrete *version pair* — two tokens that share a text prefix but differ in
+  // a trailing version number. Bare numbers (prices, percentages, dates) that
+  // don't pair up are harmless and should not block dedup.
   const titleTokensA = new Set(extractLatinTokensFromRaw(a.title));
   const titleTokensB = new Set(extractLatinTokensFromRaw(b.title));
-  for (const t of titleTokensA) if (!titleTokensB.has(t) && /\d/.test(t)) return false;
-  for (const t of titleTokensB) if (!titleTokensA.has(t) && /\d/.test(t)) return false;
+  if (hasVersionConflict(titleTokensA, titleTokensB)) return false;
 
   const tokensA = combinedLatinTokenSet(a.title, a.description);
   const tokensB = combinedLatinTokenSet(b.title, b.description);
