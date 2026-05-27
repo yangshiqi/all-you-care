@@ -62,6 +62,10 @@ cover_image:
   cdn_random_max: 8
   default: "/ainews/default.jpg"
 
+embedding:
+  model: gemini-embedding-001
+  similarity_threshold: 0.79
+
 deliver:
   url: "https://www.snapallx.com/api/send-latest-ai-news?type=ai"
 
