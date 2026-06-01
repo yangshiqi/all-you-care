@@ -38,7 +38,9 @@ const JOBS: ScheduleSpec[] = [
   { workflow: 'ai-compress.yml', cron: '10 */3 * * *', title: 'ai · compress (every 3h +10)' },
   { workflow: 'ai-score.yml', cron: '40 */3 * * *', title: 'ai · score (every 3h +40)' },
   { workflow: 'reuters-image.yml', cron: '0 23 * * *', title: 'ai · reuters-image (07:00 SH)' },
-  { workflow: 'ai-publish.yml', cron: '30 0 * * *', title: 'ai · publish-pipeline (08:30 SH)' },
+  // Daily issue Mon–Sat; Sunday is replaced by the weekly digest below.
+  { workflow: 'ai-publish.yml', cron: '30 0 * * 1-6', title: 'ai · publish-pipeline (Mon–Sat 08:30 SH)' },
+  { workflow: 'ai-weekly.yml', cron: '30 0 * * 0', title: 'ai · weekly-digest (Sun 08:30 SH)' },
   { workflow: 'ai-tags.yml', cron: '0 1 * * *', title: 'ai · tags (09:00 SH)' },
   // Snow channel not currently in active use — add these back if it goes live:
   // { workflow: 'snow-fetch.yml', cron: '0 1,11 * * *', title: 'snow · fetch (09:00 / 19:00 SH)' },
@@ -68,13 +70,25 @@ function expandField(expr: string, range: [number, number]): number[] {
     for (let i = lo; i <= hi; i += step) out.push(i);
     return out;
   }
-  return expr.split(',').map((p) => {
+  const out: number[] = [];
+  for (const p of expr.split(',')) {
+    const range = p.match(/^(\d+)-(\d+)$/);
+    if (range) {
+      const a = Number(range[1]);
+      const b = Number(range[2]);
+      if (a < lo || b > hi || a > b) {
+        throw new Error(`out-of-range cron range: ${p} (expected ${lo}..${hi})`);
+      }
+      for (let i = a; i <= b; i++) out.push(i);
+      continue;
+    }
     const n = Number(p);
     if (!Number.isInteger(n) || n < lo || n > hi) {
       throw new Error(`out-of-range cron value: ${p} (expected ${lo}..${hi})`);
     }
-    return n;
-  });
+    out.push(n);
+  }
+  return out;
 }
 
 function parseCron(expr: string): CronJobSchedule {
