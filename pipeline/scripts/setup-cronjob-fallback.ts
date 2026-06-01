@@ -72,18 +72,21 @@ function expandField(expr: string, range: [number, number]): number[] {
   }
   const out: number[] = [];
   for (const p of expr.split(',')) {
-    const range = p.match(/^(\d+)-(\d+)$/);
-    if (range) {
-      const a = Number(range[1]);
-      const b = Number(range[2]);
+    const match = p.match(/^(\d+)-(\d+)$/);
+    if (match) {
+      const a = Number(match[1]);
+      const b = Number(match[2]);
       if (a < lo || b > hi || a > b) {
         throw new Error(`out-of-range cron range: ${p} (expected ${lo}..${hi})`);
       }
       for (let i = a; i <= b; i++) out.push(i);
       continue;
     }
+    if (!/^\d+$/.test(p)) {
+      throw new Error(`invalid cron value: "${p}"`);
+    }
     const n = Number(p);
-    if (!Number.isInteger(n) || n < lo || n > hi) {
+    if (n < lo || n > hi) {
       throw new Error(`out-of-range cron value: ${p} (expected ${lo}..${hi})`);
     }
     out.push(n);
