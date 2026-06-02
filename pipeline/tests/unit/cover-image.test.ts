@@ -73,6 +73,18 @@ describe('pickCoverImage (reuters_pool: today-or-default)', () => {
     expect(pick.url).toBe('/ainews/default.jpg');
   });
 
+  it('falls back to default when created_at is invalid (no RangeError crash)', async () => {
+    const db = fakeDb({ image_url: 'https://r/x.jpg', description: 'd', link: 'l', created_at: 'not-a-date' });
+    const pick = await pickCoverImage(db, config, 'ai', log, now);
+    expect(pick.url).toBe('/ainews/default.jpg');
+  });
+
+  it('falls back to default when image_url is missing', async () => {
+    const db = fakeDb({ image_url: null, description: 'd', link: 'l', created_at: '2026-06-01T23:00:00Z' });
+    const pick = await pickCoverImage(db, config, 'ai', log, now);
+    expect(pick.url).toBe('/ainews/default.jpg');
+  });
+
   it('falls back to default on query error', async () => {
     const pick = await pickCoverImage(fakeDb(null, { message: 'boom' }), config, 'ai', log, now);
     expect(pick.url).toBe('/ainews/default.jpg');

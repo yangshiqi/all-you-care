@@ -47,9 +47,13 @@ export async function pickCoverImage(
       .limit(1);
     if (error) return fallback(`query_error:${error.message}`);
     const row = data?.[0];
-    if (!row) return fallback('empty');
+    if (!row?.image_url) return fallback('empty');
+    // Guard the date parse: a bad created_at would make todayCst's
+    // Intl.DateTimeFormat throw RangeError and crash the publish — fall back.
+    const createdAt = new Date(row.created_at);
+    if (Number.isNaN(createdAt.getTime())) return fallback('bad_created_at');
     const today = todayCst(now).date;
-    const rowDay = todayCst(new Date(row.created_at)).date;
+    const rowDay = todayCst(createdAt).date;
     if (rowDay !== today) return fallback(`stale:${rowDay}`);
     log.debug({ event: 'cover', source: 'reuters_today', url: row.image_url }, '');
     return {
