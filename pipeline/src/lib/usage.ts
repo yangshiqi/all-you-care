@@ -24,7 +24,7 @@ const PRICING: Record<string, { input: number; output: number }> = {
   'claude-sonnet-4-5-20250514': { input: 3.00, output: 15.00 },
   'claude-opus-4-7':          { input: 15.00, output: 75.00 },
   'gemini-embedding-001':     { input: 0.00, output: 0.00 },
-  'gemini-3.5-flash':         { input: 0.00, output: 0.00 },
+  'gemini-3.5-flash':         { input: 1.50, output: 9.00 },
   'gemini-2.5-flash':         { input: 0.00, output: 0.00 },
   'gemini-3-flash-preview':   { input: 0.00, output: 0.00 },
 };
