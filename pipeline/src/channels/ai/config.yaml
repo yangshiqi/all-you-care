@@ -77,11 +77,11 @@ llm:
     compress:
       chain:
         - { provider: gemini, model: gemini-3.5-flash }
-        - { provider: anthropic, model: claude-haiku-4-5 }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
     score:
       chain:
         - { provider: gemini, model: gemini-3.5-flash }
-        - { provider: anthropic, model: claude-haiku-4-5 }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
     merge:
       chain:
         - { provider: anthropic, model: claude-sonnet-4-6 }
@@ -94,4 +94,4 @@ llm:
       max_tokens: 500
       chain:
         - { provider: gemini, model: gemini-3.5-flash }
-        - { provider: anthropic, model: claude-haiku-4-5 }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
