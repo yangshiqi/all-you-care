@@ -237,6 +237,13 @@ async function callGemini(opts: {
     generationConfig: {
       maxOutputTokens: maxTokens,
       temperature,
+      // gemini-3.5-flash is a thinking model and its reasoning tokens count
+      // toward maxOutputTokens. For these extraction/compression/JSON steps we
+      // don't want thinking — it silently eats the output budget and trips
+      // MAX_TOKENS before the answer is written (observed: reutersImage burned
+      // ~478/500 tokens on thoughts, returning empty JSON). thinkingBudget: 0
+      // disables it so the full budget is available for the actual response.
+      thinkingConfig: { thinkingBudget: 0 },
       ...(opts.expectJson ? { responseMimeType: 'application/json' } : {}),
     },
   };
@@ -430,7 +437,11 @@ export async function callLlm<T = unknown>(opts: LlmCallOpts): Promise<LlmResult
         return await callSingleProvider(entry.provider, entry.model, fullOpts) as LlmResult<T>;
       } catch (e) {
         lastErr = e;
-        if (e instanceof LlmTruncatedError) throw e;
+        // Truncation used to abort the whole chain here. That negated the
+        // fallback: when gemini (a thinking model) tripped MAX_TOKENS, the
+        // downstream Claude provider — which would have answered fine — was
+        // never tried. Treat truncation like any other failure: fall back to
+        // the next provider, and only surface it once the chain is exhausted.
         const isLast = i === opts.chain.length - 1;
         opts.log.warn(
           { event: 'chain_fallback', from: `${entry.provider}/${entry.model}`, attempt: i + 1, total: opts.chain.length, err: (e as Error).message, is_last: isLast },
