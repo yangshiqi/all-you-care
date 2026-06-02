@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { shanghaiYearMonth } from './time.js';
+import { shanghaiYearMonth, todayCst } from './time.js';
 import type { Channel } from './db.js';
 import type { ChannelConfig } from '../channels/types.js';
 import type { Logger } from './log.js';
@@ -28,28 +28,38 @@ export async function pickCoverImage(
   log: Logger,
   now: Date = new Date(),
 ): Promise<CoverPick> {
-  // 1. Reuters pool (only if prefer=reuters_pool)
+  const fallback = (reason: string): CoverPick => {
+    log.debug({ event: 'cover', source: 'default', url: config.cover_image.default, reason }, '');
+    return { url: config.cover_image.default, description: null, link: null };
+  };
+
+  // Reuters path (AI channel): use *today's* freshly-extracted image, or the
+  // default. No pool / recycling — reutersImage produces a new image each day,
+  // and a stale image whose caption no longer matches anything is worse than a
+  // neutral placeholder. "Today" is the Shanghai calendar day, which lines up
+  // the 07:00 SH image with the 08:30 SH paper (the image's UTC date is the
+  // previous day, so UTC comparison would wrongly reject it).
   if (config.cover_image.prefer === 'reuters_pool') {
     const { data, error } = await db.from('cover_images')
-      .select('id, image_url, description, link, used_count')
+      .select('image_url, description, link, created_at')
       .eq('channel', channel)
-      .order('used_count', { ascending: true })
       .order('created_at', { ascending: false })
       .limit(1);
-    if (!error && data && data[0]) {
-      const row = data[0];
-      await db.from('cover_images').update({ used_count: (row.used_count ?? 0) + 1 } as never).eq('id', row.id);
-      log.debug({ event: 'cover', source: 'reuters_pool', url: row.image_url }, '');
-      return {
-        url: row.image_url,
-        description: row.description ?? null,
-        link: row.link ?? null,
-      };
-    }
-    log.debug({ event: 'cover_fallback', from: 'reuters_pool', reason: error?.message ?? 'empty' }, '');
+    if (error) return fallback(`query_error:${error.message}`);
+    const row = data?.[0];
+    if (!row) return fallback('empty');
+    const today = todayCst(now).date;
+    const rowDay = todayCst(new Date(row.created_at)).date;
+    if (rowDay !== today) return fallback(`stale:${rowDay}`);
+    log.debug({ event: 'cover', source: 'reuters_today', url: row.image_url }, '');
+    return {
+      url: row.image_url,
+      description: row.description ?? null,
+      link: row.link ?? null,
+    };
   }
 
-  // 2. CDN convention (HEAD probe)
+  // CDN convention (snow channel): HEAD-probe the daily CDN URL, else default.
   const cdnUrl = pickCdnUrl(config.cover_image.cdn_pattern, config.cover_image.cdn_random_max, now);
   try {
     const resp = await fetch(cdnUrl, { method: 'HEAD', signal: AbortSignal.timeout(5_000) });
@@ -60,8 +70,5 @@ export async function pickCoverImage(
   } catch (e) {
     log.debug({ event: 'cover_fallback', from: 'cdn', err: (e as Error).message }, '');
   }
-
-  // 3. default
-  log.debug({ event: 'cover', source: 'default', url: config.cover_image.default }, '');
-  return { url: config.cover_image.default, description: null, link: null };
+  return fallback('cdn_miss');
 }
