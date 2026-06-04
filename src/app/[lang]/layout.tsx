@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isValidLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/i18n-utils";
 import { getAbsoluteUrl } from "@/lib/utils";
+import { Footer } from "@/components/Footer";
 
 // 导入翻译资源
 import { en } from "@/lib/locales/en";
@@ -104,7 +105,12 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
   if (!isValidLanguage(lang)) {
     notFound();
   }
-  
-  return <>{children}</>;
+
+  return (
+    <>
+      {children}
+      <Footer initialLang={lang} />
+    </>
+  );
 }
 

@@ -31,18 +31,33 @@ export const zh_CN = {
       "tags": "标签",
       "search": "搜索 (Cmd+K)"
     },
+    "subscribePage": {
+      "metaTitle": "订阅 [AI]News 每日简报",
+      "metaDescription": "每天 5 分钟，获取当日最关键的 AI 信号。我们监控 500+ 信息源，过滤噪音，只把真正重要的内容送进你的收件箱。",
+      "title": "每日 AI 简报",
+      "subtitle": "拒绝信息过载，只看全球真正值得关注的 AI 信息。",
+      "benefit1": "每天 5 分钟，0 噪音",
+      "benefit2": "AI 从 500+ 信息源精选",
+      "benefit3": "永久免费，随时退订"
+    },
+    "footer": {
+      "tagline": "每天 5 分钟，了解全球真正值得关注的 AI 信息。",
+      "subscribePrompt": "每日 AI 核心信号，直达你的收件箱。",
+      "subscribeButton": "订阅",
+      "rights": "© 2026 SnapAllx. 保留所有权利。"
+    },
     "hero": {
       "title": "[SnapAI]News",
       "byLine": "by SnapAllx.ai",
       "subtitle": "不要让算法决定你看到什么。",
-      "description": "互联网充斥着 PR 通稿和 AI 生成的垃圾内容。SnapAI 是一台去噪引擎。我们监控全球 500+ 信息源，利用 Agent Swarm 提取信号，过滤噪音。我们不生产新闻，我们反编译真相。",
+      "description": "SnapAI 每天监控全球 500+ 信息源，用 AI 提取内容、过滤噪音，只把真正重要的信息留给你。",
       "emailPlaceholder": "你最常用的邮件地址",
       "firstNamePlaceholder": "名字",
       "lastNamePlaceholder": "姓氏",
       "ctaButton": "订阅每日早报",
       "privacyText": "拒绝垃圾邮件，拒绝 AI 废话，只有纯净信号。",
-      "subscribeBoxTitle": "逃离算法推荐",
-      "subscribeBoxSubtitle": "你的时间很贵，别浪费在 AI 生成的废话上。每天 5 分钟，我们将全球噪音压缩为有限个核心信号，供你参考。",
+      "subscribeBoxTitle": "每日 AI 简报",
+      "subscribeBoxSubtitle": "每天 5 分钟，了解全球真正值得关注的 AI 信息。",
       "subscriberCount": "2,937+",
       "subscriberLabel": "已接入",
       "featureFree": "完全免费",

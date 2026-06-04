@@ -45,7 +45,7 @@ export const LiveLog = () => {
   }, [t]);
 
   return (
-    <div className="bg-card rounded-lg shadow-sm border border-border flex flex-col flex-1 h-full min-h-[350px] overflow-hidden">
+    <div className="bg-card rounded-lg shadow-sm border border-border flex flex-col flex-1 h-full min-h-[350px] md:min-h-0 overflow-hidden">
       {/* Header */}
       <div className="bg-muted/50 px-4 py-2 flex items-center justify-between border-b border-border shrink-0">
         <div className="flex items-center gap-2">

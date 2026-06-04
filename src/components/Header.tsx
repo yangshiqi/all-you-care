@@ -58,6 +58,12 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
             </Link>
+            <Link
+              href={addLanguageToPath("/subscribe", lang)}
+              className="ml-2 bg-primary text-primary-foreground font-bold uppercase tracking-wider px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <TranslatedText>{t('nav.subscribe')}</TranslatedText>
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">
@@ -99,6 +105,13 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
               onClick={() => setMobileMenuOpen(false)}
             >
               <TranslatedText>{t('nav.tags')}</TranslatedText>
+            </Link>
+            <Link
+              href={addLanguageToPath("/subscribe", lang)}
+              className="bg-primary text-primary-foreground font-bold uppercase tracking-wider px-4 py-3 rounded-lg text-center hover:opacity-90 transition-opacity"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <TranslatedText>{t('nav.subscribe')}</TranslatedText>
             </Link>
           </nav>
         </div>
