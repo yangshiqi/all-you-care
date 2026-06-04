@@ -125,8 +125,8 @@ export const SubscribeBox = ({ className, showHeader = true }: SubscribeBoxProps
             </Button>
           </div>
 
-          <input type="text" name="email_address_check" defaultValue="" className="input--hidden" style={{display: 'none'}} readOnly />
-          <input type="hidden" name="locale" value={i18n.language === 'zh_CN' ? 'zh' : 'en'} />
+          <input type="text" name="email_address_check" defaultValue="" className="input--hidden" style={{display: 'none'}} tabIndex={-1} autoComplete="off" readOnly />
+          <input type="hidden" name="locale" value={i18n.language?.startsWith('zh') ? 'zh' : 'en'} />
           <input type="hidden" name="html_type" value="simple" />
         </form>
 
