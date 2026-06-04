@@ -16,23 +16,26 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return <div>{children}</div>;
-  }
-
+  // ThemeProvider 必须在服务端也渲染，这样它的 no-flash 脚本会出现在初始 HTML 里
+  // （脚本在 hydration 前运行，避免主题闪烁，也避免 React 19 “在客户端渲染 script 标签” 的告警）。
+  // 数据相关的 Provider 仍延迟到挂载后，以保持服务端/首个客户端渲染结构一致（i18n 水合安全）。
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <TooltipProvider>
-          <Sonner />
-          {children}
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      {mounted ? (
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Sonner />
+            {children}
+          </TooltipProvider>
+        </QueryClientProvider>
+      ) : (
+        children
+      )}
+    </ThemeProvider>
   );
 }

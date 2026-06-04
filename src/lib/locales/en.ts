@@ -31,18 +31,33 @@ export const en = {
       "tags": "tags",
       "search": "Search (Cmd+K)"
     },
+    "subscribePage": {
+      "metaTitle": "Subscribe to the [AI]News Daily Briefing",
+      "metaDescription": "Get the day's essential AI signal in 5 minutes. We monitor 500+ sources, filter the noise, and deliver only what matters — straight to your inbox.",
+      "title": "The Daily AI Briefing",
+      "subtitle": "Cut the information overload — only the AI news that actually matters.",
+      "benefit1": "5 minutes a day, zero noise",
+      "benefit2": "AI-curated from 500+ sources",
+      "benefit3": "Free forever. Unsubscribe anytime."
+    },
+    "footer": {
+      "tagline": "5 minutes a day to catch the AI news that actually matters.",
+      "subscribePrompt": "Get the daily AI signal in your inbox.",
+      "subscribeButton": "Subscribe",
+      "rights": "© 2026 SnapAllx. All rights reserved."
+    },
     "hero": {
       "title": "[SnapAI]News",
       "byLine": "by SnapAllx.ai",
       "subtitle": "Stop letting algorithms dictate your reality.",
-      "description": "The internet is flooded with PR fluff and AI-generated slop. SnapAI is a denoising engine. We monitor 500+ global sources, using Agent Swarms to extract the SIGNAL and filter the NOISE. We don't just aggregate news; we decompile the truth.",
+      "description": "SnapAI monitors 500+ sources worldwide every day, using AI to extract content and filter the noise, delivering only the information that truly matters.",
       "emailPlaceholder": "your@work.email",
       "firstNamePlaceholder": "First Name",
       "lastNamePlaceholder": "Last Name",
       "ctaButton": "Subscribe to Daily Briefing",
       "privacyText": "No spam. No AI slop. Just pure signal.",
-      "subscribeBoxTitle": "Escape the Algorithm",
-      "subscribeBoxSubtitle": "Your time is expensive. Don't waste it on noise. 5 minutes a day, we compress the global chaos into CORE signals, to provide you with the most relevant information.",
+      "subscribeBoxTitle": "The Daily AI Briefing",
+      "subscribeBoxSubtitle": "5 minutes a day to catch the AI news that actually matters.",
       "subscriberCount": "2,937+",
       "subscriberLabel": "connected",
       "featureFree": "100% Free",

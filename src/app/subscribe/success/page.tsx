@@ -182,25 +182,6 @@ function SubscribeSuccessContent() {
               ) : (
                 // 待激活状态
                 <>
-                  {/* 邮箱图标提示 */}
-                  <div className="text-center mb-6">
-                    <div className="inline-block w-16 h-16 md:w-20 md:h-20 bg-primary/10 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-8 h-8 md:w-10 md:h-10 text-primary"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
                   <div>
                     <h2 className="text-2xl font-bold text-primary mb-3">
                       <TranslatedText>{t("subscribeSuccess.messageTitle")}</TranslatedText>
@@ -271,18 +252,6 @@ function SubscribeSuccessContent() {
                 <TranslatedText>{t("subscribeSuccess.viewIssues")}</TranslatedText>
               </Link>
             </Button>
-          </div>
-
-          {/* 额外信息 */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              <TranslatedText>
-                {isActivated 
-                  ? t("subscribeSuccess.activatedAdditionalInfo") 
-                  : t("subscribeSuccess.additionalInfo")
-                }
-              </TranslatedText>
-            </p>
           </div>
         </div>
       </div>

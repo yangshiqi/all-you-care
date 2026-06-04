@@ -50,3 +50,4 @@ pipeline/node_modules/
 # blog drafts + scripts
 content/drafts/*
 /scripts
+.gstack/
