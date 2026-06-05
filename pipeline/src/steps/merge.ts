@@ -16,6 +16,7 @@ import {
 } from '../lib/eventDedup.js';
 import { embedTexts, cosineSimilarity } from '../lib/embedding.js';
 import { trackUsage } from '../lib/usage.js';
+import { toPersonaTags } from '../lib/persona.js';
 
 // ----- types ---------------------------------------------------------------
 
@@ -401,7 +402,10 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
   for (const e of merged) {
     if (e.score < PERSONA_THRESHOLD) continue;
     if (topPickIdSet.has(e.id)) continue; // already shown in 必看, skip persona buckets
-    const tags = personaAssignments[String(e.id)] ?? [];
+    // Providers don't always honor the Persona[] shape (Gemini, used as a
+    // fallback, has returned a bare string). Normalize so .find/.length below
+    // can't throw — see toPersonaTags / the 2026-06-05 outage.
+    const tags = toPersonaTags(personaAssignments[String(e.id)]);
     if (tags.length === 0) {
       unassignedHigh++;
       log.warn(
@@ -412,7 +416,7 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
     }
     // Enforce single-persona: each event lives in exactly one bucket. If the
     // LLM ignored the prompt rule and returned multiple, take the first valid.
-    const primary = tags.find((p) => PERSONA_KEYS.includes(p));
+    const primary = tags.find((p): p is Persona => (PERSONA_KEYS as readonly string[]).includes(p));
     if (!primary) continue;
     if (tags.length > 1) {
       multiPersonaCollapsed++;
