@@ -38,10 +38,13 @@ async function main() {
   }
 
   const nowIso = new Date().toISOString();
+  // Update exactly the IDs surfaced in the dry-run, not a blanket filter — so a
+  // weekly published between this select and the update can't be silently marked
+  // delivered without ever being sent.
+  const targetIds = targets.map(t => t.id);
   const { data: updated, error: upErr } = await db.from('issues')
     .update({ delivered: true, delivered_at: nowIso, delivering_at: null })
-    .eq('issue_type', 'weekly')
-    .eq('delivered', false)
+    .in('id', targetIds)
     .select('id');
   if (upErr) throw new Error(upErr.message);
   console.log(`\nMarked ${updated?.length ?? 0} weekly issue(s) delivered at ${nowIso}.`);
