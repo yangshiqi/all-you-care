@@ -40,10 +40,11 @@ call on schedule.
 | Title | Cron (UTC) | Triggers |
 |---|---|---|
 | `[fallback] ai · fetch (hourly)` | `0 * * * *` | `ai-fetch.yml` |
-| `[fallback] ai · compress (hourly+10)` | `10 * * * *` | `ai-compress.yml` |
-| `[fallback] ai · score (hourly+20)` | `20 * * * *` | `ai-score.yml` |
+| `[fallback] ai · compress (every 3h +10)` | `10 */3 * * *` | `ai-compress.yml` |
+| `[fallback] ai · score (every 3h +40)` | `40 */3 * * *` | `ai-score.yml` |
 | `[fallback] ai · reuters-image (07:00 SH)` | `0 23 * * *` | `reuters-image.yml` |
-| `[fallback] ai · publish-pipeline (08:30 SH)` | `30 0 * * *` | `ai-publish.yml` |
+| `[fallback] ai · publish-pipeline (Mon–Sat 08:30 SH)` | `30 0 * * 1-6` | `ai-publish.yml` (merge→render→publish→deliver) |
+| `[fallback] ai · weekly-digest (Sun 08:30 SH)` | `30 0 * * 0` | `ai-weekly.yml` (weekly→publish→deliver) |
 | `[fallback] ai · tags (09:00 SH)` | `0 1 * * *` | `ai-tags.yml` |
 
 Snow channel is not currently in active use — its entries are commented
