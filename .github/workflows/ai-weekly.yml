@@ -14,3 +14,12 @@ jobs:
     uses: ./.github/workflows/_pipeline.yml
     with: { channel: ai, step: publish }
     secrets: inherit
+  # Email the weekly digest to the same subscriber list as the daily issue.
+  # The deliver step claims the newest undelivered zh_CN issue published *today*
+  # (CST); on Sunday that's this weekly (no daily runs Sun), so it goes to the
+  # same Brevo campaign (#6, type=ai) the daily uses.
+  deliver:
+    needs: publish
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: ai, step: deliver }
+    secrets: inherit
