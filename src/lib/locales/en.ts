@@ -33,15 +33,15 @@ export const en = {
     },
     "subscribePage": {
       "metaTitle": "Subscribe to the [AI]News Daily Briefing",
-      "metaDescription": "Get the day's essential AI signal in 5 minutes. We monitor 500+ sources, filter the noise, and deliver only what matters — straight to your inbox.",
+      "metaDescription": "Never miss what's new in AI — in just 3 minutes a day. We monitor 500+ sources, filter the noise, and deliver only what matters — straight to your inbox.",
       "title": "The Daily AI Briefing",
-      "subtitle": "Cut the information overload — only the AI news that actually matters.",
-      "benefit1": "5 minutes a day, zero noise",
+      "subtitle": "Cut the information overload — never miss what's new in AI.",
+      "benefit1": "3 minutes a day, zero noise",
       "benefit2": "AI-curated from 500+ sources",
       "benefit3": "Free forever. Unsubscribe anytime."
     },
     "footer": {
-      "tagline": "5 minutes a day to catch the AI news that actually matters.",
+      "tagline": "3 minutes a day. Never miss what's new in AI.",
       "subscribePrompt": "Get the daily AI signal in your inbox.",
       "subscribeButton": "Subscribe",
       "rights": "© 2026 SnapAllx. All rights reserved."
@@ -57,7 +57,7 @@ export const en = {
       "ctaButton": "Subscribe to Daily Briefing",
       "privacyText": "No spam. No AI slop. Just pure signal.",
       "subscribeBoxTitle": "The Daily AI Briefing",
-      "subscribeBoxSubtitle": "5 minutes a day to catch the AI news that actually matters.",
+      "subscribeBoxSubtitle": "3 minutes a day. Never miss what's new in AI.",
       "subscriberCount": "2,937+",
       "subscriberLabel": "connected",
       "featureFree": "100% Free",

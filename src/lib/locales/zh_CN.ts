@@ -33,15 +33,15 @@ export const zh_CN = {
     },
     "subscribePage": {
       "metaTitle": "订阅 [AI]News 每日简报",
-      "metaDescription": "每天 5 分钟，获取当日最关键的 AI 信号。我们监控 500+ 信息源，过滤噪音，只把真正重要的内容送进你的收件箱。",
+      "metaDescription": "每天 3 分钟，不错过 AI 的最新进展。我们监控 500+ 信息源，过滤噪音，只把真正重要的内容送进你的收件箱。",
       "title": "每日 AI 简报",
-      "subtitle": "拒绝信息过载，只看全球真正值得关注的 AI 信息。",
-      "benefit1": "每天 5 分钟，0 噪音",
+      "subtitle": "拒绝信息过载，不错过 AI 的每一个关键进展。",
+      "benefit1": "每天 3 分钟，0 噪音",
       "benefit2": "AI 从 500+ 信息源精选",
       "benefit3": "永久免费，随时退订"
     },
     "footer": {
-      "tagline": "每天 5 分钟，了解全球真正值得关注的 AI 信息。",
+      "tagline": "每天 3 分钟，不错过 AI 的最新进展。",
       "subscribePrompt": "每日 AI 核心信号，直达你的收件箱。",
       "subscribeButton": "订阅",
       "rights": "© 2026 SnapAllx. 保留所有权利。"
@@ -57,7 +57,7 @@ export const zh_CN = {
       "ctaButton": "订阅每日早报",
       "privacyText": "拒绝垃圾邮件，拒绝 AI 废话，只有纯净信号。",
       "subscribeBoxTitle": "每日 AI 简报",
-      "subscribeBoxSubtitle": "每天 5 分钟，了解全球真正值得关注的 AI 信息。",
+      "subscribeBoxSubtitle": "每天 3 分钟，不错过 AI 的最新进展。",
       "subscriberCount": "2,937+",
       "subscriberLabel": "已接入",
       "featureFree": "完全免费",
