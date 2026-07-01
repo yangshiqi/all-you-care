@@ -1,0 +1,100 @@
+// pipeline/src/lib/infraTypes.ts
+// Contract shared by infraMerge (producer) and infraRender (consumer).
+
+export type InfraCategoryKey =
+  | 'k8s' | 'mesh_obs' | 'serverless_storage' | 'ai_native' | 'vendor';
+
+export const INFRA_CATEGORY_ORDER: { key: InfraCategoryKey; label: string }[] = [
+  { key: 'k8s',                label: 'Kubernetes 与容器编排' },
+  { key: 'mesh_obs',           label: 'Service Mesh 与云原生可观测' },
+  { key: 'serverless_storage', label: 'Serverless、存储与中间件' },
+  { key: 'ai_native',          label: '云原生 × AI 融合与开源项目' },
+  { key: 'vendor',             label: '厂商产品更新' },
+];
+
+const CATEGORY_KEYS = new Set<string>(INFRA_CATEGORY_ORDER.map((c) => c.key));
+
+export interface InfraSource { label: string; url: string; }
+
+// Compact item emitted by compress/score (parsed out of scored_drafts JSON).
+export interface InfraScoredItem {
+  title: string;
+  category: InfraCategoryKey;
+  facts: string;
+  sources: InfraSource[];
+  score: number;
+  kind?: string;               // 实时 | 回顾
+}
+
+// Final rendered item (after merge expands the five prose fields).
+export interface InfraReportItem {
+  title: string;
+  what: string;
+  problem: string;
+  value: string;
+  scenarios: string;
+  pitfalls: string;
+  score: number;
+  kind?: string;
+  sources: InfraSource[];
+}
+
+export interface InfraReportCategory {
+  key: InfraCategoryKey;
+  label: string;
+  empty_note: string | null;   // non-null → render "本周无可核验更新"
+  items: InfraReportItem[];
+}
+
+export interface InfraRecommendation { audience: string; text: string; }
+
+export interface InfraWeeklyPayload {
+  title: string;
+  week_label: string;
+  headline: string;
+  overview: string;
+  summary: string;
+  tags: string[];
+  categories: InfraReportCategory[];
+  trends: string[];
+  recommendations: InfraRecommendation[];
+}
+
+function parseSources(raw: unknown): InfraSource[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((s): InfraSource[] => {
+    if (!s || typeof s !== 'object') return [];
+    const o = s as Record<string, unknown>;
+    const url = typeof o.url === 'string' ? o.url : '';
+    if (!url) return [];
+    const label = typeof o.label === 'string' && o.label ? o.label : url;
+    return [{ label, url }];
+  });
+}
+
+/** Tolerant parse of a scored_drafts JSON array. Skips malformed items. */
+export function parseInfraScoredItems(jsonText: string): InfraScoredItem[] {
+  let raw: unknown;
+  try { raw = JSON.parse(jsonText); } catch { return []; }
+  if (!Array.isArray(raw)) return [];
+  const out: InfraScoredItem[] = [];
+  for (const r of raw) {
+    if (!r || typeof r !== 'object') continue;
+    const o = r as Record<string, unknown>;
+    const title = typeof o.title === 'string' ? o.title.trim() : '';
+    const category = typeof o.category === 'string' && CATEGORY_KEYS.has(o.category)
+      ? (o.category as InfraCategoryKey) : null;
+    if (!title || !category) continue;
+    const facts = typeof o.facts === 'string' ? o.facts : '';
+    const score = typeof o.score === 'number'
+      ? o.score
+      : Number.isFinite(Number(o.score)) ? Number(o.score) : 0;
+    const kind = typeof o.kind === 'string' ? o.kind : undefined;
+    out.push({
+      title, category, facts, score,
+      sources: parseSources(o.sources),
+      ...(kind ? { kind } : {}),
+    });
+  }
+  return out;
+}
