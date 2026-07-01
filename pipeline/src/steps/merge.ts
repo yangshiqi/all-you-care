@@ -17,6 +17,7 @@ import {
 import { embedTexts, cosineSimilarity } from '../lib/embedding.js';
 import { trackUsage } from '../lib/usage.js';
 import { toPersonaTags } from '../lib/persona.js';
+import { runInfraMerge } from './infraMerge.js';
 
 // ----- types ---------------------------------------------------------------
 
@@ -616,6 +617,14 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       failed: 0,
       notes: `today already merged as pre_publish ${existingRow.id}`,
     };
+  }
+
+  // infra: self-contained merge (own claim + JSON parse + expand + synthesize).
+  if (channel.name === 'infra') {
+    let processed = 0, failed = 0;
+    try { await runInfraMerge(ctx); processed = 1; }
+    catch (e) { failed = 1; log.error({ event: 'merge_fail', err: (e as Error).message }, 'infra merge failed'); }
+    return { processed, skipped: 0, failed, notes: 'infra' };
   }
 
   const claimed = await claim.forMerge(db, channel.name, 50);
