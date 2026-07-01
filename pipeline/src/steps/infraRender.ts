@@ -9,6 +9,15 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+/** Only emit http(s) hrefs; anything else (javascript:, data:, relative) → '#'. */
+function safeHref(u: string): string {
+  try {
+    const parsed = new URL(u);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return esc(parsed.toString());
+  } catch { /* not a valid absolute URL */ }
+  return '#';
+}
+
 export function parseInfraPayload(contentMd: string): InfraWeeklyPayload | null {
   try {
     const p = JSON.parse(contentMd) as unknown;
@@ -19,7 +28,7 @@ export function parseInfraPayload(contentMd: string): InfraWeeklyPayload | null 
 function renderSources(sources: InfraSource[]): string {
   if (!sources.length) return '';
   const links = sources
-    .map((s) => `<a class="src-link" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`)
+    .map((s) => `<a class="src-link" href="${safeHref(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`)
     .join(' · ');
   return `<div class="item-sources">来源：${links}</div>`;
 }

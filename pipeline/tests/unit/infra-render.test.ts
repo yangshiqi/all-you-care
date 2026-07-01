@@ -49,6 +49,13 @@ describe('renderInfraContent', () => {
     p2.categories[0]!.items[0]!.what = '<script>alert(1)</script>';
     expect(renderInfraContent(p2)).not.toContain('<script>alert(1)</script>');
   });
+  it('drops non-http(s) source URLs (no javascript: href)', () => {
+    const p = structuredClone(payload);
+    p.categories[0]!.items[0]!.sources = [{ label: 'evil', url: 'javascript:alert(1)' }];
+    const html = renderInfraContent(p);
+    expect(html).not.toContain('javascript:alert(1)');
+    expect(html).toContain('href="#"');
+  });
 });
 
 describe('parseInfraPayload', () => {
