@@ -74,8 +74,16 @@ function parseSources(raw: unknown): InfraSource[] {
 
 /** Tolerant parse of a scored_drafts JSON array. Skips malformed items. */
 export function parseInfraScoredItems(jsonText: string): InfraScoredItem[] {
+  let s = jsonText.trim();
+  // Strip a surrounding ```json ... ``` (or ``` ... ```) code fence — LLMs commonly wrap output.
+  const fence = s.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/);
+  if (fence && fence[1] !== undefined) s = fence[1].trim();
+  // Slice to the outermost array in case of leading/trailing prose.
+  const first = s.indexOf('[');
+  const last = s.lastIndexOf(']');
+  if (first !== -1 && last > first) s = s.slice(first, last + 1);
   let raw: unknown;
-  try { raw = JSON.parse(jsonText); } catch { return []; }
+  try { raw = JSON.parse(s); } catch { return []; }
   if (!Array.isArray(raw)) return [];
   const out: InfraScoredItem[] = [];
   for (const r of raw) {

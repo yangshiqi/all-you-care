@@ -35,4 +35,19 @@ describe('parseInfraScoredItems', () => {
     expect(out[0]!.score).toBe(7.5);
     expect(out[0]!.sources).toEqual([{ label: 'b', url: 'https://u' }]);
   });
+  it('parses a ```json fenced array (real LLM output shape)', () => {
+    const inner = JSON.stringify([{ title: 'Kueue v0.18.2', category: 'k8s', facts: 'f', score: 8, sources: [] }]);
+    const fenced = '```json\n' + inner + '\n```';
+    const out = parseInfraScoredItems(fenced);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.title).toBe('Kueue v0.18.2');
+  });
+  it('parses a bare ``` fenced array (no json tag)', () => {
+    const inner = JSON.stringify([{ title: 'T', category: 'ai_native', facts: 'f', score: 7, sources: [] }]);
+    expect(parseInfraScoredItems('```\n' + inner + '\n```')).toHaveLength(1);
+  });
+  it('parses an array with leading prose before the [', () => {
+    const inner = JSON.stringify([{ title: 'T', category: 'k8s', facts: 'f', score: 5, sources: [] }]);
+    expect(parseInfraScoredItems('Here is the result:\n' + inner)).toHaveLength(1);
+  });
 });
