@@ -34,4 +34,7 @@ describe('parseChannelConfig', () => {
     delete bad.windows.merge_new_lookback_hours;
     expect(() => parseChannelConfig(bad)).toThrow();
   });
+  it('accepts name "infra"', () => {
+    expect(() => parseChannelConfig({ ...valid, name: 'infra' })).not.toThrow();
+  });
 });

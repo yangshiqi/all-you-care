@@ -165,7 +165,8 @@ function escapeHtml(s: string): string {
 //   The "核心摘要" block is intentionally removed — replaced by the LLM's headline-box.
 // SNOW channel: LLM still produces the legacy markdown→HTML cards; shell adds title + cover only
 //   (silent fallback when content_md isn't JSON).
-function wrapShell(channel: 'ai' | 'snow', innerHtml: string, pp: PrePublishRow): string {
+// INFRA channel: Uses LLM rendering like SNOW (markdown→HTML); shell adds title + cover.
+function wrapShell(channel: string, innerHtml: string, pp: PrePublishRow): string {
   const css = channel === 'ai' ? AI_CSS : SNOW_CSS;
   const safeTitle = escapeHtml(pp.title);
   let date = '';

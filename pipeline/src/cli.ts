@@ -27,12 +27,14 @@ import { fileURLToPath } from 'node:url';
 }
 
 import { createLogger } from './lib/log.js';
-import { createDb } from './lib/db.js';
+import { createDb, type Channel } from './lib/db.js';
 import { loadChannel, channelDir } from './channels/load.js';
 import type { ChannelConfig } from './channels/types.js';
 
+const KNOWN_CHANNELS: readonly Channel[] = ['ai', 'snow', 'infra'];
+
 interface ParsedArgs {
-  channel: 'ai' | 'snow';
+  channel: Channel;
   step: string;
   dryRun: boolean;
   limit?: number;
@@ -45,8 +47,8 @@ function parseArgs(argv: string[]): ParsedArgs {
     console.error('Usage: pipeline <channel> <step> [--dry-run] [--limit N] [--verbose]');
     process.exit(2);
   }
-  const channel = args[0] as 'ai' | 'snow';
-  if (channel !== 'ai' && channel !== 'snow') {
+  const channel = args[0] as Channel;
+  if (!KNOWN_CHANNELS.includes(channel)) {
     console.error(`unknown channel: ${channel}`);
     process.exit(2);
   }

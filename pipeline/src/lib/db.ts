@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-export type Channel = 'ai' | 'snow';
+export type Channel = 'ai' | 'snow' | 'infra';
 export type Lang = 'zh_CN' | 'en';
 
 export interface NewsItemRow {

@@ -1,0 +1,79 @@
+name: infra
+display_name: "AI 云原生周报"
+
+sources:
+  rss:
+    # 推理引擎
+    - { url: "https://github.com/vllm-project/vllm/releases.atom",                          enabled: true }
+    - { url: "https://github.com/sgl-project/sglang/releases.atom",                         enabled: true }
+    - { url: "https://github.com/NVIDIA/TensorRT-LLM/releases.atom",                        enabled: true }
+    - { url: "https://github.com/huggingface/text-generation-inference/releases.atom",      enabled: true }
+    # 推理编排 / 网关
+    - { url: "https://github.com/llm-d/llm-d/releases.atom",                                 enabled: true }
+    - { url: "https://github.com/kserve/kserve/releases.atom",                              enabled: true }
+    - { url: "https://github.com/vllm-project/aibrix/releases.atom",                        enabled: true }
+    - { url: "https://github.com/ai-dynamo/dynamo/releases.atom",                           enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases.atom", enabled: true }
+    # KV / 显存
+    - { url: "https://github.com/LMCache/LMCache/releases.atom",                            enabled: true }
+    - { url: "https://github.com/kvcache-ai/Mooncake/releases.atom",                        enabled: true }
+    # 调度 / 编排
+    - { url: "https://github.com/kubernetes/kubernetes/releases.atom",                      enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/kueue/releases.atom",                      enabled: true }
+    - { url: "https://github.com/volcano-sh/volcano/releases.atom",                         enabled: true }
+    - { url: "https://github.com/ray-project/ray/releases.atom",                            enabled: true }
+    - { url: "https://github.com/ray-project/kuberay/releases.atom",                        enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/jobset/releases.atom",                     enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/lws/releases.atom",                        enabled: true }
+    # GPU 虚拟化 / 资源
+    - { url: "https://github.com/Project-HAMi/HAMi/releases.atom",                          enabled: true }
+    - { url: "https://github.com/NVIDIA/k8s-device-plugin/releases.atom",                   enabled: true }
+    - { url: "https://github.com/NVIDIA/KAI-Scheduler/releases.atom",                       enabled: true }
+    # 可观测
+    - { url: "https://github.com/open-telemetry/opentelemetry-collector-contrib/releases.atom", enabled: true }
+    # 博客
+    - { url: "https://kubernetes.io/feed.xml",                                              enabled: true }
+    - { url: "https://www.cncf.io/feed/",                                                   enabled: true }
+    - { url: "https://blog.vllm.ai/feed.xml",                                               enabled: true }
+  opml: []
+  email: []
+
+windows:
+  fetch_rss_age_hours: 30
+  fetch_email_age_hours: 168
+  compress_lookback_hours: 30        # 死配置（未接线），占位
+  merge_new_lookback_hours: 168      # 死配置（未接线），周窗口由 runInfraMerge 内部做
+  merge_old_lookback_hours: 168      # 生效：跨期去重参考近一周
+
+thresholds:
+  compress_min_pending: 3
+  compress_batch_size: 40
+  score_batch_size: 8
+
+cover_image:
+  prefer: cdn_convention
+  cdn_pattern: "https://www.snapallx.com/infra/{yyyymm}/{n}.jpg"
+  cdn_random_max: 4
+  default: "/infra/default.jpg"
+
+# 本轮不投递；占位对齐命名约定，deliver.url 是 zod 必填。
+deliver:
+  url: "https://www.snapallx.com/api/send-latest-ai-news?type=infra"
+
+llm:
+  model: "claude-sonnet-4-6"
+  max_tokens: 16000
+  temperature: 0
+  steps:
+    compress:
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+    score:
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+    merge:
+      chain:
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+        - { provider: gemini, model: gemini-3.5-flash }
