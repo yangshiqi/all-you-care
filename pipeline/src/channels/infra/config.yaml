@@ -34,12 +34,12 @@ sources:
     # 博客
     - { url: "https://kubernetes.io/feed.xml",                                              enabled: true }
     - { url: "https://www.cncf.io/feed/",                                                   enabled: true }
-    - { url: "https://blog.vllm.ai/feed.xml",                                               enabled: true }
+    - { url: "https://vllm.ai/blog/rss.xml",                                                 enabled: true }   # vLLM 官方博客（用户提供的正确地址）
   opml: []
   email: []
 
 windows:
-  fetch_rss_age_hours: 30
+  fetch_rss_age_hours: 168             # 周报：抓最近 7 天（比每日频道宽；dedup 唯一约束防重复入库）
   fetch_email_age_hours: 168
   compress_lookback_hours: 30        # 死配置（未接线），占位
   merge_new_lookback_hours: 168      # 死配置（未接线），周窗口由 runInfraMerge 内部做
