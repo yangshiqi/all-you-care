@@ -120,6 +120,15 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
     return;
   }
 
+  // No items survived the weekly window + parse + bucket: don't burn a synthesize call
+  // on a hollow all-empty issue. Release the claim (like dry-run) and return.
+  if (selected.length === 0) {
+    log.info({ event: 'infra_merge_no_selection', claimed: allIds.length, recent_rows: recentRows.length },
+      'no items selected this week; releasing claim, no issue created');
+    for (const id of allIds) await markFailed.scoredDraft(db, id, 'no_selection_release');
+    return;
+  }
+
   const llmCfg = resolveLlm(channel, 'merge');
   const weekLabel = `${cnDate(today.date)}当周`;
 
