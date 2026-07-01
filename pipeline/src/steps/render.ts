@@ -6,6 +6,7 @@ import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
 import { sanitizeIssueHtml } from '../lib/sanitize.js';
 import { trackUsage } from '../lib/usage.js';
+import { renderInfraContent, parseInfraPayload, INFRA_CSS } from './infraRender.js';
 
 interface RenderOutput {
   content_html: string;
@@ -165,9 +166,9 @@ function escapeHtml(s: string): string {
 //   The "核心摘要" block is intentionally removed — replaced by the LLM's headline-box.
 // SNOW channel: LLM still produces the legacy markdown→HTML cards; shell adds title + cover only
 //   (silent fallback when content_md isn't JSON).
-// INFRA channel: Uses LLM rendering like SNOW (markdown→HTML); shell adds title + cover.
+// INFRA channel: deterministic JSON → HTML like AI (see renderInfraContent); shell adds title + cover.
 function wrapShell(channel: Channel, innerHtml: string, pp: PrePublishRow): string {
-  const css = channel === 'ai' ? AI_CSS : SNOW_CSS;
+  const css = channel === 'ai' ? AI_CSS : channel === 'infra' ? INFRA_CSS : SNOW_CSS;
   const safeTitle = escapeHtml(pp.title);
   let date = '';
   let cover: { description?: string | null; link?: string | null } | undefined;
@@ -492,6 +493,14 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         }
         inner = renderAiContent(payload);
         log.info({ event: 'render_via_template', pre_publish_id: pp.id, mode: 'deterministic' }, '');
+      } else if (channel.name === 'infra') {
+        // INFRA channel: deterministic JSON → HTML, no LLM needed.
+        const payload = parseInfraPayload(pp.content_md);
+        if (!payload) {
+          throw new Error(`pre_publish ${pp.id}: content_md is not valid JSON for infra channel`);
+        }
+        inner = renderInfraContent(payload);
+        log.info({ event: 'render_via_template', pre_publish_id: pp.id, mode: 'deterministic_infra' }, '');
       } else {
         // SNOW channel still uses LLM (legacy markdown content_md).
         const prompt = await loadPrompt(channelDir, 'render', { markdown: pp.content_md });
