@@ -6,6 +6,11 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, db, log } = ctx;
   let processed = 0, skipped = 0, failed = 0;
 
+  if (channel.sources.email.length === 0) {
+    log.info({ event: 'email_skip', reason: 'no email sources' }, 'no email sources, skipping IMAP');
+    return { processed: 0, skipped: 0, failed: 0, notes: 'no email sources' };
+  }
+
   try {
     await withImap(log, async client => {
     for (const from of channel.sources.email) {
