@@ -1,7 +1,7 @@
 // pipeline/src/steps/render.ts
 import type { StepContext, StepResult } from '../cli.js';
 import { resolveLlm } from '../channels/types.js';
-import { claim, commit, markFailed, type PrePublishRow } from '../lib/db.js';
+import { claim, commit, markFailed, type Channel, type PrePublishRow } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
 import { sanitizeIssueHtml } from '../lib/sanitize.js';
@@ -166,7 +166,7 @@ function escapeHtml(s: string): string {
 // SNOW channel: LLM still produces the legacy markdown→HTML cards; shell adds title + cover only
 //   (silent fallback when content_md isn't JSON).
 // INFRA channel: Uses LLM rendering like SNOW (markdown→HTML); shell adds title + cover.
-function wrapShell(channel: string, innerHtml: string, pp: PrePublishRow): string {
+function wrapShell(channel: Channel, innerHtml: string, pp: PrePublishRow): string {
   const css = channel === 'ai' ? AI_CSS : SNOW_CSS;
   const safeTitle = escapeHtml(pp.title);
   let date = '';
