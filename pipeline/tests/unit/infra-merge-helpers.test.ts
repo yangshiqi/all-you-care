@@ -28,6 +28,29 @@ describe('dedupInfraItems', () => {
       mk({ title: 'Volcano v1.14.3', category: 'k8s', score: 8 }),
     ])).toHaveLength(2);
   });
+  it('merges fuzzy-equal titles that are not normalize-identical (word-order swap)', () => {
+    // normalizeTitle('美中讨论AI安全护栏') !== normalizeTitle('中美讨论AI安全护栏')
+    // (leading "美中"/"中美" swap survives normalizeTitle verbatim), but
+    // fuzzyEquivalent() treats them as the same event — this exercises the
+    // `|| fuzzyEquivalent(...)` branch in dedupInfraItems, not the exact-match one.
+    const out = dedupInfraItems([
+      mk({ title: '美中讨论AI安全护栏', category: 'ai_native', score: 6, sources: [{ label: 'a', url: 'u1' }] }),
+      mk({ title: '中美讨论AI安全护栏', category: 'ai_native', score: 8, sources: [{ label: 'b', url: 'u2' }] }),
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.score).toBe(8);
+    expect(out[0]!.sources.map(s => s.url).sort()).toEqual(['u1', 'u2']);
+  });
+  it('keeps the longer (richer) facts string when merging same-title items', () => {
+    const richerFacts = 'a much longer and richer fact description with more detail';
+    const out = dedupInfraItems([
+      mk({ title: 'Kueue v0.18.2 发布', category: 'k8s', score: 6, facts: 'short fact' }),
+      mk({ title: 'Kueue v0.18.2 发布', category: 'k8s', score: 9, facts: richerFacts }),
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.facts).toBe(richerFacts);
+    expect(out[0]!.score).toBe(9);
+  });
 });
 
 describe('bucketAndSelect', () => {
