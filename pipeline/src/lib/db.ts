@@ -98,10 +98,45 @@ export function createDb(): SupabaseClient {
 
 // ----- RPC helper -----
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Transient (retriable) DB/network failures — the flaky-outbound-network class
+ * (undici "fetch failed", connection resets, DNS blips, 502/503/504). A real
+ * error (constraint violation, permission denied, SQL error) is NOT transient
+ * and must surface immediately.
+ */
+export function isTransientDbError(msg: string): boolean {
+  return /fetch failed|network|socket hang up|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|timeout|\b50[234]\b/i.test(
+    msg,
+  );
+}
+
+const RPC_RETRY_DELAYS = [500, 1500, 4000]; // ms; up to 3 retries after the first try
+
+// Retries only the transient-network class above. NOTE on idempotency: the
+// commit RPCs (compress/score/merge) write rows, so a retry after a
+// *response-side* drop could double-write. In practice observed failures are
+// request-side (nothing committed — verified), duplicate drafts/scored get
+// collapsed by merge's dedup, and merge has a same-CST-day guard that stops
+// cross-run duplicate issues. Non-transient errors never retry.
 async function rpc<T>(db: SupabaseClient, name: string, args: object): Promise<T> {
-  const { data, error } = await db.rpc(name, args);
-  if (error) throw new Error(`rpc ${name} failed: ${error.message}`);
-  return data as T;
+  for (let attempt = 0; ; attempt++) {
+    let errMsg: string | null = null;
+    try {
+      const { data, error } = await db.rpc(name, args);
+      if (!error) return data as T;
+      errMsg = error.message;
+    } catch (e) {
+      errMsg = (e as Error).message; // thrown network error (e.g. undici "fetch failed")
+    }
+    if (attempt >= RPC_RETRY_DELAYS.length || !isTransientDbError(errMsg)) {
+      throw new Error(`rpc ${name} failed: ${errMsg}`);
+    }
+    await sleep(RPC_RETRY_DELAYS[attempt]!);
+  }
 }
 
 // ----- claim wrappers -----

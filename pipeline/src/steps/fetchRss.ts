@@ -5,7 +5,7 @@ import { fetchOpmlFeeds } from '../lib/opml.js';
 import { canonicalizeLink } from '../lib/linkCanonical.js';
 import { ageHours } from '../lib/time.js';
 
-const FEED_CONCURRENCY = 8;
+const FEED_CONCURRENCY = 4; // lowered from 8: high concurrency triggered random TLS resets against github.com
 
 export async function run(ctx: StepContext): Promise<StepResult> {
   const { channel, db, log, now } = ctx;
