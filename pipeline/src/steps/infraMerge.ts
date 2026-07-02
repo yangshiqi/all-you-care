@@ -3,7 +3,6 @@ import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
-import { pickCoverImage } from '../lib/coverImage.js';
 import { trackUsage } from '../lib/usage.js';
 import { todayCst } from '../lib/time.js';
 import { normalizeTitle, fuzzyEquivalent } from '../lib/eventDedup.js';
@@ -130,7 +129,10 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
   }
 
   const llmCfg = resolveLlm(channel, 'merge');
-  const weekLabel = `${cnDate(today.date)}当周`;
+  // Weekly window label as a date range: "6月25日 - 7月1日" (last 7 days, inclusive).
+  const weekStartIso = new Date(Date.parse(today.date) - (WEEK_DAYS - 1) * 86_400_000)
+    .toISOString().slice(0, 10);
+  const weekLabel = `${cnDate(weekStartIso)} - ${cnDate(today.date)}`;
 
   // 3. Per-item expand (isolated: one failure → fallback, not a dead issue).
   const expandedByKey = new Map<string, InfraReportItem[]>();
@@ -180,7 +182,7 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
     items: expandedByKey.get(b.key) ?? [],
   }));
   const headline = (synth.headline || '').trim() || '云原生 × AI 融合本周动态';
-  const title = `[云原生周报] ${weekLabel}：${headline}`;
+  const title = `[AI 原生周报] ${weekLabel}：${headline}`;
   const payload: InfraWeeklyPayload = {
     title, week_label: weekLabel, headline,
     overview: synth.overview ?? '', summary: synth.summary ?? '',
@@ -190,10 +192,10 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
     recommendations: Array.isArray(synth.recommendations) ? synth.recommendations : [],
   };
 
-  const cover = await pickCoverImage(db, channel, channel.name, log);
+  // No cover image for the infra weekly report (deliberately omitted).
   const newId = await commit.merge(db, channel.name, {
     title, summary: payload.summary || null, contentMd: JSON.stringify(payload),
-    tags: payload.tags, coverImage: cover.url, sourceScoredIds: allIds,
+    tags: payload.tags, coverImage: null, sourceScoredIds: allIds,
   });
 
   // 6. Tag as weekly (merge_commit defaults issue_type='daily'; no RPC change this round).

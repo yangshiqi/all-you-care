@@ -2,12 +2,13 @@
 // Contract shared by infraMerge (producer) and infraRender (consumer).
 
 export type InfraCategoryKey =
-  | 'k8s' | 'mesh_obs' | 'serverless_storage' | 'ai_native' | 'vendor';
+  | 'k8s' | 'mesh_obs' | 'serverless_storage' | 'inference_engine' | 'ai_native' | 'vendor';
 
 export const INFRA_CATEGORY_ORDER: { key: InfraCategoryKey; label: string }[] = [
-  { key: 'k8s',                label: 'Kubernetes 与容器编排' },
-  { key: 'mesh_obs',           label: 'Service Mesh 与云原生可观测' },
+  { key: 'k8s',                label: '容器与调度' },
+  { key: 'mesh_obs',           label: '可观测' },
   { key: 'serverless_storage', label: 'Serverless、存储与中间件' },
+  { key: 'inference_engine',   label: '推理引擎' },
   { key: 'ai_native',          label: '云原生 × AI 融合与开源项目' },
   { key: 'vendor',             label: '厂商产品更新' },
 ];

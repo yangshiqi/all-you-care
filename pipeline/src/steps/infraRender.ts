@@ -102,7 +102,6 @@ export const INFRA_CSS = `
                box-shadow:0 4px 20px rgba(0,0,0,.05); padding:32px 28px; }
   h1 { text-align:center; margin:0 0 6px; font-size:1.8rem; font-weight:700; }
   .subtitle { text-align:center; color:var(--muted); font-size:.95rem; margin-bottom:24px; }
-  .hero-img { width:100%; border-radius:10px; margin-bottom:16px; }
   .section-title { font-size:1.3rem; font-weight:700; margin:28px 0 14px; padding-bottom:6px;
                    border-bottom:2px solid var(--text); }
   .overview-box { background:#ddf4ff; border-left:4px solid var(--accent); border-radius:8px;
