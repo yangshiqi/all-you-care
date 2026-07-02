@@ -72,6 +72,20 @@ export function bucketAndSelect(items: InfraScoredItem[], perCategoryMax: number
 
 const PER_CATEGORY_MAX = 5;
 const WEEK_DAYS = 7;
+const EXPAND_CONCURRENCY = 4; // parallel per-item expands (bounded) — keeps merge under the CI job timeout
+
+/** Bounded-concurrency map that preserves input order. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  async function worker(): Promise<void> {
+    for (let i = next++; i < items.length; i = next++) {
+      results[i] = await fn(items[i]!, i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
+}
 
 interface ExpandOut { maturity: string; points: string; why: string; scenarios: string; caveats: string; action: string; }
 interface SynthOut {
@@ -134,32 +148,33 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
     .toISOString().slice(0, 10);
   const weekLabel = `${cnDate(weekStartIso)} - ${cnDate(today.date)}`;
 
-  // 3. Per-item expand (isolated: one failure → fallback, not a dead issue).
-  const expandedByKey = new Map<string, InfraReportItem[]>();
-  for (const b of buckets) {
-    const out: InfraReportItem[] = [];
-    for (const it of b.items) {
-      try {
-        const prompt = await loadPrompt(channelDir, 'merge.expand', { item_json: JSON.stringify(it) });
-        const r = await callLlm<ExpandOut>({
-          prompt, expectJson: true, model: llmCfg.model, maxTokens: 1200,
-          temperature: llmCfg.temperature, chain: llmCfg.chain, log,
-        });
-        await trackUsage(db, { channel: channel.name, step: 'merge:expand', provider: r.provider,
-          model: r.model, input_tokens: r.inputTokens, output_tokens: r.outputTokens }, log);
-        const j = r.json;
-        out.push(j
-          ? { title: it.title, maturity: j.maturity ?? (it.kind ?? ''), points: j.points ?? it.facts,
-              why: j.why ?? '', scenarios: j.scenarios ?? '', caveats: j.caveats ?? '',
-              action: j.action ?? '', score: it.score, sources: it.sources }
-          : fallbackItem(it));
-      } catch (e) {
-        log.warn({ event: 'infra_expand_fail', title: it.title, err: (e as Error).message }, '');
-        out.push(fallbackItem(it));
-      }
+  // 3. Per-item expand — bounded-concurrency (isolated: one failure → fallback,
+  //    not a dead issue). Parallel keeps merge well under the CI job timeout.
+  const flat = buckets.flatMap((b) => b.items.map((it) => ({ key: b.key, it })));
+  const expandOne = async (it: InfraScoredItem): Promise<InfraReportItem> => {
+    try {
+      const prompt = await loadPrompt(channelDir, 'merge.expand', { item_json: JSON.stringify(it) });
+      const r = await callLlm<ExpandOut>({
+        prompt, expectJson: true, model: llmCfg.model, maxTokens: 1200,
+        temperature: llmCfg.temperature, chain: llmCfg.chain, log,
+      });
+      await trackUsage(db, { channel: channel.name, step: 'merge:expand', provider: r.provider,
+        model: r.model, input_tokens: r.inputTokens, output_tokens: r.outputTokens }, log);
+      const j = r.json;
+      return j
+        ? { title: it.title, maturity: j.maturity ?? (it.kind ?? ''), points: j.points ?? it.facts,
+            why: j.why ?? '', scenarios: j.scenarios ?? '', caveats: j.caveats ?? '',
+            action: j.action ?? '', score: it.score, sources: it.sources }
+        : fallbackItem(it);
+    } catch (e) {
+      log.warn({ event: 'infra_expand_fail', title: it.title, err: (e as Error).message }, '');
+      return fallbackItem(it);
     }
-    expandedByKey.set(b.key, out);
-  }
+  };
+  const expanded = await mapLimit(flat, EXPAND_CONCURRENCY, ({ it }) => expandOne(it));
+  const expandedByKey = new Map<string, InfraReportItem[]>();
+  for (const b of buckets) expandedByKey.set(b.key, []);
+  flat.forEach((f, i) => expandedByKey.get(f.key)!.push(expanded[i]!));
 
   // 4. One synthesize call (compact input only).
   const synthInput = selected.map((i) => ({ title: i.title, category: i.category, score: i.score }));

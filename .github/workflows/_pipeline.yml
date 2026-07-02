@@ -11,12 +11,15 @@ on:
       flags:
         type: string
         default: ""
+      timeout:
+        type: number
+        default: 10
 
 jobs:
   run:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: ${{ inputs.timeout }}
     defaults:
       run:
         working-directory: pipeline

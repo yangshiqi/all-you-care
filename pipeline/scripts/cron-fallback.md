@@ -46,6 +46,15 @@ call on schedule.
 | `[fallback] ai · publish-pipeline (Mon–Sat 08:30 SH)` | `30 0 * * 1-6` | `ai-publish.yml` (merge→render→publish→deliver) |
 | `[fallback] ai · weekly-digest (Sun 08:30 SH)` | `30 0 * * 0` | `ai-weekly.yml` (weekly→publish→deliver) |
 | `[fallback] ai · tags (09:00 SH)` | `0 1 * * *` | `ai-tags.yml` |
+| `[fallback] infra · fetch (06:00 SH)` | `0 22 * * *` | `infra-fetch.yml` |
+| `[fallback] infra · compress (06:20 SH)` | `20 22 * * *` | `infra-compress.yml` |
+| `[fallback] infra · score (06:40 SH)` | `40 22 * * *` | `infra-score.yml` |
+| `[fallback] infra · weekly (Mon 09:00 SH)` | `0 1 * * 1` | `infra-weekly.yml` (merge→render) |
+
+infra (AI 原生周报) is a weekly channel: fetch/compress/score accumulate daily,
+merge→render assembles once a week on Monday. No publish/deliver yet — the weekly
+run produces a reviewable `pre_publish`. infra merge does per-item LLM expands, so
+`infra-weekly.yml` passes `timeout: 30` to the reusable workflow (default is 10).
 
 Snow channel is not currently in active use — its entries are commented
 out in `setup-cronjob-fallback.ts`. Uncomment them and rerun the script
