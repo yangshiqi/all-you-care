@@ -108,8 +108,11 @@ function sleep(ms: number): Promise<void> {
  * error (constraint violation, permission denied, SQL error) is NOT transient
  * and must surface immediately.
  */
-export function isTransientDbError(msg: string): boolean {
-  return /fetch failed|network|socket hang up|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|timeout|\b50[234]\b/i.test(
+export function isTransientDbError(msg: string | null | undefined): boolean {
+  if (!msg) return false;
+  // NB: no bare "network" — it matches real errors like "table network_logs".
+  // "network timeout" is still caught by the `timeout` alternative.
+  return /fetch failed|socket hang up|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|timeout|\b50[234]\b/i.test(
     msg,
   );
 }

@@ -25,8 +25,8 @@ export function parseInfraPayload(contentMd: string): InfraWeeklyPayload | null 
   } catch { return null; }
 }
 
-function renderSources(sources: InfraSource[]): string {
-  if (!sources.length) return '';
+function renderSources(sources: InfraSource[] | undefined): string {
+  if (!sources || !sources.length) return '';
   const links = sources
     .map((s) => `<a class="src-link" href="${safeHref(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`)
     .join(' · ');
@@ -66,7 +66,7 @@ ${rows}
 function renderCategory(cat: InfraReportCategory): string {
   const body = cat.empty_note
     ? `  <p class="empty-note">${esc(cat.empty_note)}</p>`
-    : cat.items.map(renderItem).join('\n');
+    : (cat.items ?? []).map(renderItem).join('\n');
   return `<section class="infra-section">
   <h3 class="section-title">${esc(cat.label)}</h3>
 ${body}
@@ -79,7 +79,7 @@ export function renderInfraContent(payload: InfraWeeklyPayload): string {
   if (payload.overview?.trim())
     parts.push(`<section class="overview-box"><h3 class="section-title">开篇总览</h3><p>${esc(payload.overview)}</p></section>`);
 
-  for (const cat of payload.categories) parts.push(renderCategory(cat));
+  for (const cat of payload.categories ?? []) parts.push(renderCategory(cat));
 
   if (payload.trends?.length) {
     const li = payload.trends.map((t) => `    <li>${esc(t)}</li>`).join('\n');

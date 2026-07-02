@@ -142,81 +142,93 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
     return;
   }
 
-  const llmCfg = resolveLlm(channel, 'merge');
-  // Weekly window label as a date range: "6月25日 - 7月1日" (last 7 days, inclusive).
-  const weekStartIso = new Date(Date.parse(today.date) - (WEEK_DAYS - 1) * 86_400_000)
-    .toISOString().slice(0, 10);
-  const weekLabel = `${cnDate(weekStartIso)} - ${cnDate(today.date)}`;
+  // Everything past the claim can throw (LLM / commit). On any failure, release
+  // the claimed drafts via markFailed (clears the claim lock + increments
+  // attempt_count so a poison batch eventually dead-letters) before rethrowing —
+  // otherwise the drafts sit "claimed" until the 30-min lock expires and retry
+  // forever without ever hitting the attempt cap.
+  try {
+    const llmCfg = resolveLlm(channel, 'merge');
+    // Weekly window label as a date range: "6月25日 - 7月1日" (last 7 days, inclusive).
+    const weekStartIso = new Date(Date.parse(today.date) - (WEEK_DAYS - 1) * 86_400_000)
+      .toISOString().slice(0, 10);
+    const weekLabel = `${cnDate(weekStartIso)} - ${cnDate(today.date)}`;
 
-  // 3. Per-item expand — bounded-concurrency (isolated: one failure → fallback,
-  //    not a dead issue). Parallel keeps merge well under the CI job timeout.
-  const flat = buckets.flatMap((b) => b.items.map((it) => ({ key: b.key, it })));
-  const expandOne = async (it: InfraScoredItem): Promise<InfraReportItem> => {
-    try {
-      const prompt = await loadPrompt(channelDir, 'merge.expand', { item_json: JSON.stringify(it) });
-      const r = await callLlm<ExpandOut>({
-        prompt, expectJson: true, model: llmCfg.model, maxTokens: 1200,
-        temperature: llmCfg.temperature, chain: llmCfg.chain, log,
-      });
-      await trackUsage(db, { channel: channel.name, step: 'merge:expand', provider: r.provider,
-        model: r.model, input_tokens: r.inputTokens, output_tokens: r.outputTokens }, log);
-      const j = r.json;
-      return j
-        ? { title: it.title, maturity: j.maturity ?? (it.kind ?? ''), points: j.points ?? it.facts,
-            why: j.why ?? '', scenarios: j.scenarios ?? '', caveats: j.caveats ?? '',
-            action: j.action ?? '', score: it.score, sources: it.sources }
-        : fallbackItem(it);
-    } catch (e) {
-      log.warn({ event: 'infra_expand_fail', title: it.title, err: (e as Error).message }, '');
-      return fallbackItem(it);
-    }
-  };
-  const expanded = await mapLimit(flat, EXPAND_CONCURRENCY, ({ it }) => expandOne(it));
-  const expandedByKey = new Map<string, InfraReportItem[]>();
-  for (const b of buckets) expandedByKey.set(b.key, []);
-  flat.forEach((f, i) => expandedByKey.get(f.key)!.push(expanded[i]!));
+    // 3. Per-item expand — bounded-concurrency (isolated: one failure → fallback,
+    //    not a dead issue). Parallel keeps merge well under the CI job timeout.
+    const flat = buckets.flatMap((b) => b.items.map((it) => ({ key: b.key, it })));
+    const expandOne = async (it: InfraScoredItem): Promise<InfraReportItem> => {
+      try {
+        const prompt = await loadPrompt(channelDir, 'merge.expand', { item_json: JSON.stringify(it) });
+        const r = await callLlm<ExpandOut>({
+          prompt, expectJson: true, model: llmCfg.model, maxTokens: 1200,
+          temperature: llmCfg.temperature, chain: llmCfg.chain, log,
+        });
+        await trackUsage(db, { channel: channel.name, step: 'merge:expand', provider: r.provider,
+          model: r.model, input_tokens: r.inputTokens, output_tokens: r.outputTokens }, log);
+        const j = r.json;
+        return j
+          ? { title: it.title, maturity: j.maturity ?? (it.kind ?? ''), points: j.points ?? it.facts,
+              why: j.why ?? '', scenarios: j.scenarios ?? '', caveats: j.caveats ?? '',
+              action: j.action ?? '', score: it.score, sources: it.sources }
+          : fallbackItem(it);
+      } catch (e) {
+        log.warn({ event: 'infra_expand_fail', title: it.title, err: (e as Error).message }, '');
+        return fallbackItem(it);
+      }
+    };
+    const expanded = await mapLimit(flat, EXPAND_CONCURRENCY, ({ it }) => expandOne(it));
+    const expandedByKey = new Map<string, InfraReportItem[]>();
+    for (const b of buckets) expandedByKey.set(b.key, []);
+    flat.forEach((f, i) => expandedByKey.get(f.key)!.push(expanded[i]!));
 
-  // 4. One synthesize call (compact input only).
-  const synthInput = selected.map((i) => ({ title: i.title, category: i.category, score: i.score }));
-  const synthPrompt = await loadPrompt(channelDir, 'merge.synthesize', {
-    items_json: JSON.stringify(synthInput), week_label: weekLabel,
-  });
-  const s = await callLlm<SynthOut>({
-    prompt: synthPrompt, expectJson: true, model: llmCfg.model, maxTokens: llmCfg.maxTokens,
-    temperature: llmCfg.temperature, chain: llmCfg.chain, log,
-  });
-  await trackUsage(db, { channel: channel.name, step: 'merge', provider: s.provider, model: s.model,
-    input_tokens: s.inputTokens, output_tokens: s.outputTokens }, log);
-  const synth = s.json;
-  if (!synth) throw new Error('infra merge: synthesize returned no JSON');
+    // 4. One synthesize call (compact input only).
+    const synthInput = selected.map((i) => ({ title: i.title, category: i.category, score: i.score }));
+    const synthPrompt = await loadPrompt(channelDir, 'merge.synthesize', {
+      items_json: JSON.stringify(synthInput), week_label: weekLabel,
+    });
+    const s = await callLlm<SynthOut>({
+      prompt: synthPrompt, expectJson: true, model: llmCfg.model, maxTokens: llmCfg.maxTokens,
+      temperature: llmCfg.temperature, chain: llmCfg.chain, log,
+    });
+    await trackUsage(db, { channel: channel.name, step: 'merge', provider: s.provider, model: s.model,
+      input_tokens: s.inputTokens, output_tokens: s.outputTokens }, log);
+    const synth = s.json;
+    if (!synth) throw new Error('infra merge: synthesize returned no JSON');
 
-  // 5. Assemble deterministically.
-  const categories: InfraReportCategory[] = buckets.map((b) => ({
-    key: b.key, label: b.label,
-    empty_note: b.empty ? '本周窗口内无可核验重大更新。' : null,
-    items: expandedByKey.get(b.key) ?? [],
-  }));
-  const headline = (synth.headline || '').trim() || '云原生 × AI 融合本周动态';
-  const title = `[AI 原生周报] ${weekLabel}：${headline}`;
-  const payload: InfraWeeklyPayload = {
-    title, week_label: weekLabel, headline,
-    overview: synth.overview ?? '', summary: synth.summary ?? '',
-    tags: Array.isArray(synth.tags) ? synth.tags : [],
-    categories,
-    trends: Array.isArray(synth.trends) ? synth.trends : [],
-    recommendations: Array.isArray(synth.recommendations) ? synth.recommendations : [],
-  };
+    // 5. Assemble deterministically.
+    const categories: InfraReportCategory[] = buckets.map((b) => ({
+      key: b.key, label: b.label,
+      empty_note: b.empty ? '本周窗口内无可核验重大更新。' : null,
+      items: expandedByKey.get(b.key) ?? [],
+    }));
+    const headline = (synth.headline || '').trim() || '云原生 × AI 融合本周动态';
+    const title = `[AI 原生周报] ${weekLabel}：${headline}`;
+    const payload: InfraWeeklyPayload = {
+      title, week_label: weekLabel, headline,
+      overview: synth.overview ?? '', summary: synth.summary ?? '',
+      tags: Array.isArray(synth.tags) ? synth.tags : [],
+      categories,
+      trends: Array.isArray(synth.trends) ? synth.trends : [],
+      recommendations: Array.isArray(synth.recommendations) ? synth.recommendations : [],
+    };
 
-  // No cover image for the infra weekly report (deliberately omitted).
-  const newId = await commit.merge(db, channel.name, {
-    title, summary: payload.summary || null, contentMd: JSON.stringify(payload),
-    tags: payload.tags, coverImage: null, sourceScoredIds: allIds,
-  });
+    // No cover image for the infra weekly report (deliberately omitted).
+    const newId = await commit.merge(db, channel.name, {
+      title, summary: payload.summary || null, contentMd: JSON.stringify(payload),
+      tags: payload.tags, coverImage: null, sourceScoredIds: allIds,
+    });
 
-  // 6. Tag as weekly (merge_commit defaults issue_type='daily'; no RPC change this round).
-  const { error: upErr } = await db.from('pre_publish').update({ issue_type: 'weekly' }).eq('id', newId);
-  if (upErr) log.warn({ event: 'infra_issue_type_fail', err: upErr.message, pre_publish_id: newId }, '');
+    // 6. Tag as weekly (merge_commit defaults issue_type='daily'; no RPC change this round).
+    const { error: upErr } = await db.from('pre_publish').update({ issue_type: 'weekly' }).eq('id', newId);
+    if (upErr) log.warn({ event: 'infra_issue_type_fail', err: upErr.message, pre_publish_id: newId }, '');
 
-  log.info({ event: 'infra_merge_ok', pre_publish_id: newId, title,
-    categories: categories.map((c) => `${c.key}:${c.items.length}`).join(',') }, '');
+    log.info({ event: 'infra_merge_ok', pre_publish_id: newId, title,
+      categories: categories.map((c) => `${c.key}:${c.items.length}`).join(',') }, '');
+  } catch (e) {
+    const msg = (e as Error).message;
+    log.error({ event: 'infra_merge_fail', err: msg }, 'infra merge failed after claim — releasing drafts');
+    for (const id of allIds) await markFailed.scoredDraft(db, id, msg);
+    throw e;
+  }
 }

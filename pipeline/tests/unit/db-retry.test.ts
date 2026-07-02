@@ -26,8 +26,17 @@ describe('isTransientDbError', () => {
       'invalid input value for enum channel_kind: "bogus"',
       'null value in column "title" violates not-null constraint',
       'syntax error at or near "select"',
+      // real errors that merely contain the substring "network" must NOT retry
+      'permission denied for table network_logs',
+      'violates foreign key constraint on network_id',
     ]) {
       expect(isTransientDbError(msg), msg).toBe(false);
     }
+  });
+
+  it('returns false for null / undefined / empty message', () => {
+    expect(isTransientDbError(null)).toBe(false);
+    expect(isTransientDbError(undefined)).toBe(false);
+    expect(isTransientDbError('')).toBe(false);
   });
 });
