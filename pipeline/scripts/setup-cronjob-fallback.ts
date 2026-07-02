@@ -42,6 +42,12 @@ const JOBS: ScheduleSpec[] = [
   { workflow: 'ai-publish.yml', cron: '30 0 * * 1-6', title: 'ai · publish-pipeline (Mon–Sat 08:30 SH)' },
   { workflow: 'ai-weekly.yml', cron: '30 0 * * 0', title: 'ai · weekly-digest (Sun 08:30 SH)' },
   { workflow: 'ai-tags.yml', cron: '0 1 * * *', title: 'ai · tags (09:00 SH)' },
+  // infra (AI 原生周报) — weekly channel: accumulate daily, assemble on Monday.
+  { workflow: 'infra-fetch.yml', cron: '0 22 * * *', title: 'infra · fetch (06:00 SH)' },
+  { workflow: 'infra-compress.yml', cron: '20 22 * * *', title: 'infra · compress (06:20 SH)' },
+  { workflow: 'infra-score.yml', cron: '40 22 * * *', title: 'infra · score (06:40 SH)' },
+  // Weekly merge→render (no publish/deliver yet — output is a reviewable pre_publish).
+  { workflow: 'infra-weekly.yml', cron: '0 1 * * 1', title: 'infra · weekly (Mon 09:00 SH)' },
   // Snow channel not currently in active use — add these back if it goes live:
   // { workflow: 'snow-fetch.yml', cron: '0 1,11 * * *', title: 'snow · fetch (09:00 / 19:00 SH)' },
   // { workflow: 'snow-compress.yml', cron: '0 */6 * * *', title: 'snow · compress (every 6h)' },

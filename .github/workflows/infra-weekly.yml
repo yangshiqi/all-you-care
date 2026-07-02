@@ -1,0 +1,19 @@
+name: infra · weekly
+on:
+  # Scheduled by cron-job.org, Mon 09:00 Asia/Shanghai = Mon 01:00 UTC
+  # (see pipeline/scripts/cron-fallback.md).
+  workflow_dispatch: {}
+
+# Weekly assembly: merge → render. No publish/deliver yet (infra has no
+# frontend/subscribers this round) — output is a reviewable pre_publish.
+jobs:
+  merge:
+    uses: ./.github/workflows/_pipeline.yml
+    # infra merge does per-item LLM expands; needs more than the default 10-min cap.
+    with: { channel: infra, step: merge, timeout: 30 }
+    secrets: inherit
+  render:
+    needs: merge
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: infra, step: render }
+    secrets: inherit

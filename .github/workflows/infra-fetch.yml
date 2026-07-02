@@ -1,0 +1,12 @@
+name: infra · fetch
+on:
+  # Scheduled by cron-job.org (see pipeline/scripts/cron-fallback.md).
+  workflow_dispatch: {}
+
+jobs:
+  fetch:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      channel: infra
+      step: fetch
+    secrets: inherit

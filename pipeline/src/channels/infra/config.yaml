@@ -1,0 +1,112 @@
+name: infra
+display_name: "AI 原生周报"
+
+sources:
+  rss:
+    # 推理引擎（inference_engine）
+    - { url: "https://github.com/vllm-project/vllm/releases.atom",                          enabled: true }
+    - { url: "https://github.com/sgl-project/sglang/releases.atom",                         enabled: true }
+    - { url: "https://github.com/NVIDIA/TensorRT-LLM/releases.atom",                        enabled: true }
+    - { url: "https://github.com/huggingface/text-generation-inference/releases.atom",      enabled: true }
+    - { url: "https://github.com/ggml-org/llama.cpp/releases.atom",                         enabled: true }
+    - { url: "https://github.com/ollama/ollama/releases.atom",                              enabled: true }
+    - { url: "https://github.com/triton-inference-server/server/releases.atom",             enabled: true }
+    - { url: "https://github.com/InternLM/lmdeploy/releases.atom",                          enabled: true }
+    - { url: "https://github.com/kvcache-ai/ktransformers/releases.atom",                   enabled: true }
+    - { url: "https://github.com/xorbitsai/inference/releases.atom",                        enabled: true }
+    # 推理编排 / 网关 / 平台（ai_native）
+    - { url: "https://github.com/llm-d/llm-d/releases.atom",                                 enabled: true }
+    - { url: "https://github.com/kserve/kserve/releases.atom",                              enabled: true }
+    - { url: "https://github.com/vllm-project/aibrix/releases.atom",                        enabled: true }
+    - { url: "https://github.com/ai-dynamo/dynamo/releases.atom",                           enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases.atom", enabled: true }
+    - { url: "https://github.com/BerriAI/litellm/releases.atom",                            enabled: true }
+    - { url: "https://github.com/envoyproxy/ai-gateway/releases.atom",                      enabled: true }
+    - { url: "https://github.com/alibaba/higress/releases.atom",                            enabled: true }
+    - { url: "https://github.com/substratusai/kubeai/releases.atom",                        enabled: true }
+    - { url: "https://github.com/kaito-project/kaito/releases.atom",                        enabled: true }
+    - { url: "https://github.com/fluid-cloudnative/fluid/releases.atom",                    enabled: true }
+    - { url: "https://github.com/skypilot-org/skypilot/releases.atom",                      enabled: true }
+    - { url: "https://github.com/gpustack/gpustack/releases.atom",                          enabled: true }
+    # KV / 显存
+    - { url: "https://github.com/LMCache/LMCache/releases.atom",                            enabled: true }
+    - { url: "https://github.com/kvcache-ai/Mooncake/releases.atom",                        enabled: true }
+    # 容器与调度（k8s）
+    - { url: "https://github.com/kubernetes/kubernetes/releases.atom",                      enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/kueue/releases.atom",                      enabled: true }
+    - { url: "https://github.com/volcano-sh/volcano/releases.atom",                         enabled: true }
+    - { url: "https://github.com/ray-project/ray/releases.atom",                            enabled: true }
+    - { url: "https://github.com/ray-project/kuberay/releases.atom",                        enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/jobset/releases.atom",                     enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/lws/releases.atom",                        enabled: true }
+    # 训练 / 批作业 / 工作流
+    - { url: "https://github.com/kubeflow/trainer/releases.atom",                           enabled: true }
+    - { url: "https://github.com/microsoft/DeepSpeed/releases.atom",                        enabled: true }
+    - { url: "https://github.com/NVIDIA/Megatron-LM/releases.atom",                         enabled: true }
+    - { url: "https://github.com/volcengine/verl/releases.atom",                            enabled: true }
+    - { url: "https://github.com/argoproj/argo-workflows/releases.atom",                    enabled: true }
+    # GPU / 资源 / DRA
+    - { url: "https://github.com/Project-HAMi/HAMi/releases.atom",                          enabled: true }
+    - { url: "https://github.com/NVIDIA/k8s-device-plugin/releases.atom",                   enabled: true }
+    - { url: "https://github.com/NVIDIA/KAI-Scheduler/releases.atom",                       enabled: true }
+    - { url: "https://github.com/NVIDIA/gpu-operator/releases.atom",                        enabled: true }
+    - { url: "https://github.com/NVIDIA/k8s-dra-driver-gpu/releases.atom",                  enabled: true }
+    - { url: "https://github.com/NVIDIA/dcgm-exporter/releases.atom",                       enabled: true }
+    # 可观测（mesh_obs）
+    - { url: "https://github.com/open-telemetry/opentelemetry-collector-contrib/releases.atom", enabled: true }
+    - { url: "https://github.com/langfuse/langfuse/releases.atom",                          enabled: true }
+    - { url: "https://github.com/sustainable-computing-io/kepler/releases.atom",            enabled: true }
+    - { url: "https://github.com/traceloop/openllmetry/releases.atom",                      enabled: true }
+    # Serverless / 存储 / 分发（serverless_storage）
+    - { url: "https://github.com/dragonflyoss/dragonfly/releases.atom",                     enabled: true }
+    - { url: "https://github.com/knative/serving/releases.atom",                            enabled: true }
+    - { url: "https://github.com/juicedata/juicefs/releases.atom",                          enabled: true }
+    - { url: "https://github.com/deepseek-ai/3FS/releases.atom",                            enabled: true }
+    # 博客
+    - { url: "https://kubernetes.io/feed.xml",                                              enabled: true }
+    - { url: "https://www.cncf.io/feed/",                                                   enabled: true }
+    - { url: "https://vllm.ai/blog/rss.xml",                                                enabled: true }   # vLLM 官方博客（用户提供的正确地址）
+    - { url: "https://developer.nvidia.com/blog/feed",                                      enabled: true }
+    - { url: "https://pytorch.org/blog/feed.xml",                                           enabled: true }
+  opml: []
+  email: []
+
+windows:
+  fetch_rss_age_hours: 168             # 周报：抓最近 7 天（比每日频道宽；dedup 唯一约束防重复入库）
+  fetch_email_age_hours: 168
+  compress_lookback_hours: 30        # 死配置（未接线），占位
+  merge_new_lookback_hours: 168      # 死配置（未接线），周窗口由 runInfraMerge 内部做
+  merge_old_lookback_hours: 168      # 生效：跨期去重参考近一周
+
+thresholds:
+  compress_min_pending: 3
+  compress_batch_size: 40
+  score_batch_size: 8
+
+cover_image:
+  prefer: cdn_convention
+  cdn_pattern: "https://www.snapallx.com/infra/{yyyymm}/{n}.jpg"
+  cdn_random_max: 4
+  default: "/infra/default.jpg"
+
+# 本轮不投递；占位对齐命名约定，deliver.url 是 zod 必填。
+deliver:
+  url: "https://www.snapallx.com/api/send-latest-ai-news?type=infra"
+
+llm:
+  model: "claude-sonnet-4-6"
+  max_tokens: 16000
+  temperature: 0
+  steps:
+    compress:
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+    score:
+      chain:
+        - { provider: gemini, model: gemini-3.5-flash }
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+    merge:
+      chain:
+        - { provider: anthropic, model: claude-sonnet-4-6 }
+        - { provider: gemini, model: gemini-3.5-flash }

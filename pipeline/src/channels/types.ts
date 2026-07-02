@@ -13,7 +13,7 @@ const ChainEntrySchema = z.object({
 export type ChainEntry = z.infer<typeof ChainEntrySchema>;
 
 export const ChannelConfigSchema = z.object({
-  name: z.enum(['ai', 'snow']),
+  name: z.enum(['ai', 'snow', 'infra']),
   display_name: z.string(),
   sources: z.object({
     rss: z.array(RssSourceSchema).default([]),
