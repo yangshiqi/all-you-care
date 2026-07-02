@@ -60,9 +60,9 @@ describe('bucketAndSelect', () => {
     mk({ title: 'c', category: 'k8s', score: 7 }),
     mk({ title: 'd', category: 'ai_native', score: 8 }),
   ];
-  it('returns all 6 categories in fixed order', () => {
+  it('returns all 5 categories in fixed order', () => {
     const g = bucketAndSelect(items, 2);
-    expect(g.map(x => x.key)).toEqual(['k8s', 'mesh_obs', 'serverless_storage', 'inference_engine', 'ai_native', 'vendor']);
+    expect(g.map(x => x.key)).toEqual(['k8s', 'mesh_obs', 'serverless_storage', 'inference_engine', 'ai_native']);
   });
   it('sorts by score desc and caps per category', () => {
     const g = bucketAndSelect(items, 2);
@@ -72,7 +72,7 @@ describe('bucketAndSelect', () => {
   });
   it('marks empty categories', () => {
     const g = bucketAndSelect(items, 2);
-    expect(g.find(x => x.key === 'vendor')!.empty).toBe(true);
-    expect(g.find(x => x.key === 'vendor')!.items).toEqual([]);
+    expect(g.find(x => x.key === 'serverless_storage')!.empty).toBe(true);
+    expect(g.find(x => x.key === 'serverless_storage')!.items).toEqual([]);
   });
 });

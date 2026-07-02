@@ -23,7 +23,6 @@ const payload: InfraWeeklyPayload = {
         sources: [{ label: 'vLLM v0.24.0 Release', url: 'https://github.com/vllm-project/vllm' }] },
     ] },
     { key: 'ai_native', label: '云原生 × AI 融合与开源项目', empty_note: '本周窗口内无可核验重大更新。', items: [] },
-    { key: 'vendor', label: '厂商产品更新', empty_note: '本周窗口内无可核验重大更新。', items: [] },
   ],
   trends: ['异构调度走向声明式需求'],
   recommendations: [{ audience: '训练平台', text: '先验证 Kueue v0.18.2' }],
@@ -31,9 +30,9 @@ const payload: InfraWeeklyPayload = {
 
 describe('renderInfraContent', () => {
   const html = renderInfraContent(payload);
-  it('renders overview and all 6 section labels', () => {
+  it('renders overview and all 5 section labels', () => {
     expect(html).toContain('本周控制面继续补短板。');
-    for (const label of ['容器与调度', '可观测', 'Serverless、存储与中间件', '推理引擎', '云原生 × AI 融合与开源项目', '厂商产品更新'])
+    for (const label of ['容器与调度', '可观测', 'Serverless、存储与中间件', '推理引擎', '云原生 × AI 融合与开源项目'])
       expect(html).toContain(label);
   });
   it('renders the per-item fields + maturity tag with labels', () => {
