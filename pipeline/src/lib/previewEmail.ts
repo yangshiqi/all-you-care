@@ -32,6 +32,7 @@ export interface SendPreviewResult {
 export async function sendPreviewEmail(
   issue: PreviewIssue,
   log: Logger,
+  opts?: { subject?: string; fromName?: string },
 ): Promise<SendPreviewResult> {
   const recipient = (process.env.PREVIEW_EMAIL_TO ?? '').trim();
   if (!recipient) {
@@ -56,9 +57,9 @@ export async function sendPreviewEmail(
 
   try {
     const info = await transporter.sendMail({
-      from: `"[AI]News (preview)" <${gmailUser}>`,
+      from: `"${opts?.fromName ?? '[AI]News (preview)'}" <${gmailUser}>`,
       to: recipient,
-      subject: `[PREVIEW] ${issue.title}`,
+      subject: opts?.subject ?? `[PREVIEW] ${issue.title}`,
       html,
     });
     log.info({

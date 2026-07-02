@@ -6,6 +6,7 @@ import { callLlm } from '../lib/llm.js';
 import { loadPrompt } from '../lib/prompt.js';
 import { sanitizeIssueHtml } from '../lib/sanitize.js';
 import { trackUsage } from '../lib/usage.js';
+import { sendPreviewEmail } from '../lib/previewEmail.js';
 import { renderInfraContent, parseInfraPayload, INFRA_CSS } from './infraRender.js';
 
 interface RenderOutput {
@@ -525,6 +526,16 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         { event: 'render_ok', pre_publish_id: pp.id, html_bytes: sanitized.length },
         '',
       );
+      // infra has no publish/deliver step — email the rendered weekly report to
+      // PREVIEW_EMAIL_TO right here (no-op if unset). ai/snow email from `publish`.
+      if (channel.name === 'infra') {
+        const r = await sendPreviewEmail(
+          { id: pp.id, title: pp.title, content_html: sanitized },
+          log,
+          { subject: pp.title, fromName: 'AI 原生周报' },
+        );
+        if (!r.sent) log.info({ event: 'infra_email_skip', pre_publish_id: pp.id, reason: r.reason }, '');
+      }
       processed++;
     } catch (e) {
       const msg = (e as Error).message;
