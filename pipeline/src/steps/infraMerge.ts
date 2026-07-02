@@ -73,7 +73,7 @@ export function bucketAndSelect(items: InfraScoredItem[], perCategoryMax: number
 const PER_CATEGORY_MAX = 5;
 const WEEK_DAYS = 7;
 
-interface ExpandOut { what: string; problem: string; value: string; scenarios: string; pitfalls: string; }
+interface ExpandOut { maturity: string; points: string; why: string; scenarios: string; caveats: string; action: string; }
 interface SynthOut {
   headline: string; overview: string; trends: string[];
   recommendations: InfraRecommendation[]; summary: string; tags: string[];
@@ -88,9 +88,9 @@ function cnDate(iso: string): string {   // '2026-07-01' -> '7月1日'
 /** Fallback prose when per-item expand fails: reuse facts so the issue still ships. */
 function fallbackItem(it: InfraScoredItem): InfraReportItem {
   return {
-    title: it.title, what: it.facts, problem: '', value: '', scenarios: '',
-    pitfalls: '（本条自动降级：展开失败，仅保留事实摘要）',
-    score: it.score, sources: it.sources, ...(it.kind ? { kind: it.kind } : {}),
+    title: it.title, maturity: it.kind ?? '', points: it.facts, why: '', scenarios: '',
+    caveats: '（本条自动降级：展开失败，仅保留事实摘要）', action: '',
+    score: it.score, sources: it.sources,
   };
 }
 
@@ -149,9 +149,9 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
           model: r.model, input_tokens: r.inputTokens, output_tokens: r.outputTokens }, log);
         const j = r.json;
         out.push(j
-          ? { title: it.title, what: j.what ?? it.facts, problem: j.problem ?? '', value: j.value ?? '',
-              scenarios: j.scenarios ?? '', pitfalls: j.pitfalls ?? '', score: it.score,
-              sources: it.sources, ...(it.kind ? { kind: it.kind } : {}) }
+          ? { title: it.title, maturity: j.maturity ?? (it.kind ?? ''), points: j.points ?? it.facts,
+              why: j.why ?? '', scenarios: j.scenarios ?? '', caveats: j.caveats ?? '',
+              action: j.action ?? '', score: it.score, sources: it.sources }
           : fallbackItem(it));
       } catch (e) {
         log.warn({ event: 'infra_expand_fail', title: it.title, err: (e as Error).message }, '');

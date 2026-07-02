@@ -34,11 +34,11 @@ function renderSources(sources: InfraSource[]): string {
 }
 
 const FIELD_ROWS: ReadonlyArray<{ key: keyof InfraReportItem; label: string }> = [
-  { key: 'what', label: '是什么' },
-  { key: 'problem', label: '解决什么问题' },
-  { key: 'value', label: '落地价值' },
+  { key: 'points', label: '要点' },
+  { key: 'why', label: '为什么重要' },
   { key: 'scenarios', label: '适用场景' },
-  { key: 'pitfalls', label: '踩坑提醒' },
+  { key: 'caveats', label: '注意事项' },
+  { key: 'action', label: '行动建议' },
 ];
 
 function renderItem(it: InfraReportItem): string {
@@ -46,16 +46,17 @@ function renderItem(it: InfraReportItem): string {
     .map(({ key, label }) => {
       const v = String(it[key] ?? '').trim();
       if (!v) return '';
-      const cls = key === 'pitfalls' ? 'field field-pitfalls' : 'field';
+      const cls = key === 'caveats' ? 'field field-caveats'
+        : key === 'action' ? 'field field-action' : 'field';
       return `    <p class="${cls}"><span class="field-label">${label}：</span>${esc(v)}</p>`;
     })
     .filter(Boolean)
     .join('\n');
-  const kind = it.kind ? `<span class="item-kind">${esc(it.kind)}</span>` : '';
+  const maturity = it.maturity ? `<span class="item-maturity">${esc(it.maturity)}</span>` : '';
   return `  <article class="infra-item">
     <div class="item-head">
       <h4 class="item-title">${esc(it.title)}</h4>
-      <span class="item-score">⭐ ${it.score.toFixed(1)}</span>${kind}
+      <span class="item-score">⭐ ${it.score.toFixed(1)}</span>${maturity}
     </div>
 ${rows}
     ${renderSources(it.sources)}
@@ -114,10 +115,11 @@ export const INFRA_CSS = `
   .item-title { margin:0; font-size:1.1rem; font-weight:600; flex:1; }
   .item-score { background:var(--accent); color:#fff; padding:2px 10px; border-radius:999px;
                 font-size:.8rem; font-weight:600; white-space:nowrap; }
-  .item-kind { background:#eaeef2; color:var(--muted); padding:2px 8px; border-radius:999px; font-size:.78rem; }
+  .item-maturity { background:#eaeef2; color:var(--muted); padding:2px 8px; border-radius:999px; font-size:.78rem; white-space:nowrap; }
   .field { margin:6px 0; color:var(--text); }
   .field-label { font-weight:600; color:var(--muted); }
-  .field-pitfalls { background:var(--pitfall-bg); border-radius:6px; padding:8px 10px; color:var(--pitfall); }
+  .field-caveats { background:var(--pitfall-bg); border-radius:6px; padding:8px 10px; color:var(--pitfall); }
+  .field-action { background:var(--accent-light,#ddf4ff); border-radius:6px; padding:8px 10px; color:var(--accent); font-weight:500; }
   .item-sources { margin-top:10px; padding-top:8px; border-top:1px dashed var(--line); font-size:.9rem; color:var(--muted); }
   .src-link { color:var(--accent); text-decoration:none; }
   .src-link:hover { text-decoration:underline; }

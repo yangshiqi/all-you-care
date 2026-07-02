@@ -27,16 +27,16 @@ export interface InfraScoredItem {
   kind?: string;               // 实时 | 回顾
 }
 
-// Final rendered item (after merge expands the five prose fields).
+// Final rendered item (after merge expands the prose fields).
 export interface InfraReportItem {
   title: string;
-  what: string;
-  problem: string;
-  value: string;
-  scenarios: string;
-  pitfalls: string;
+  maturity: string;    // 成熟度/状态标签：GA / Beta / RC / 补丁修复 / 新特性 / 解读 …
+  points: string;      // 要点
+  why: string;         // 为什么重要（合并原「解决什么问题」+「落地价值」）
+  scenarios: string;   // 适用场景
+  caveats: string;     // 注意事项（含破坏性变更）
+  action: string;      // 行动建议：生产可升 / 预发验证后升 / 仅关注 …
   score: number;
-  kind?: string;
   sources: InfraSource[];
 }
 
