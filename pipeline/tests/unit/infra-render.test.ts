@@ -67,4 +67,8 @@ describe('renderInfraContent', () => {
 describe('parseInfraPayload', () => {
   it('parses valid JSON', () => expect(parseInfraPayload(JSON.stringify(payload))?.headline).toBe('DRA 成主线'));
   it('returns null on bad JSON', () => expect(parseInfraPayload('nope')).toBeNull());
+  it('returns null for a valid object missing categories[]', () => {
+    expect(parseInfraPayload('{}')).toBeNull();
+    expect(parseInfraPayload('{"categories":"x"}')).toBeNull();
+  });
 });

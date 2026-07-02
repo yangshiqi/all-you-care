@@ -21,7 +21,13 @@ function safeHref(u: string): string {
 export function parseInfraPayload(contentMd: string): InfraWeeklyPayload | null {
   try {
     const p = JSON.parse(contentMd) as unknown;
-    return p && typeof p === 'object' ? (p as InfraWeeklyPayload) : null;
+    // Require the core contract (categories: array). A valid-but-malformed object
+    // like `{}` returns null → render.ts takes the clean "not valid JSON for infra
+    // channel" error path (markFailed) instead of silently rendering an empty shell.
+    if (!p || typeof p !== 'object' || !Array.isArray((p as { categories?: unknown }).categories)) {
+      return null;
+    }
+    return p as InfraWeeklyPayload;
   } catch { return null; }
 }
 
