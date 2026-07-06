@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getInfraContentByJournalId, getAllInfraContentIds } from "@/lib/api";
 import { isValidLanguage } from "@/lib/i18n-utils";
+import { extractBodyContent, stripDuplicateHeader } from "@/lib/issueHtml";
 import "../infra-report.css";
 
 interface Props {
@@ -31,6 +32,7 @@ export default async function InfraDetailPage({ params }: Props) {
   if (!issue) notFound();
 
   const date = issue.created_at ? new Date(issue.created_at).toLocaleDateString("zh-CN") : "";
+  const bodyHtml = stripDuplicateHeader(extractBodyContent(issue.content));
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,7 +43,7 @@ export default async function InfraDetailPage({ params }: Props) {
             <div className="text-sm text-muted-foreground uppercase tracking-widest mb-2">{date}</div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">{issue.title}</h1>
           </header>
-          <div className="infra-content" dangerouslySetInnerHTML={{ __html: issue.content }} />
+          <div className="infra-content" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
         </article>
       </main>
     </div>
