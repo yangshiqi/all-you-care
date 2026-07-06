@@ -62,6 +62,42 @@ sources:
     - { url: "https://github.com/knative/serving/releases.atom",                            enabled: true }
     - { url: "https://github.com/juicedata/juicefs/releases.atom",                          enabled: true }
     - { url: "https://github.com/deepseek-ai/3FS/releases.atom",                            enabled: true }
+    # ── 国产加速卡 / domestic AI accelerators ─────────────────────────
+    # 说明：GitHub 有真实 release feed 的仓库（逐个验证过）；壁仞走 Gitee tags.atom（见本组末尾）。
+    # 各厂的 K8s 设备插件/驱动多为闭源(Docker Hub/厂商门户)或并入 Project-HAMi，无法经此抓取。
+    # 海光(Hygon)未收录：sourcefind.cn(GitLab CE)地区封锁、境外不可达；GitCode 不提供 atom；Gitee 上仅 CPU 内核仓、无 DCU 内容。
+    # 寒武纪 Cambricon (MLU)
+    - { url: "https://github.com/Cambricon/cambricon-k8s-device-plugin/releases.atom",       enabled: true }
+    - { url: "https://github.com/Cambricon/mlu-exporter/releases.atom",                      enabled: true }
+    - { url: "https://github.com/Cambricon/mlu-ops/releases.atom",                           enabled: true }
+    # 昆仑芯 Kunlunxin (XPU) — 官方唯一可用 feed，挂在 baidu 组织下
+    - { url: "https://github.com/baidu/vLLM-Kunlun/releases.atom",                           enabled: true }
+    # 天数智芯 Iluvatar CoreX — org: Deep-Spark
+    - { url: "https://github.com/Deep-Spark/ix-device-plugin/releases.atom",                 enabled: true }
+    - { url: "https://github.com/Deep-Spark/iluvatar-corex-ixrt/releases.atom",              enabled: true }
+    - { url: "https://github.com/Deep-Spark/ix-exporter/releases.atom",                      enabled: true }
+    # 沐曦 MetaX (MACA) — org: MetaX-MACA
+    - { url: "https://github.com/MetaX-MACA/vLLM-metax/releases.atom",                       enabled: true }
+    - { url: "https://github.com/MetaX-MACA/mcoplib/releases.atom",                          enabled: true }
+    # 燧原 Enflame (GCU) — org: EnflameTechnology
+    - { url: "https://github.com/EnflameTechnology/vllm-gcu/releases.atom",                  enabled: true }
+    - { url: "https://github.com/EnflameTechnology/candle-vllm-gcu/releases.atom",           enabled: true }
+    - { url: "https://github.com/EnflameTechnology/torch-gcu/releases.atom",                 enabled: true }
+    - { url: "https://github.com/EnflameTechnology/gcushare/releases.atom",                  enabled: true }
+    - { url: "https://github.com/EnflameTechnology/gcu-exporter/releases.atom",              enabled: true }
+    # 摩尔线程 Moore Threads (MUSA) — org: MooreThreads
+    - { url: "https://github.com/MooreThreads/torch_musa/releases.atom",                     enabled: true }
+    - { url: "https://github.com/MooreThreads/TileOPs/releases.atom",                        enabled: true }
+    # 瀚博 VastAI (VACC) — org: Vastai
+    - { url: "https://github.com/Vastai/xinference_vacc/releases.atom",                      enabled: true }
+    # 华为昇腾 Ascend — MindCluster(k8s) + MindIE 推理(Motor 子仓)
+    - { url: "https://github.com/Ascend/mind-cluster/releases.atom",                         enabled: true }
+    - { url: "https://github.com/Ascend/MindIE-Motor/releases.atom",                         enabled: true }
+    # vLLM 官方 — omni 多模态 serving（此前遗漏）
+    - { url: "https://github.com/vllm-project/vllm-omni/releases.atom",                      enabled: true }
+    # 壁仞 Biren — GitHub org 已归档，改用 Gitee tags.atom（Gitee 不支持 releases.atom；低频、语义化 tag）
+    - { url: "https://gitee.com/BirenTechnology/k8s-device-plugin/tags.atom",                enabled: true }
+    - { url: "https://gitee.com/BirenTechnology/go-brml/tags.atom",                          enabled: true }
     # 博客
     - { url: "https://kubernetes.io/feed.xml",                                              enabled: true }
     - { url: "https://www.cncf.io/feed/",                                                   enabled: true }
