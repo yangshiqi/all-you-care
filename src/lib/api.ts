@@ -207,6 +207,97 @@ export const getIssueSummaries = cache(async (limit: number = 5, i18nLang?: stri
 })
 
 // -----------------------------------------------------------------------------
+// infra 频道（AI 原生周报，channel='infra'）
+// -----------------------------------------------------------------------------
+
+export const getInfraContentsPaginated = cache(async (
+  page: number = 1,
+  pageSize: number = 10,
+  i18nLang?: string,
+): Promise<PaginatedResult<IssueSummary>> => {
+  try {
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    let countQuery = supabase
+      .from('issues')
+      .select('*', { count: 'exact', head: true })
+      .eq('channel', 'infra')
+    if (dbLang) countQuery = countQuery.eq('lang', dbLang)
+    const { count, error: countError } = await countQuery
+    if (countError) throw new Error(`Failed to count infra contents: ${countError.message}`)
+
+    const total = count || 0
+    const totalPages = Math.ceil(total / pageSize)
+
+    let dataQuery = supabase
+      .from('issues')
+      .select(ISSUE_COLS_LIGHT)
+      .eq('channel', 'infra')
+      .order('published_at', { ascending: false })
+      .range(from, to)
+    if (dbLang) dataQuery = dataQuery.eq('lang', dbLang)
+    const { data, error } = await dataQuery
+    if (error) throw new Error(`Failed to fetch infra contents: ${error.message}`)
+
+    const rows = (data ?? []) as IssueLightRow[]
+    return { data: rows.map(mapIssueRowToSummary), total, page, pageSize, totalPages }
+  } catch (error) {
+    console.error('Error in getInfraContentsPaginated:', error)
+    throw error
+  }
+})
+
+export const getAllInfraContentIds = cache(async (
+  i18nLang?: string,
+): Promise<{ id: string; journal_id?: string; created_at: string }[]> => {
+  try {
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+    let query = supabase
+      .from('issues')
+      .select('id, journal_id, published_at')
+      .eq('channel', 'infra')
+      .order('published_at', { ascending: false })
+    if (dbLang) query = query.eq('lang', dbLang)
+    const { data, error } = await query
+    if (error) throw new Error(`Failed to fetch infra content IDs: ${error.message}`)
+    const rows = (data ?? []) as Pick<IssueRow, 'id' | 'journal_id' | 'published_at'>[]
+    return rows.map(r => ({
+      id: String(r.id),
+      journal_id: r.journal_id != null ? String(r.journal_id) : undefined,
+      created_at: r.published_at,
+    }))
+  } catch (error) {
+    console.error('Error in getAllInfraContentIds:', error)
+    throw error
+  }
+})
+
+export const getInfraContentByJournalId = cache(async (
+  journalId: string,
+  i18nLang?: string,
+): Promise<N8nAiContent | null> => {
+  try {
+    const dbLang = mapI18nLangToDbLang(i18nLang)
+    const numericId = Number(journalId)
+    if (!Number.isFinite(numericId)) return null
+    let query = supabase
+      .from('issues')
+      .select(ISSUE_COLS_FULL)
+      .eq('channel', 'infra')
+      .eq('journal_id', numericId)
+    if (dbLang) query = query.eq('lang', dbLang)
+    const { data, error } = await query.maybeSingle()
+    if (error) throw new Error(`Failed to fetch infra content: ${error.message}`)
+    return data ? mapIssueRow(data as IssueFullRow) : null
+  } catch (error) {
+    console.error('Error in getInfraContentByJournalId:', error)
+    return null
+  }
+})
+
+// -----------------------------------------------------------------------------
 // NEW API: SnapAI Insights (Blog)
 // -----------------------------------------------------------------------------
 
