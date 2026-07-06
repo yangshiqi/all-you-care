@@ -93,11 +93,23 @@ sources:
     # 华为昇腾 Ascend — MindCluster(k8s) + MindIE 推理(Motor 子仓)
     - { url: "https://github.com/Ascend/mind-cluster/releases.atom",                         enabled: true }
     - { url: "https://github.com/Ascend/MindIE-Motor/releases.atom",                         enabled: true }
-    # vLLM 官方 — omni 多模态 serving（此前遗漏）
+    # vLLM 官方 — omni 多模态 serving + 昇腾 NPU 后端
     - { url: "https://github.com/vllm-project/vllm-omni/releases.atom",                      enabled: true }
+    - { url: "https://github.com/vllm-project/vllm-ascend/releases.atom",                    enabled: true }
     # 壁仞 Biren — GitHub org 已归档，改用 Gitee tags.atom（Gitee 不支持 releases.atom；低频、语义化 tag）
     - { url: "https://gitee.com/BirenTechnology/k8s-device-plugin/tags.atom",                enabled: true }
     - { url: "https://gitee.com/BirenTechnology/go-brml/tags.atom",                          enabled: true }
+    # ── vLLM 生态扩展 / vLLM ecosystem ─────────────────────────────────
+    # K8s 部署 / 路由 / 量化 / 评测
+    - { url: "https://github.com/vllm-project/production-stack/releases.atom",               enabled: true }
+    - { url: "https://github.com/vllm-project/semantic-router/releases.atom",                enabled: true }
+    - { url: "https://github.com/vllm-project/llm-compressor/releases.atom",                 enabled: true }
+    - { url: "https://github.com/vllm-project/guidellm/releases.atom",                       enabled: true }
+    # 异构硬件后端（非 NVIDIA；与 vllm-ascend 同类）
+    - { url: "https://github.com/vllm-project/vllm-gaudi/releases.atom",                     enabled: true }   # Intel Gaudi
+    - { url: "https://github.com/vllm-project/tpu-inference/releases.atom",                  enabled: true }   # Google TPU
+    - { url: "https://github.com/vllm-project/vllm-xpu-kernels/releases.atom",               enabled: true }   # Intel GPU
+    - { url: "https://github.com/vllm-project/vllm-neuron/releases.atom",                    enabled: true }   # AWS Neuron
     # 博客
     - { url: "https://kubernetes.io/feed.xml",                                              enabled: true }
     - { url: "https://www.cncf.io/feed/",                                                   enabled: true }
