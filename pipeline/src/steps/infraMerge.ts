@@ -203,7 +203,7 @@ export async function runInfraMerge(ctx: StepContext): Promise<void> {
       items: expandedByKey.get(b.key) ?? [],
     }));
     const headline = (synth.headline || '').trim() || '云原生 × AI 融合本周动态';
-    const title = `[AI 原生周报] ${weekLabel}：${headline}`;
+    const title = `[AI 基建周报] ${weekLabel}：${headline}`;
     const payload: InfraWeeklyPayload = {
       title, week_label: weekLabel, headline,
       overview: synth.overview ?? '', summary: synth.summary ?? '',
