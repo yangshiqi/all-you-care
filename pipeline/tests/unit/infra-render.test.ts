@@ -3,7 +3,7 @@ import { renderInfraContent, parseInfraPayload } from '../../src/steps/infraRend
 import type { InfraWeeklyPayload } from '../../src/lib/infraTypes.js';
 
 const payload: InfraWeeklyPayload = {
-  title: '[AI 原生周报] 6月24日 - 6月30日：DRA 成主线',
+  title: '[AI 基建周报] 6月24日 - 6月30日：DRA 成主线',
   week_label: '6月24日 - 6月30日',
   headline: 'DRA 成主线',
   overview: '本周控制面继续补短板。',

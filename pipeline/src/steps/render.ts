@@ -532,7 +532,7 @@ export async function run(ctx: StepContext): Promise<StepResult> {
         const r = await sendPreviewEmail(
           { id: pp.id, title: pp.title, content_html: sanitized },
           log,
-          { subject: pp.title, fromName: 'AI 原生周报' },
+          { subject: pp.title, fromName: 'AI 基建周报' },
         );
         if (!r.sent) log.info({ event: 'infra_email_skip', pre_publish_id: pp.id, reason: r.reason }, '');
       }

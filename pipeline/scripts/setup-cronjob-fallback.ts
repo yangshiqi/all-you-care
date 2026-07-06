@@ -42,7 +42,7 @@ const JOBS: ScheduleSpec[] = [
   { workflow: 'ai-publish.yml', cron: '30 0 * * 1-6', title: 'ai · publish-pipeline (Mon–Sat 08:30 SH)' },
   { workflow: 'ai-weekly.yml', cron: '30 0 * * 0', title: 'ai · weekly-digest (Sun 08:30 SH)' },
   { workflow: 'ai-tags.yml', cron: '0 1 * * *', title: 'ai · tags (09:00 SH)' },
-  // infra (AI 原生周报) — weekly channel: accumulate daily, assemble on Monday.
+  // infra (AI 基建周报) — weekly channel: accumulate daily, assemble on Monday.
   { workflow: 'infra-fetch.yml', cron: '0 22 * * *', title: 'infra · fetch (06:00 SH)' },
   { workflow: 'infra-compress.yml', cron: '20 22 * * *', title: 'infra · compress (06:20 SH)' },
   { workflow: 'infra-score.yml', cron: '40 22 * * *', title: 'infra · score (06:40 SH)' },

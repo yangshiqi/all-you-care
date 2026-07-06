@@ -51,7 +51,7 @@ call on schedule.
 | `[fallback] infra · score (06:40 SH)` | `40 22 * * *` | `infra-score.yml` |
 | `[fallback] infra · weekly (Mon 09:00 SH)` | `0 1 * * 1` | `infra-weekly.yml` (merge→render) |
 
-infra (AI 原生周报) is a weekly channel: fetch/compress/score accumulate daily,
+infra (AI 基建周报) is a weekly channel: fetch/compress/score accumulate daily,
 merge→render assembles once a week on Monday. No publish/deliver yet — the weekly
 run produces a reviewable `pre_publish`. infra merge does per-item LLM expands, so
 `infra-weekly.yml` passes `timeout: 30` to the reusable workflow (default is 10).

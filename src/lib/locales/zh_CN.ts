@@ -22,12 +22,18 @@ export const zh_CN = {
       "issueDetail": {
         "title": "{{title}} | [SnapAI]News",
         "description": "{{summary}}"
+      },
+      "infra": {
+        "title": "AI 基建周报 | [SnapAI]News",
+        "description": "面向云原生 AI 基础设施工程师的每周要闻：推理引擎、K8s 调度、GPU 虚拟化、国产加速卡与微调框架。",
+        "empty": "本期暂无内容。"
       }
     },
     "nav": {
       "subscribe": "订阅",
-      "issues": "日报",
-      "weekly": "周报",
+      "issues": "AI 日报",
+      "weekly": "AI 周报",
+      "infra": "AI 基建周报",
       "tags": "标签",
       "search": "搜索 (Cmd+K)"
     },
