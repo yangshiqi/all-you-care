@@ -2,7 +2,7 @@
 import { Metadata } from 'next'
 import { getPublishedInsights } from '@/lib/api'
 import Link from 'next/link'
-import { Calendar, Tag, Terminal, Filter, X } from 'lucide-react'
+import { Calendar, Terminal, Filter, X } from 'lucide-react'
 import { AuthorAvatar } from '@/components/AuthorAvatar'
 import { en } from "@/lib/locales/en"
 import { zh_CN } from "@/lib/locales/zh_CN"
@@ -24,10 +24,7 @@ interface Props {
   }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { lang } = await params
-  const t = translations[lang as keyof typeof translations] || translations.en
-  
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'SnapAI Insights - The Signal in the Noise',
     description: 'Deep dives, technical analysis, and unfiltered opinions on AI. No fluff, just signal.',

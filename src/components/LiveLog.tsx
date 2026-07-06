@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { TranslatedText } from "./TranslatedText";
 import { Terminal } from "lucide-react";
 
 interface LogEntry {

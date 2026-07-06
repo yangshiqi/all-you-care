@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { TagIssuesList } from "@/components/TagIssuesList";
-import { getAllTags, getAllAiContents } from "@/lib/api";
+import { getAllTags } from "@/lib/api";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { isValidLanguage, SUPPORTED_LANGUAGES } from "@/lib/i18n-utils";
 import { notFound } from "next/navigation";

@@ -2,12 +2,8 @@
 "use client";
 
 import { Terminal } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { TranslatedText } from "./TranslatedText";
 
 export const Manifesto = () => {
-  const { t } = useTranslation();
-
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto transform hover:scale-[1.01] transition-transform duration-300">

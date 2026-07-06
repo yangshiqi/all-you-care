@@ -41,13 +41,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
 
-  // 格式化日期
-  const date = new Date(issue.created_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-
   // 提取第一张图片的 URL 用于 Open Graph
   const imgUrl = issue.imgUrl || '/x_welcome.jpg';
 
@@ -229,13 +222,6 @@ export default async function IssueDetailPage({ params }: Props) {
     const zhIssue = await getAiContentByJournalId(slug, 'zh-CN');
     hasEnVersion = !!zhIssue;
   }
-
-  // 格式化日期
-  const date = new Date(issue.created_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
 
   // 处理内容
   // 优先使用 content 字段，如果没有则使用 summary

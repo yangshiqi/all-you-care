@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 import { useCurrentLanguage } from "@/hooks/use-current-language";
-import { switchLanguageInPath, isValidLanguage, type SupportedLanguage } from "@/lib/i18n-utils";
+import { switchLanguageInPath, type SupportedLanguage } from "@/lib/i18n-utils";
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();

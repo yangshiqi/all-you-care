@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
       // `useEffect(() => setMounted(true), [])` is the idiomatic SSR-hydration
       // guard; keep it a warning rather than a build-blocking error.
       "react-hooks/set-state-in-effect": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
     },
   },
   // Override default ignores of eslint-config-next.

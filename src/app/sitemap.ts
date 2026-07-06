@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getIssueMonths, getIssuesByMonth, getAllAiContentIds } from '@/lib/api'
+import { getAllAiContentIds } from '@/lib/api'
 import { getAllTags } from '@/lib/api'
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n-utils'
 

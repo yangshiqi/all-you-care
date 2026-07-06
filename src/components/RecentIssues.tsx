@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { TranslatedText } from "./TranslatedText";
 import { getIssueSummaries, IssueSummary } from "@/lib/api";
@@ -13,7 +12,7 @@ import { addLanguageToPath } from "@/lib/i18n-utils";
 export const RecentIssues = () => {
   const { t, i18n } = useTranslation();
   const lang = useCurrentLanguage();
-  const [filter, setFilter] = useState("");
+  const [filter] = useState("");
   const [issues, setIssues] = useState<IssueSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
