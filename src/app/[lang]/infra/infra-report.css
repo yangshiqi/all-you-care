@@ -20,10 +20,22 @@
   border: 1px solid var(--color-border); border-radius: 999px; padding: 0.05rem 0.5rem;
 }
 .infra-content p { margin: 0.4rem 0; }
-.infra-content .field-label { font-weight: 600; color: var(--color-muted-foreground); }
-.infra-content .field { margin: 0.35rem 0; }
-.infra-content .field-caveats { color: var(--color-muted-foreground); }
-.infra-content .field-action { border-left: 3px solid var(--color-primary); padding-left: 0.6rem; }
+.infra-content .field {
+  margin: 0.5rem 0; padding-left: 0.75rem;
+  border-left: 2px solid var(--color-border);
+}
+.infra-content .field-label {
+  font-weight: 700; color: var(--color-primary); margin-right: 0.35rem;
+}
+/* 注意事项：琥珀色警示调 */
+.infra-content .field-caveats { border-left-color: #d99a1c; color: var(--color-muted-foreground); }
+.infra-content .field-caveats .field-label { color: #b57d10; }
+/* 行动建议：主色高亮框，突出“该做什么” */
+.infra-content .field-action {
+  border-left: 3px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  padding: 0.45rem 0.7rem; border-radius: 0 0.4rem 0.4rem 0; margin-top: 0.6rem;
+}
 .infra-content .item-sources { margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-muted-foreground); }
 .infra-content .src-link { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; margin-right: 0.5rem; word-break: break-all; }
 .infra-content .trend-list, .infra-content .rec-list { padding-left: 1.25rem; }
