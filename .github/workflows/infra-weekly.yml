@@ -4,8 +4,9 @@ on:
   # (see pipeline/scripts/cron-fallback.md).
   workflow_dispatch: {}
 
-# Weekly assembly: merge → render. No publish/deliver yet (infra has no
-# frontend/subscribers this round) — output is a reviewable pre_publish.
+# Weekly assembly: merge → render → publish. No deliver yet (infra has no
+# subscribers this round) — publish writes into `issues` so the website can
+# read it, but no campaign email is sent to subscribers.
 jobs:
   merge:
     uses: ./.github/workflows/_pipeline.yml
@@ -16,4 +17,9 @@ jobs:
     needs: merge
     uses: ./.github/workflows/_pipeline.yml
     with: { channel: infra, step: render }
+    secrets: inherit
+  publish:
+    needs: render
+    uses: ./.github/workflows/_pipeline.yml
+    with: { channel: infra, step: publish }
     secrets: inherit
