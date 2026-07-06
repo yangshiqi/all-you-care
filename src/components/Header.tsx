@@ -53,6 +53,13 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
             </Link>
             <span className="text-primary text-md">❖</span>
             <Link
+              href={addLanguageToPath("/infra", lang)}
+              className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
+            >
+              <TranslatedText>{t('nav.infra')}</TranslatedText>
+            </Link>
+            <span className="text-primary text-md">❖</span>
+            <Link
               href={addLanguageToPath("/tags", lang)}
               className="hover:text-primary font-medium uppercase tracking-wider transition-colors"
             >
@@ -98,6 +105,13 @@ export const Header = ({ initialLang }: HeaderProps = {}) => {
               onClick={() => setMobileMenuOpen(false)}
             >
               <TranslatedText>{t('nav.weekly') ?? '周报'}</TranslatedText>
+            </Link>
+            <Link
+              href={addLanguageToPath("/infra", lang)}
+              className="hover:text-primary font-medium uppercase tracking-wider transition-colors py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <TranslatedText>{t('nav.infra')}</TranslatedText>
             </Link>
             <Link
               href={addLanguageToPath("/tags", lang)}

@@ -22,12 +22,18 @@ export const en = {
       "issueDetail": {
         "title": "{{title}} | [SnapAI]News",
         "description": "{{summary}}"
+      },
+      "infra": {
+        "title": "Cloud-Native AI Weekly | [AI]News",
+        "description": "Weekly digest for cloud-native AI infra engineers: inference engines, K8s scheduling, GPU virtualization, domestic accelerators, and fine-tuning frameworks.",
+        "empty": "No issues yet."
       }
     },
     "nav": {
       "subscribe": "subscribe",
       "issues": "daily",
       "weekly": "weekly",
+      "infra": "Cloud-Native Weekly",
       "tags": "tags",
       "search": "Search (Cmd+K)"
     },
