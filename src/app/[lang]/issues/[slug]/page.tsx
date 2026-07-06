@@ -175,7 +175,7 @@ function formatHtmlContent(htmlContent: string) {
   
   while ((match = h2Regex.exec(content)) !== null) {
     const title = match[1].replace(/<[^>]+>/g, '').trim(); // 移除标题中的 HTML 标签
-    let sectionContent = match[2].trim();
+    const sectionContent = match[2].trim();
     
     if (sectionContent || title) {
       sections.push({

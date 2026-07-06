@@ -38,7 +38,7 @@ export const Manifesto = () => {
               <div className="pl-4 border-l-2 border-gray-700 space-y-4">
                 <p>
                   <span className="text-gray-500"># The Infrastructure</span><br/>
-                  Yes, <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-[#59c2ff] hover:underline underline-offset-4 decoration-dashed">OpenClaw</a> built this site's backend in seconds. The scraping is automated. The delivery is algorithmic.
+                  Yes, <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer" className="text-[#59c2ff] hover:underline underline-offset-4 decoration-dashed">OpenClaw</a> built this site&apos;s backend in seconds. The scraping is automated. The delivery is algorithmic.
                 </p>
 
                 <p>
@@ -60,7 +60,7 @@ export const Manifesto = () => {
               </div>
 
               <div className="text-[#27c93f] animate-pulse font-bold">
-                &gt; Zack: "The only thing faster than AI is the speed of hype. I&apos;m the friction."<span className="inline-block w-2 h-4 bg-[#27c93f] ml-1 align-middle animate-pulse"></span>
+                &gt; Zack: &ldquo;The only thing faster than AI is the speed of hype. I&apos;m the friction.&rdquo;<span className="inline-block w-2 h-4 bg-[#27c93f] ml-1 align-middle animate-pulse"></span>
               </div>
             </div>
           </div>
