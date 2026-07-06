@@ -161,7 +161,7 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
                       </h3>
                       {relatedInsight.excerpt && (
                         <p className="text-gray-400 italic">
-                          "{relatedInsight.excerpt}"
+                          &ldquo;{relatedInsight.excerpt}&rdquo;
                         </p>
                       )}
                     </div>
