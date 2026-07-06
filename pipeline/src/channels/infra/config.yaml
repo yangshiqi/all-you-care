@@ -110,6 +110,27 @@ sources:
     - { url: "https://github.com/vllm-project/tpu-inference/releases.atom",                  enabled: true }   # Google TPU
     - { url: "https://github.com/vllm-project/vllm-xpu-kernels/releases.atom",               enabled: true }   # Intel GPU
     - { url: "https://github.com/vllm-project/vllm-neuron/releases.atom",                    enabled: true }   # AWS Neuron
+    # ── LLM 网关 / 可观测 (LLMOps) ─────────────────────────────────────
+    # 网关 / 路由 / 代理
+    - { url: "https://github.com/maximhq/bifrost/releases.atom",                             enabled: true }
+    - { url: "https://github.com/katanemo/archgw/releases.atom",                             enabled: true }
+    - { url: "https://github.com/kgateway-dev/kgateway/releases.atom",                       enabled: true }
+    - { url: "https://github.com/Portkey-AI/gateway/releases.atom",                          enabled: true }
+    # 可观测 / 评测 / 追踪
+    - { url: "https://github.com/comet-ml/opik/releases.atom",                               enabled: true }
+    - { url: "https://github.com/Arize-ai/phoenix/releases.atom",                            enabled: true }
+    - { url: "https://github.com/openlit/openlit/releases.atom",                             enabled: true }
+    - { url: "https://github.com/lmnr-ai/lmnr/releases.atom",                                enabled: true }
+    - { url: "https://github.com/Agenta-AI/agenta/releases.atom",                            enabled: true }
+    # ── 微调 / 后训练 (fine-tuning / post-training) ────────────────────
+    - { url: "https://github.com/hiyouga/LLaMA-Factory/releases.atom",                       enabled: true }
+    - { url: "https://github.com/unslothai/unsloth/releases.atom",                           enabled: true }
+    - { url: "https://github.com/axolotl-ai-cloud/axolotl/releases.atom",                    enabled: true }
+    - { url: "https://github.com/modelscope/ms-swift/releases.atom",                         enabled: true }
+    - { url: "https://github.com/huggingface/trl/releases.atom",                             enabled: true }
+    - { url: "https://github.com/huggingface/peft/releases.atom",                            enabled: true }
+    - { url: "https://github.com/OpenRLHF/OpenRLHF/releases.atom",                           enabled: true }
+    - { url: "https://github.com/InternLM/xtuner/releases.atom",                             enabled: true }
     # 博客
     - { url: "https://kubernetes.io/feed.xml",                                              enabled: true }
     - { url: "https://www.cncf.io/feed/",                                                   enabled: true }
