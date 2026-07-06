@@ -24,7 +24,7 @@ export const zh_CN = {
         "description": "{{summary}}"
       },
       "infra": {
-        "title": "AI 基建周报 | [AI]News",
+        "title": "AI 基建周报 | [SnapAI]News",
         "description": "面向云原生 AI 基础设施工程师的每周要闻：推理引擎、K8s 调度、GPU 虚拟化、国产加速卡与微调框架。",
         "empty": "本期暂无内容。"
       }

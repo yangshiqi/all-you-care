@@ -24,7 +24,7 @@ export const en = {
         "description": "{{summary}}"
       },
       "infra": {
-        "title": "AI Infra Weekly | [AI]News",
+        "title": "AI Infra Weekly | [SnapAI]News",
         "description": "Weekly digest for cloud-native AI infra engineers: inference engines, K8s scheduling, GPU virtualization, domestic accelerators, and fine-tuning frameworks.",
         "empty": "No issues yet."
       }
