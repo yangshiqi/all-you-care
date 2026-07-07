@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { isValidLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/i18n-utils";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
+import { LangSync } from "@/components/LangSync";
 
 // 导入翻译资源
 import { en } from "@/lib/locales/en";
@@ -108,6 +109,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
 
   return (
     <>
+      <LangSync lang={lang} />
       {children}
       <Footer initialLang={lang} />
     </>
