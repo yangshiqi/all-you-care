@@ -33,7 +33,7 @@ async function main() {
   let payload: AiFinalPayload;
   try {
     payload = JSON.parse(data.content_md) as AiFinalPayload;
-  } catch (e) {
+  } catch {
     console.log('\n!! content_md is not valid JSON, first 500 chars:');
     console.log(data.content_md.slice(0, 500));
     process.exit(1);

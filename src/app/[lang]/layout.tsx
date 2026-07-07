@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { isValidLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from "@/lib/i18n-utils";
+import { isValidLanguage, SUPPORTED_LANGUAGES } from "@/lib/i18n-utils";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { Footer } from "@/components/Footer";
 import { LangSync } from "@/components/LangSync";
