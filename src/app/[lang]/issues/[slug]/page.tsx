@@ -1,6 +1,6 @@
 // src/app/[lang]/issues/[slug]/page.tsx
 import { Metadata } from 'next'
-import { getAiContentByJournalId, getAllAiContentIds, getInsightByJournalId } from '@/lib/api'
+import { getAiContentByJournalId, getAllAiContentIds } from '@/lib/api'
 import { IssueDetailContent } from '@/components/IssueDetailContent'
 import { notFound } from 'next/navigation'
 
@@ -194,22 +194,10 @@ function extractTagsFromSummary(summary: string): string[] {
 export default async function IssueDetailPage({ params }: Props) {
   const { slug, lang } = await params
 
-  // 并行获取 issue 数据和关联的 insight
-  // 即使其中一个失败，也可以通过 Promise.allSettled 处理，或者让 getInsightByJournalId 内部容错
-  // 这里我们假设这两个函数内部已经处理了错误并返回 null，所以可以用 Promise.all
-  const [issue, possibleInsight] = await Promise.all([
-    getAiContentByJournalId(slug, lang),
-    getInsightByJournalId(slug, lang) 
-  ])
+  const issue = await getAiContentByJournalId(slug, lang)
 
   if (!issue) {
     notFound()
-  }
-  
-  // 如果上面的并行尝试失败了（比如 slug 不等于 journal_id），我们再试一次用正确的 journal_id
-  let insight = possibleInsight;
-  if (!insight && issue.journal_id && issue.journal_id !== slug) {
-     insight = await getInsightByJournalId(issue.journal_id, lang);
   }
 
   // 检查是否存在英文版本（用于 hreflang）
@@ -288,14 +276,6 @@ export default async function IssueDetailPage({ params }: Props) {
     sections: sections
   }
 
-  // 转换 Insight 数据
-  const relatedInsight = insight ? {
-    slug: String(insight.slug),
-    title: String(insight.title),
-    excerpt: insight.excerpt ? String(insight.excerpt) : null,
-    author: String(insight.author || 'zack')
-  } : null
-
   // 对 sections 进行最终的清洗，确保 server/client 数据完全一致
   const sanitizedSections = sections.map(s => ({
     ...s,
@@ -349,7 +329,6 @@ export default async function IssueDetailPage({ params }: Props) {
         issueId={slug}
         hasEnVersion={hasEnVersion}
         initialLang={lang}
-        relatedInsight={relatedInsight}
       />
     </>
   )

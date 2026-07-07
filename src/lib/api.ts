@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import { supabase, N8nAiContent, SnapAiInsight, IssueRow } from './supabase'
+import { supabase, N8nAiContent, IssueRow } from './supabase'
 import { cache } from 'react'
 
 // -----------------------------------------------------------------------------
@@ -293,107 +293,6 @@ export const getInfraContentByJournalId = cache(async (
     return data ? mapIssueRow(data as IssueFullRow) : null
   } catch (error) {
     console.error('Error in getInfraContentByJournalId:', error)
-    return null
-  }
-})
-
-// -----------------------------------------------------------------------------
-// NEW API: SnapAI Insights (Blog)
-// -----------------------------------------------------------------------------
-
-/**
- * Get published insights list
- */
-export const getPublishedInsights = cache(async (i18nLang?: string, author?: string): Promise<SnapAiInsight[]> => {
-  try {
-    const dbLang = mapI18nLangToDbLang(i18nLang)
-    let query = supabase
-      .from('snapai_insights')
-      .select('*')
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-    
-    if (dbLang) query = query.eq('lang', dbLang)
-    
-    // Add author filter if provided
-    if (author) {
-      // Use ilike for case-insensitive matching because author names might vary slightly
-      // e.g. "Zack" vs "Zack @ SnapAllx"
-      // Also map simplified IDs to full names if needed
-      // But author avatars use 'zack', 'tom' etc.
-      // In DB, author might be 'Zack', 'Tom', 'Brad', 'Tim', or 'Zack @ SnapAllx'
-      // If we query ?author=Zack, we want to match 'Zack' and 'Zack @ SnapAllx'
-      query = query.ilike('author', `${author}%`)
-    }
-
-    const { data, error } = await query
-    if (error) throw new Error(`Failed to fetch insights: ${error.message}`)
-    return data || []
-  } catch (error) {
-    console.error('Error in getPublishedInsights:', error)
-    return []
-  }
-})
-
-/**
- * Get insight by slug
- */
-export const getInsightBySlug = cache(async (slug: string, i18nLang?: string): Promise<SnapAiInsight | null> => {
-  try {
-    const dbLang = mapI18nLangToDbLang(i18nLang)
-    
-    // First try to find exact match with language
-    let query = supabase
-      .from('snapai_insights')
-      .select('*')
-      .eq('slug', slug)
-      .eq('is_published', true)
-      
-    if (dbLang) {
-      query = query.eq('lang', dbLang)
-    }
-
-    const { data, error } = await query.single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // Not found with current language. 
-        // If we are looking for EN but only ZH exists (or vice versa), maybe fallback?
-        // For now, return null (404) is correct behavior if translation doesn't exist.
-        return null
-      }
-      throw new Error(`Failed to fetch insight: ${error.message}`)
-    }
-    return data || null
-  } catch (error) {
-    console.error('Error in getInsightBySlug:', error)
-    return null
-  }
-})
-
-export const getInsightByJournalId = cache(async (journalId: string, i18nLang?: string): Promise<SnapAiInsight | null> => {
-  try {
-    const dbLang = mapI18nLangToDbLang(i18nLang)
-    
-    let query = supabase
-      .from('snapai_insights')
-      .select('*')
-      .eq('related_journal_id', journalId)
-      .eq('is_published', true)
-      
-    if (dbLang) {
-      query = query.eq('lang', dbLang)
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false }).limit(1)
-
-    if (error) {
-      console.warn(`Failed to fetch insight for journal ${journalId}: ${error.message}`)
-      return null
-    }
-    return (data && data.length > 0) ? data[0] : null
-  } catch (error) {
-    console.error('Error in getInsightByJournalId:', error)
     return null
   }
 })

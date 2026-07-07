@@ -2,19 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronDown, ChevronUp, ArrowRight, Terminal } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TranslatedText } from "./TranslatedText";
 import { useCurrentLanguage } from "@/hooks/use-current-language";
 import { addLanguageToPath } from "@/lib/i18n-utils";
-
-// Interface for SnapAI Insight (Zack's Take)
-interface RelatedInsight {
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  author: string;
-}
 
 interface IssueData {
   title: string;
@@ -37,10 +29,9 @@ interface IssueDetailContentProps {
   issueId: string;
   hasEnVersion: boolean;
   initialLang?: string;
-  relatedInsight?: RelatedInsight | null; // New prop for related insight
 }
 
-export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, relatedInsight }: IssueDetailContentProps) => {
+export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }: IssueDetailContentProps) => {
   const { t, i18n } = useTranslation();
   const lang = useCurrentLanguage();
   const [showTags, setShowTags] = useState(true);
@@ -122,70 +113,6 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang, 
           </h1>
         </div>
         
-        {/* EDITOR'S TAKE (Mac Terminal Style) */}
-        {mounted && relatedInsight && (
-          <div className="max-w-4xl mx-auto mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Link 
-              href={addLanguageToPath(`/blog/${relatedInsight.slug}`, lang)}
-              className="block group transform hover:scale-[1.01] transition-all duration-300"
-            >
-              <div className="bg-[#1e1e1e] rounded-lg shadow-2xl overflow-hidden border border-gray-800">
-                {/* Terminal Header */}
-                <div className="bg-[#2d2d2d] px-4 py-2 flex items-center justify-between border-b border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
-                    <Terminal className="w-3 h-3" />
-                    <span>{relatedInsight.author.toLowerCase()}@snapallx:~</span>
-                  </div>
-                  <div className="hidden sm:block text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                    {t('issueDetail.editorTake')}
-                  </div>
-                </div>
-
-                {/* Terminal Body */}
-                <div className="p-6 font-mono text-left text-sm md:text-base leading-relaxed text-gray-300">
-                  <div className="space-y-4">
-                    <div className="flex gap-2">
-                      <span className="text-[#27c93f]">➜</span>
-                      <span className="text-[#59c2ff]">~</span>
-                      <span className="text-white">cat insight.md</span>
-                    </div>
-
-                    <div className="pl-4 border-l-2 border-gray-700 space-y-3">
-                      <h3 className="text-xl font-bold text-white group-hover:text-[#59c2ff] transition-colors font-mono">
-                        # {relatedInsight.title}
-                      </h3>
-                      {relatedInsight.excerpt && (
-                        <p className="text-gray-400 italic">
-                          &ldquo;{relatedInsight.excerpt}&rdquo;
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 pt-2">
-                      <span className="text-[#27c93f]">➜</span>
-                      <span className="text-[#59c2ff]">~</span>
-                      <span className="text-white group-hover:underline underline-offset-4 decoration-dashed">
-                        ./read_full_analysis.sh --verbose
-                      </span>
-                    </div>
-
-                    <div className="text-[#27c93f] flex items-center gap-2">
-                      <span className="font-bold">&gt; {t('issueDetail.readFullAnalysis')}</span>
-                      <ArrowRight className="w-4 h-4 animate-bounce-x" />
-                      <span className="inline-block w-2 h-4 bg-[#27c93f] animate-pulse"></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        )}
-
         {/* Tags Section */}
         <div className="max-w-4xl mx-auto mt-8">
           <button 

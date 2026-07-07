@@ -36,21 +36,3 @@ export interface IssueRow {
   created_at: string
   delivered: boolean
 }
-
-// SnapAI 博客类型定义
-export interface SnapAiInsight {
-  id: string
-  title: string
-  slug: string
-  content_md: string
-  excerpt: string | null
-  cover_image: string | null
-  author: string
-  related_journal_id: string | null
-  tags: string[] | null
-  lang: string
-  is_published: boolean
-  published_at: string | null
-  created_at: string
-  updated_at: string
-}
