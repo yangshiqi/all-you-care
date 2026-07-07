@@ -1,4 +1,8 @@
-.infra-content { color: var(--color-foreground); line-height: 1.8; font-size: 1rem; }
+.infra-content { color: var(--color-foreground); line-height: 1.8; font-size: 1rem; overflow-wrap: break-word; }
+/* The pipeline render shell wraps content in a `.container` (survives the body
+   extraction); strip its padding/width so the report fills the column instead of
+   overflowing horizontally on mobile. */
+.infra-content .container { max-width: none; padding: 0; margin: 0; width: auto; }
 .infra-content .overview-box {
   background: var(--color-card); border: 2px solid var(--color-border);
   padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem;
