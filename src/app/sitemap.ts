@@ -19,9 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { url: `${baseUrl}/${lang}/tags`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 }
     )
 
-    // Blog disabled — entries hidden from sitemap until snapai_insights migration lands.
-
-    // 3. Tags
+    // Tags
     try {
       const tags = await getAllTags(lang)
       for (const tag of tags) {
