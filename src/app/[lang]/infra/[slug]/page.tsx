@@ -40,9 +40,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: issue.title,
       description: issue.summary,
       type: "article",
-      publishedTime: issue.created_at,
+      publishedTime: issue.created_at || undefined,
       url: pageUrl,
       siteName: "[AI]News",
+      locale: lang === "en" ? "en_US" : "zh_CN",
       images: [{ url: ogImageUrl, width: 1200, height: 630, alt: issue.title }],
     },
     twitter: {
