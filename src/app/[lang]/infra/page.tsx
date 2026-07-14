@@ -7,6 +7,10 @@ import { isValidLanguage, addLanguageToPath } from "@/lib/i18n-utils";
 import { en } from "@/lib/locales/en";
 import { zh_CN } from "@/lib/locales/zh_CN";
 
+// ISR：列表页每 24 小时后台重建一次（stale-while-revalidate），
+// 保证 Supabase 新增内容（如 infra 周报）无需重新部署即可自动上线。
+export const revalidate = 86400;
+
 const translations = { en: en.translation, "zh-CN": zh_CN.translation };
 
 interface Props {

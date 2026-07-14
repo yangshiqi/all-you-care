@@ -9,6 +9,10 @@ import { notFound } from "next/navigation";
 import { en } from "@/lib/locales/en";
 import { zh_CN } from "@/lib/locales/zh_CN";
 
+// ISR：列表页每 24 小时后台重建一次（stale-while-revalidate），
+// 保证 Supabase 新增内容无需重新部署即可自动上线。
+export const revalidate = 86400;
+
 const translations = {
   en: en.translation,
   'zh-CN': zh_CN.translation,
