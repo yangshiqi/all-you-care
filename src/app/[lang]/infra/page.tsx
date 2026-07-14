@@ -21,7 +21,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
   if (!isValidLanguage(lang)) return { title: "AI 原生周报" };
   const t = translations[lang as "en" | "zh-CN"];
-  return { title: t.metadata.infra.title, description: t.metadata.infra.description };
+  const title = t.metadata.infra.title;
+  const description = t.metadata.infra.description;
+
+  // 显式设置 OG/Twitter，否则分享此频道页会继承 layout 的通用站点介绍。
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.snapallx.com";
+  const pageUrl = `${baseUrl}/${lang}/infra`;
+  const ogImageUrl = `${baseUrl}/x_welcome.jpg`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: pageUrl,
+      siteName: "[AI]News",
+      locale: lang === "en" ? "en_US" : "zh_CN",
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  };
 }
 
 export default async function InfraPage({ params }: Props) {

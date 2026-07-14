@@ -22,7 +22,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, lang } = await params;
   const issue = await getInfraContentByJournalId(slug, lang);
   if (!issue) return { title: "Not Found" };
-  return { title: issue.title, description: issue.summary };
+
+  // 分享预览读的是 Open Graph / Twitter 标签；若只设 title/description，
+  // 会继承 [lang]/layout.tsx 里那套通用站点 OG，导致分享出的是站点介绍而非本篇标题。
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.snapallx.com";
+  const imgUrl = issue.imgUrl || "/x_welcome.jpg";
+  const ogImageUrl = imgUrl.startsWith("http")
+    ? imgUrl
+    : `${baseUrl}${imgUrl.startsWith("/") ? "" : "/"}${imgUrl}`;
+  const pageUrl = `${baseUrl}/${lang}/infra/${slug}`;
+
+  return {
+    title: issue.title,
+    description: issue.summary,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: issue.title,
+      description: issue.summary,
+      type: "article",
+      publishedTime: issue.created_at || undefined,
+      url: pageUrl,
+      siteName: "[AI]News",
+      locale: lang === "en" ? "en_US" : "zh_CN",
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: issue.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: issue.title,
+      description: issue.summary,
+      images: [ogImageUrl],
+    },
+  };
 }
 
 export default async function InfraDetailPage({ params }: Props) {
