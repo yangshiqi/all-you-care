@@ -83,6 +83,71 @@ describe('callLlm chain fallback', () => {
     expect(body.generationConfig.thinkingConfig).toEqual({ thinkingBudget: 0 });
   });
 
+  it('forwards responseSchema into the gemini request body when expectJson', async () => {
+    const fetchMock = vi.fn(
+      async (_url: string, _init: { body: string }) => geminiOk('STOP', '{"ok":1}'),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const schema = {
+      type: 'OBJECT',
+      properties: { imgUrl: { type: 'STRING' } },
+      required: ['imgUrl'],
+    };
+
+    await callLlm({
+      prompt: 'x',
+      expectJson: true,
+      responseSchema: schema,
+      chain: [{ provider: 'gemini', model: 'gemini-3.5-flash' }],
+      log,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0]![1].body);
+    expect(body.generationConfig.responseSchema).toEqual(schema);
+    expect(body.generationConfig.responseMimeType).toBe('application/json');
+  });
+
+  it('omits responseSchema from the gemini body when none is provided', async () => {
+    const fetchMock = vi.fn(
+      async (_url: string, _init: { body: string }) => geminiOk('STOP', '{"ok":1}'),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await callLlm({
+      prompt: 'x',
+      expectJson: true,
+      chain: [{ provider: 'gemini', model: 'gemini-3.5-flash' }],
+      log,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0]![1].body);
+    expect(body.generationConfig.responseSchema).toBeUndefined();
+  });
+
+  it('logs a raw preview when a provider returns prose instead of JSON', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => geminiOk('STOP', '{"ok":1}')));
+    // anthropic replies in prose — no JSON object at all.
+    anthropicCreate.mockResolvedValue(
+      anthropicMsg('end_turn', '抱歉，这段 HTML 里没有合适的图片。'),
+    );
+    const warn = vi.fn();
+    const spyLog = { info() {}, warn, error() {}, debug() {} } as never;
+
+    await expect(
+      callLlm({
+        prompt: 'x',
+        expectJson: true,
+        chain: [{ provider: 'anthropic', model: 'claude-sonnet-4-6' }],
+        log: spyLog,
+      }),
+    ).rejects.toThrow(/no JSON object found/);
+
+    const call = warn.mock.calls.find((c) => c[0]?.event === 'json_extract_fail');
+    expect(call, 'expected a json_extract_fail warn').toBeTruthy();
+    expect(call![0]).toMatchObject({ provider: 'anthropic', model: 'claude-sonnet-4-6' });
+    expect(call![0].raw).toContain('没有合适的图片');
+  });
+
   it('surfaces truncation only after the whole chain is exhausted', async () => {
     const fetchMock = vi.fn(async () => geminiOk('MAX_TOKENS', '{"partial'));
     vi.stubGlobal('fetch', fetchMock);
