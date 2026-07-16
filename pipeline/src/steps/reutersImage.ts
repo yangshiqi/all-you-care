@@ -14,6 +14,20 @@ interface ImageExtract {
   link: string;
 }
 
+// Gemini structured-output schema (OpenAPI subset, uppercase Type enums per the
+// v1beta REST API). Forces well-formed JSON so a single briefing email can't
+// deterministically poison the whole 7-day window with malformed output.
+const IMAGE_EXTRACT_SCHEMA: Record<string, unknown> = {
+  type: 'OBJECT',
+  properties: {
+    description: { type: 'STRING' },
+    imgUrl: { type: 'STRING' },
+    link: { type: 'STRING' },
+  },
+  required: ['description', 'imgUrl', 'link'],
+  propertyOrdering: ['description', 'imgUrl', 'link'],
+};
+
 export async function run(ctx: StepContext): Promise<StepResult> {
   const { db, log, dryRun } = ctx;
   let processed = 0, skipped = 0, failed = 0;
@@ -75,6 +89,7 @@ ${wrapUntrustedItems([{ source: m.from, content: slice }])}`;
         const result = await callLlm<ImageExtract>({
           prompt,
           expectJson: true,
+          responseSchema: IMAGE_EXTRACT_SCHEMA,
           model: llmCfg.model,
           maxTokens: llmCfg.maxTokens,
           temperature: llmCfg.temperature,

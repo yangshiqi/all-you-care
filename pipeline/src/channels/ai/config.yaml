@@ -91,7 +91,9 @@ llm:
         - { provider: anthropic, model: claude-opus-4-7 }
         - { provider: gemini, model: gemini-3.5-flash }
     reutersImage:
-      max_tokens: 500
+      # 500 truncated Gemini mid-output on long resizer URLs (MAX_TOKENS). The
+      # payload is one short JSON object; 1500 leaves ample headroom.
+      max_tokens: 1500
       chain:
         - { provider: gemini, model: gemini-3.5-flash }
         - { provider: anthropic, model: claude-sonnet-4-6 }

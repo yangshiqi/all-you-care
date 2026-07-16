@@ -10,6 +10,11 @@ export interface LlmCallOpts {
   maxTokens?: number;
   temperature?: number;
   expectJson?: boolean;
+  // Gemini-only structured-output schema (OpenAPI subset). When set alongside
+  // expectJson it forces Gemini to emit a well-formed JSON object, eliminating
+  // the malformed-JSON class of failures the repair heuristics can't recover.
+  // Ignored by the anthropic/codex providers, which rely on the prompt.
+  responseSchema?: Record<string, unknown>;
   chain?: ChainEntry[];
   log: Logger;
 }
@@ -225,6 +230,7 @@ async function callGemini(opts: {
   maxTokens: number;
   temperature: number;
   expectJson?: boolean;
+  responseSchema?: Record<string, unknown>;
   log: Logger;
 }): Promise<{ text: string; inputTokens: number; outputTokens: number; stopReason: string | null }> {
   const key = process.env.GEMINI_API_KEY;
@@ -245,6 +251,10 @@ async function callGemini(opts: {
       // disables it so the full budget is available for the actual response.
       thinkingConfig: { thinkingBudget: 0 },
       ...(opts.expectJson ? { responseMimeType: 'application/json' } : {}),
+      // Structured output: constrains Gemini to the given JSON shape so it
+      // can't emit unbalanced quotes / stray control chars. Requires
+      // responseMimeType: application/json (set above via expectJson).
+      ...(opts.expectJson && opts.responseSchema ? { responseSchema: opts.responseSchema } : {}),
     },
   };
   if (opts.systemPrompt) {
@@ -346,6 +356,36 @@ async function callViaCodexCli(opts: {
 
 // ---- single-provider dispatch ---------------------------------------------
 
+// extractJsonObject's thrown error only carries a head/tail preview when a `{`
+// was found. The "no JSON object found" case (model replied in prose) leaves no
+// trace of what it actually said — which is exactly how the reutersImage
+// anthropic fallback failed silently. Log a raw preview on any extract failure
+// so the next fallback is diagnosable, then rethrow unchanged.
+function parseExpectedJson(
+  text: string,
+  provider: string,
+  model: string,
+  stopReason: string | null,
+  log: Logger,
+): unknown {
+  try {
+    return extractJsonObject(text);
+  } catch (e) {
+    log.warn(
+      {
+        event: 'json_extract_fail',
+        provider,
+        model,
+        stop_reason: stopReason,
+        err: (e as Error).message,
+        raw: text.slice(0, 500),
+      },
+      'llm returned non-JSON; raw preview logged',
+    );
+    throw e;
+  }
+}
+
 async function callSingleProvider(
   provider: string,
   model: string,
@@ -359,10 +399,11 @@ async function callSingleProvider(
       maxTokens: opts.maxTokens,
       temperature: opts.temperature,
       expectJson: opts.expectJson,
+      ...(opts.responseSchema ? { responseSchema: opts.responseSchema } : {}),
       log: opts.log,
     });
     const result: LlmResult = { ...raw, provider: 'gemini', model };
-    if (opts.expectJson) result.json = extractJsonObject(raw.text);
+    if (opts.expectJson) result.json = parseExpectedJson(raw.text, 'gemini', model, raw.stopReason, opts.log);
     return result;
   }
 
@@ -378,7 +419,7 @@ async function callSingleProvider(
     });
     opts.log.info({ event: 'llm_codex_ok', ms: Date.now() - t0, bytes: text.length }, 'codex cli ok');
     const result: LlmResult = { text, inputTokens: 0, outputTokens: 0, stopReason: null, provider: 'codex_cli', model: codexModel ?? 'codex' };
-    if (opts.expectJson) result.json = extractJsonObject(text);
+    if (opts.expectJson) result.json = parseExpectedJson(text, 'codex_cli', codexModel ?? 'codex', null, opts.log);
     return result;
   }
 
@@ -392,7 +433,7 @@ async function callSingleProvider(
     log: opts.log,
   });
   const result: LlmResult = { ...raw, provider: 'anthropic', model };
-  if (opts.expectJson) result.json = extractJsonObject(raw.text);
+  if (opts.expectJson) result.json = parseExpectedJson(raw.text, 'anthropic', model, raw.stopReason, opts.log);
   return result;
 }
 
