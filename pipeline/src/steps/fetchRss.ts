@@ -45,7 +45,8 @@ export async function run(ctx: StepContext): Promise<StepResult> {
 
   // `rss_deny` prunes the OPML blob, which we don't control: entries that fail
   // on every single tick (dead domains, permanent 403s) are dropped up front so
-  // they neither cost a request nor pollute the failure count.
+  // they neither cost a request nor pollute the failure count. It applies to the
+  // merged list, so denying a URL beats `enabled: true` on a static entry.
   const allFeeds = [...new Set<string>([...staticFeeds, ...opmlFeeds])];
   const feeds = allFeeds.filter(u => !denied.has(u));
   const deniedCount = allFeeds.length - feeds.length;

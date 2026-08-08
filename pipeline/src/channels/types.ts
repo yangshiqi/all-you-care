@@ -18,9 +18,10 @@ export const ChannelConfigSchema = z.object({
   sources: z.object({
     rss: z.array(RssSourceSchema).default([]),
     opml: z.array(RssSourceSchema).default([]),
-    // Feed URLs to drop after the OPML blob is expanded. Static feeds use the
-    // `enabled` flag instead; this exists for the third-party OPML list, whose
-    // dead entries we can't edit at the source.
+    // Feed URLs to drop after the OPML blob is expanded — it's a third-party
+    // list whose dead entries we can't edit at the source. Applied to the merged
+    // list, so a deny wins over `enabled: true`; prefer `enabled: false` for
+    // static feeds, where the reason can sit next to the URL.
     rss_deny: z.array(z.string().url()).default([]),
     email: z.array(z.string()).default([]),
   }),

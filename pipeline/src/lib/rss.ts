@@ -44,6 +44,9 @@ const FEED_ACCEPT = 'application/rss+xml';
 
 const parser = new RssParser({ timeout: FEED_TIMEOUT_MS });
 
+/** Only the head of the body is scanned for a feed root; prologs are short. */
+const PROLOG_SCAN_LIMIT = 8192;
+
 /**
  * Does this response look like a feed at all?
  *
@@ -54,9 +57,20 @@ const parser = new RssParser({ timeout: FEED_TIMEOUT_MS });
  * like a malformed feed and sends you chasing a parser bug. Checking the
  * content type first turns it into a one-glance diagnosis.
  */
-export function isProbablyFeed(contentType: string | null, body: string): boolean {
-  if ((contentType ?? '').toLowerCase().includes('html')) return false;
-  return /^\s*(?:<\?xml|<rss|<feed|<rdf:RDF)/i.test(body);
+export function isProbablyFeed(body: string): boolean {
+  // The body decides, not the content type: krebsonsecurity.com serves a
+  // perfectly good RSS document as `text/html`, and rejecting on the header
+  // alone would drop a feed that works today. The header still goes into the
+  // error message, where it's useful for diagnosis.
+  //
+  // Skip what a feed may legitimately put before its root element — the XML
+  // declaration, stylesheet PIs (WordPress emits one routinely), comments, a
+  // DOCTYPE — and then require an actual feed root. Accepting `<?xml` on its
+  // own would let XHTML error pages through, which is the case this guard
+  // exists to catch.
+  const prolog = /^(?:\s+|<\?[\s\S]*?\?>|<!--[\s\S]*?-->|<!DOCTYPE[^>]*>)*/i;
+  const head = body.slice(0, PROLOG_SCAN_LIMIT).replace(prolog, '');
+  return /^<(?:rss\b|feed\b|rdf:RDF\b)/i.test(head);
 }
 
 /**
@@ -75,7 +89,7 @@ async function fetchFeedText(url: string): Promise<string> {
   if (!res.ok) throw new Error(`Status code ${res.status}`);
   const contentType = res.headers.get('content-type');
   const text = await res.text();
-  if (!isProbablyFeed(contentType, text)) {
+  if (!isProbablyFeed(text)) {
     throw new Error(`Not a feed (content-type: ${contentType ?? 'none'})`);
   }
   return text;
