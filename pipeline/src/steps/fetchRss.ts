@@ -61,9 +61,20 @@ export async function run(ctx: StepContext): Promise<StepResult> {
   let insertFailed = 0, feedsFailed = 0;
 
   async function handleFeed(url: string): Promise<void> {
+    // Scoped tightly to the fetch: once we have items in hand, whatever goes
+    // wrong per item is ours, not the publisher's, and belongs in insertFailed.
+    // Booking it as a feed failure would hide it behind the outage ratio.
+    let items: Awaited<ReturnType<typeof fetchFeed>>;
     try {
-      const items = await fetchFeed(url, log);
-      for (const it of items) {
+      items = await fetchFeed(url, log);
+    } catch (e) {
+      log.warn({ event: 'feed_fail', url, err: (e as Error).message }, 'feed fetch failed');
+      feedsFailed++;
+      return;
+    }
+
+    for (const it of items) {
+      try {
         // pub_date is OPTIONAL in the RSS/Atom spec; minimal personal blogs
         // often omit it. The old check (`ageHours(null) = Infinity`) silently
         // dropped every item from such feeds forever. Now: treat missing
@@ -104,10 +115,14 @@ export async function run(ctx: StepContext): Promise<StepResult> {
           processed++;
           if (isFallbackPubDate) acceptedNoPubDate++;
         }
+      } catch (e) {
+        // One bad item must not cost us the rest of the feed.
+        insertFailed++;
+        log.warn(
+          { event: 'item_fail', url, err: (e as Error).message, title: it.title.slice(0, 80) },
+          'rss item failed',
+        );
       }
-    } catch (e) {
-      log.warn({ event: 'feed_fail', url, err: (e as Error).message }, 'feed fetch failed');
-      feedsFailed++;
     }
   }
 
