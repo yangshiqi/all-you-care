@@ -4,7 +4,8 @@ display_name: "AI Daily"
 sources:
   rss:
     - { url: "https://mainssl.geekpark.net/rss.rss",                                                                                          enabled: true }
-    - { url: "https://36kr.com/feed",                                                                                                         enabled: true }
+    # Serves a 17KB anti-bot HTML page (200, text/html) instead of a feed — verified 2026-08-08.
+    - { url: "https://36kr.com/feed",                                                                                                         enabled: false }
     - { url: "https://www.inside.com.tw/feed/rss",                                                                                            enabled: true }
     - { url: "https://blog.google/technology/ai/rss/",                                                                                        enabled: true }
     - { url: "https://www.theverge.com/rss/index.xml",                                                                                        enabled: true }
@@ -14,22 +15,38 @@ sources:
     - { url: "https://www.wired.com/feed/rss",                                                                                                enabled: true }
     - { url: "https://www.microsoft.com/en-us/research/feed/",                                                                                enabled: true }
     - { url: "https://www.cio.com/feed/",                                                                                                     enabled: true }
-    - { url: "https://feed.infoq.com/ai-ml-data-eng/",                                                                                        enabled: true }
-    - { url: "https://rss.cnbeta.com.tw/",                                                                                                    enabled: true }
+    # 406 for every CI run (24/24 sampled) — InfoQ blocks datacenter IPs; fine from a laptop.
+    - { url: "https://feed.infoq.com/ai-ml-data-eng/",                                                                                        enabled: false }
+    # "unable to verify the first certificate" — cnBeta serves an incomplete chain.
+    - { url: "https://rss.cnbeta.com.tw/",                                                                                                    enabled: false }
     - { url: "https://www.artificialintelligence-news.com/feed/",                                                                             enabled: true }
     - { url: "https://www.analyticsvidhya.com/feed/",                                                                                         enabled: true }
     - { url: "https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml",                                                                enabled: true }
     - { url: "https://www.marktechpost.com/feed/",                                                                                            enabled: true }
     - { url: "https://www.tmtpost.com/rss.xml",                                                                                               enabled: true }
-    - { url: "https://aiquantumcomputing.substack.com/feed",                                                                                  enabled: true }
+    # 403 from CI (Substack blocks datacenter IPs). Same content still arrives
+    # via the aiquantumcomputing@substack.com email source below.
+    - { url: "https://aiquantumcomputing.substack.com/feed",                                                                                  enabled: false }
     - { url: "https://www.edge-ai-vision.com/feed/",                                                                                          enabled: true }
     - { url: "https://www.thoughtworks.com/rss/engineering.xml",                                                                              enabled: true }
     - { url: "https://www.thoughtworks.com/rss/insights.xml",                                                                                 enabled: true }
     - { url: "https://news.google.com/rss/topics/CAAqIAgKIhpDQkFTRFFvSEwyMHZNRzFyZWhJQ1pXNG9BQVAB?hl=en-US&gl=US&ceid=US%3Aen&oc=11",         enabled: true }
     - { url: "https://www.a16z.news/feed",                                                                                                    enabled: true }
-    - { url: "https://pitchbook.com/news/artificial-intelligence.rss",                                                                        enabled: true }
+    # 403 everywhere, laptop included — PitchBook killed the public feed.
+    - { url: "https://pitchbook.com/news/artificial-intelligence.rss",                                                                        enabled: false }
   opml:
     - { url: "https://gist.githubusercontent.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b/raw/426957f043dc0054f95aae6c19de1d0b4ecc2bb2/hn-popular-blogs-2025.opml", enabled: true }
+  # Entries of the OPML blob above that failed 24/24 sampled CI runs. Verified
+  # 2026-08-08; recheck if the upstream gist is ever refreshed.
+  rss_deny:
+    - "https://www.tedunangst.com/flak/rss"          # NXDOMAIN
+    - "https://joanwestenberg.com/rss"               # 404 (www. host 404s too)
+    - "https://rachelbythebay.com/w/atom.xml"        # connection never completes from CI
+    - "https://dfarq.homeip.net/feed/"               # serves HTML, not a feed
+    - "https://gwern.substack.com/feed"              # 403 — Substack blocks datacenter IPs
+    - "https://garymarcus.substack.com/feed"         # 403 — ditto
+    - "https://lcamtuf.substack.com/feed"            # 403 — ditto
+    - "https://worksonmymachine.substack.com/feed"   # 403 — ditto (moved to worksonmymachine.ai)
   email:
     - aivalley@mail.beehiiv.com
     - hello@newsletters.venturebeat.com
