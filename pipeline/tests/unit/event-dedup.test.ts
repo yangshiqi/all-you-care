@@ -141,17 +141,20 @@ describe('deduplicateEvents', () => {
     expect(out[0]?.source_count).toBe(2);
   });
 
-  it('merges events with different titles but a shared URL', () => {
+  // A shared URL is corroborating evidence, not identity — see the digest /
+  // roundup cases below. It merges when title or description similarity backs
+  // it up, which is the shape real `**原文**` blocks always have.
+  it('merges events with different titles when a shared URL is corroborated', () => {
     const out = deduplicateEvents([
       {
         title: 'DeepSeek raises 800M',
-        description: 'one wording',
+        description: 'DeepSeek 宣布完成新一轮 8 亿美元融资，投后估值达到 800 亿美元，本轮由多家国有基金联合领投，资金将用于扩充算力储备。',
         links: ['https://news.example/deepseek'],
         score: 7.5,
       },
       {
         title: 'DeepSeek 完成 8 亿美元融资',
-        description: 'another wording',
+        description: 'DeepSeek 完成新一轮融资，规模为 8 亿美元，投后估值达 800 亿美元，由多家国有基金领投，募集资金主要投向算力储备扩充。',
         links: ['https://news.example/deepseek'],
         score: 8.8,
       },
@@ -380,5 +383,84 @@ describe('deduplicateEvents', () => {
       },
     ]);
     expect(out).toHaveLength(2);
+  });
+  // ── digest / roundup articles ───────────────────────────────────────────
+  //
+  // Regression: issue 135 (2026-08-20). A 极客早知道 daily roundup
+  // (geekpark.net/news/368995) is compressed into a dozen separate news items
+  // that all carry the roundup's link. URL-as-identity let the first bucket
+  // holding that link swallow all of them, shipping a card titled "OpenAI
+  // 第二季度营收增速放缓" whose body described a HoverAir drone camera.
+
+  it('does not merge unrelated stories that share a digest/roundup URL', () => {
+    const DIGEST = 'http://www.geekpark.net/news/368995';
+    const out = deduplicateEvents([
+      {
+        title: 'Anthropic 第二季度营收达 116 亿美元，首次超越 OpenAI',
+        description: 'Anthropic 在 2026 年第二季度的营收增长了一倍多，达到 116 亿美元，营收规模首次超过竞争对手 OpenAI，并实现了小幅营业盈利。',
+        links: [DIGEST],
+        score: 9.5,
+      },
+      {
+        title: '苹果 macOS 代码曝光带摄像头的 AirPods，支持“视觉智能”',
+        description: '在苹果最新发布的 macOS Tahoe 26.7 RC 版本中，发现了代号为 B790 的带摄像头 AirPods 演示视频，最快有望于今年 9 月发布。',
+        links: [DIGEST],
+        score: 8.5,
+      },
+      {
+        title: '哈浮发布 VERSA 飞行口袋云台相机，售价 2999 元起',
+        description: '智能飞行影像品牌哈浮（HoverAir）发布 VERSA 飞行口袋云台相机，首发价 2999 元起。该设备采用模块化设计，重量在 250 克以内，内置 4nm 旗舰 AI 芯片。',
+        links: [DIGEST],
+        score: 6.5,
+      },
+    ]);
+    expect(out).toHaveLength(3);
+    expect(out.map(e => e.source_count)).toEqual([1, 1, 1]);
+  });
+
+  it('does not merge two unrelated stories that share a mis-attributed link', () => {
+    // compress occasionally hands a neighbouring item's link to an event. Two
+    // events is below the roundup threshold, so similarity has to be the gate.
+    const LINK = 'https://simonwillison.net/2026/Aug/18/mojo-is-now-open-source/';
+    const out = deduplicateEvents([
+      {
+        title: '编程语言 Mojo 正式开源，采用 Apache 2.0 许可证',
+        description: '旨在简化 GPU 编程的 Mojo 编程语言在发布 1.0 版本后，正式将其编译器和工具链开源，托管于 Apache 2 许可证下。目前 Mojo 已演变为一门独立的语言。',
+        links: [LINK],
+        score: 8.2,
+      },
+      {
+        title: '企业 AI 平台 Glean 披露财务数据，ARR 达 3 亿美元',
+        description: '由前 Google 杰出工程师 Arvind Jain 联合创办的企业 AI 平台 Glean 宣布其年经常性收入（ARR）已达到 3 亿美元，在 15 个月内实现了 3 倍增长。',
+        links: [LINK],
+        score: 7.8,
+      },
+    ]);
+    expect(out).toHaveLength(2);
+  });
+
+  // ── field provenance ────────────────────────────────────────────────────
+
+  it('keeps title, description and score from the same source event', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI 第二季度营收增速放缓',
+        description: '据《华尔街日报》独家报道，OpenAI 在 2026 年第二季度的销售额增长呈现疲态，与竞争对手 Anthropic 强劲的增长势头相比，增速显得较为温和。',
+        links: ['https://wsj.example/openai-q2'],
+        score: 8.5,
+      },
+      {
+        title: 'OpenAI Q2 营收增长放缓，不及 Anthropic',
+        description: 'OpenAI 第二季度销售额增长乏力。据《华尔街日报》报道，其增速明显低于竞争对手 Anthropic，后者同期增长势头强劲，差距进一步拉开，引发投资人关注。',
+        links: ['https://wsj.example/openai-q2'],
+        score: 9.1,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    // The winning event contributes all three fields — never title from one
+    // event and description from another.
+    expect(out[0]?.score).toBe(9.1);
+    expect(out[0]?.title).toBe('OpenAI Q2 营收增长放缓，不及 Anthropic');
+    expect(out[0]?.description).toContain('后者同期增长势头强劲');
   });
 });

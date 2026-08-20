@@ -12,6 +12,8 @@ import {
   normalizeTitle,
   fuzzyEquivalent,
   descriptionsLikelySameEvent,
+  findContainerUrls,
+  urlMatchCorroborated,
   type MergedEvent,
 } from '../lib/eventDedup.js';
 import { embedTexts, cosineSimilarity } from '../lib/embedding.js';
@@ -136,13 +138,27 @@ async function runAiMerge(ctx: StepContext, claimedContents: string[], claimedId
     } catch { /* not JSON (snow legacy) — skip */ }
   }
 
+  // Container URLs are computed over today's events *and* the phantom pool: a
+  // digest link that carried ten stories yesterday still carries ten today, and
+  // a bare URL match against it would silently drop every one of them.
+  const crossContainerUrls = findContainerUrls([
+    ...withinDeduped.map(e => ({ title: e.title, description: e.description, links: e.links, score: e.score })),
+    ...phantoms.map(ph => ({ title: ph.title, description: ph.description, links: ph.links, score: 0 })),
+  ]);
+
   const crossDupTitles: string[] = [];
   let merged = phantoms.length > 0
     ? withinDeduped.filter((e) => {
         const eNorm = normalizeTitle(e.title);
         for (const ph of phantoms) {
           if (eNorm === normalizeTitle(ph.title)) { crossDupTitles.push(e.title); return false; }
-          if (e.links.some(u => ph.links.includes(u))) { crossDupTitles.push(e.title); return false; }
+          // A shared URL only drops the event when similarity corroborates it —
+          // otherwise one digest link in yesterday's issue erases today's news.
+          if (e.links.some(u => !crossContainerUrls.has(u) && ph.links.includes(u)) &&
+              urlMatchCorroborated(
+                { title: e.title, description: e.description },
+                { title: ph.title, description: ph.description },
+              )) { crossDupTitles.push(e.title); return false; }
           if (fuzzyEquivalent(e.title, ph.title)) { crossDupTitles.push(e.title); return false; }
           if (e.description.length >= 30 && ph.description.length >= 30 &&
               descriptionsLikelySameEvent(
