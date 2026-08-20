@@ -566,6 +566,21 @@ describe('deduplicateEvents', () => {
     expect(out[0]?.source_count).toBe(3);
   });
 
+  it('does not merge two releases bridged by a versionless report', () => {
+    // The middle entry matches both, but accepting it would put GPT-5 and
+    // GPT-6 in one bucket and the version guard would never see the pair.
+    const shared = 'OpenAI 正式发布新一代大模型，性能在数学、编码与推理等基准上较前代有明显提升，面向 Plus 与 Pro 用户先行开放，API 随后跟进。';
+    const out = deduplicateEvents([
+      { title: 'OpenAI 发布 GPT-5', description: shared, links: [], score: 9 },
+      { title: 'OpenAI 发布新一代模型', description: shared, links: [], score: 9 },
+      { title: 'OpenAI 发布 GPT-6', description: shared, links: [], score: 9 },
+    ]);
+    const titles = out.map(e => e.title);
+    expect(titles.some(t => t.includes('GPT-5'))).toBe(true);
+    expect(titles.some(t => t.includes('GPT-6'))).toBe(true);
+    expect(out.length).toBeGreaterThanOrEqual(2);
+  });
+
   // ── field provenance ────────────────────────────────────────────────────
 
   it('keeps title, description and score from the same source event', () => {

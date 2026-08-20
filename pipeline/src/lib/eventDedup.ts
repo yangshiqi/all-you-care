@@ -278,6 +278,17 @@ function splitVersion(token: string): { prefix: string; ver: string; suffix: str
   return { prefix: m[1], ver: m[2] ?? '', suffix: m[3] ?? '' };
 }
 
+/**
+ * Whether two titles look like different releases of the same product
+ * ("GPT-5" vs "GPT-6"), which must never be merged.
+ */
+export function titlesConflictOnVersion(titleA: string, titleB: string): boolean {
+  return hasVersionConflict(
+    new Set(extractLatinTokensFromRaw(titleA)),
+    new Set(extractLatinTokensFromRaw(titleB)),
+  );
+}
+
 function hasVersionConflict(tokensA: Set<string>, tokensB: Set<string>): boolean {
   const uniqueA = [...tokensA].filter(t => !tokensB.has(t) && /\d/.test(t));
   const uniqueB = [...tokensB].filter(t => !tokensA.has(t) && /\d/.test(t));
@@ -350,22 +361,25 @@ const CONTAINER_URL_MIN_DISTINCT_EVENTS = 3;
 const URL_CORROBORATION_MIN_SHARED_TOKENS = 2;
 
 /**
- * A lower bound on how many *mutually unrelated* stories a set of entries
- * covers: the size of an independent set in the corroboration graph, found by
- * repeatedly taking the least-connected entry and discarding everything it
- * corroborates.
+ * Whether the entries contain `size` that are pairwise unrelated — i.e. an
+ * independent set of that size in the corroboration graph.
  *
- * Counting corroboration clusters greedily instead would be order-dependent and
- * defeatable by a single broad entry: a digest that also yields a "今日汇总"
- * summary line corroborates each of its own children, so a first-come cluster
- * walk collapses the whole digest to one representative and the URL escapes
- * container classification — reinstating the very collapse this guards against.
- * An independent set ignores that hub, because the children remain mutually
- * unrelated. Ties break on input order, so the result does not depend on how
- * the entries arrived.
+ * Exact rather than greedy, and therefore independent of the order the entries
+ * arrived in. A greedy walk is both order-dependent and defeatable: a digest
+ * that also yields a broad "今日汇总" line has that line corroborate each of
+ * its own children, so a first-come walk collapses the digest to one
+ * representative and the URL escapes container classification — reinstating the
+ * collapse this guards against. An independent set ignores such a hub, because
+ * the children remain mutually unrelated.
+ *
+ * Exhaustive search is only tractable because `size` is a small constant and a
+ * single URL carries at most a few dozen entries; raising
+ * CONTAINER_URL_MIN_DISTINCT_EVENTS materially would need a different approach.
  */
-function countUnrelatedEntries(entries: readonly RawEvent[]): number {
+function hasUnrelatedSubset(entries: readonly RawEvent[], size: number): boolean {
   const n = entries.length;
+  if (size <= 0) return true;
+  if (n < size) return false;
   const related: boolean[][] = Array.from({ length: n }, () => new Array<boolean>(n).fill(false));
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
@@ -373,22 +387,20 @@ function countUnrelatedEntries(entries: readonly RawEvent[]): number {
       if (a && b && urlMatchCorroborated(a, b)) related[i]![j] = related[j]![i] = true;
     }
   }
-  const removed = new Array<boolean>(n).fill(false);
-  let count = 0;
-  for (;;) {
-    let pick = -1;
-    let pickDegree = Infinity;
-    for (let i = 0; i < n; i++) {
-      if (removed[i]) continue;
-      let degree = 0;
-      for (let j = 0; j < n; j++) if (!removed[j] && related[i]![j]) degree++;
-      if (degree < pickDegree) { pick = i; pickDegree = degree; }
+  const chosen: number[] = [];
+  const search = (from: number): boolean => {
+    if (chosen.length === size) return true;
+    // Prune: not enough entries left to reach `size`.
+    if (n - from < size - chosen.length) return false;
+    for (let i = from; i < n; i++) {
+      if (chosen.some((c) => related[c]![i])) continue;
+      chosen.push(i);
+      if (search(i + 1)) return true;
+      chosen.pop();
     }
-    if (pick === -1) return count;
-    count++;
-    removed[pick] = true;
-    for (let j = 0; j < n; j++) if (related[pick]![j]) removed[j] = true;
-  }
+    return false;
+  };
+  return search(0);
 }
 
 /**
@@ -413,7 +425,7 @@ export function findContainerUrls(events: readonly RawEvent[]): Set<string> {
   const containers = new Set<string>();
   for (const [url, entries] of entriesByUrl) {
     if (entries.length < CONTAINER_URL_MIN_DISTINCT_EVENTS) continue; // cheap pre-filter
-    if (countUnrelatedEntries(entries) >= CONTAINER_URL_MIN_DISTINCT_EVENTS) containers.add(url);
+    if (hasUnrelatedSubset(entries, CONTAINER_URL_MIN_DISTINCT_EVENTS)) containers.add(url);
   }
   return containers;
 }
@@ -475,11 +487,16 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
     else if (!owners.includes(bIdx)) owners.push(bIdx);
   };
 
+  // A positive match against one member is not enough: a versionless report can
+  // bridge two releases, so "GPT-5" and "GPT-6" would merge through it and the
+  // version guard inside descriptionsLikelySameEvent would never see the
+  // conflicting pair. Any conflicting member vetoes the whole bucket.
   const matchesBucket = (
     e: RawEvent,
     b: Bucket,
     predicate: (m: { title: string; description: string }) => boolean,
-  ) => b.members.some(predicate);
+  ) => !b.members.some((m) => titlesConflictOnVersion(e.title, m.title))
+    && b.members.some(predicate);
 
   function mergeInto(b: Bucket, bIdx: number, e: RawEvent) {
     b.source_count += 1;
