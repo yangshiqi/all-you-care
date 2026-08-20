@@ -3,6 +3,7 @@ import {
   parseScoredEvents,
   normalizeTitle,
   deduplicateEvents,
+  findContainerUrls,
 } from '../../src/lib/eventDedup.js';
 
 describe('parseScoredEvents', () => {
@@ -462,6 +463,103 @@ describe('deduplicateEvents', () => {
         description: '新一代 GPT 将重点提升推理能力，OpenAI 也会同步改进开发工具，并计划在接下来的数周内陆续开放新功能。',
         links: [U],
         score: 8,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.source_count).toBe(3);
+  });
+
+  it('classifies a digest as a container even when it also yields a summary entry', () => {
+    // A broad "今日汇总" entry corroborates each of its own children. A greedy
+    // cluster walk would collapse the whole digest to one representative and let
+    // the URL escape container classification, reinstating the original bug.
+    const D = 'https://digest.example/2026-08-20';
+    const entries = [
+      {
+        title: '今日 AI 平台动态汇总',
+        description: '今日要闻：某公司发布新一代推理芯片；另一家厂商开源了视频生成模型；同时一家云服务商下调了大模型 API 价格，涉及多条产品线。',
+        links: [D],
+        score: 8,
+      },
+      {
+        title: '某公司发布新一代推理芯片',
+        description: '该公司推出面向数据中心的新一代推理芯片，宣称单卡吞吐较上代提升一倍，并已向早期客户送样，量产计划定在明年第一季度。',
+        links: [D],
+        score: 7.5,
+      },
+      {
+        title: '厂商开源视频生成模型',
+        description: '这家厂商将其视频生成模型以宽松许可开源，支持文本到视频与图像到视频两种模式，权重和推理代码均已在社区平台上线。',
+        links: [D],
+        score: 7,
+      },
+      {
+        title: '云服务商下调大模型 API 价格',
+        description: '该云服务商宣布下调大模型 API 调用价格，输入与输出价格分别下降三成与两成，新价格即日对所有开发者账号生效。',
+        links: [D],
+        score: 6.5,
+      },
+    ];
+    expect(findContainerUrls(entries).has(D)).toBe(true);
+    expect(deduplicateEvents(entries)).toHaveLength(4);
+    // ...and the verdict must not depend on the order the entries arrived in.
+    const reversed = [...entries].reverse();
+    expect(findContainerUrls(reversed).has(D)).toBe(true);
+    expect(deduplicateEvents(reversed)).toHaveLength(4);
+  });
+
+  it('finds a genuine pair behind a URL already claimed by a mis-attributed event', () => {
+    // The unrelated event claims the URL index slot first; the two genuine
+    // reports must still find each other rather than shipping as duplicates.
+    const U = 'https://news.example/quarterly';
+    const out = deduplicateEvents([
+      {
+        title: '某平台上线新版开发者控制台',
+        description: '该平台重构了开发者控制台，新增用量看板与密钥分级管理，界面同时支持深色模式，改版已面向全部开发者账号灰度推送。',
+        links: [U],
+        score: 6,
+      },
+      {
+        title: 'Databricks 2026 第三季度营收同比增长四成',
+        description: 'Databricks 公布 2026 年第三季度业绩，营收同比增长约四成，管理层将增长归因于数据智能平台的企业采用率提升以及大客户续约。',
+        links: [U],
+        score: 8,
+      },
+      {
+        title: 'Databricks 2026 财报显示营收增长强劲',
+        description: 'Databricks 最新财报显示 2026 年第三季度营收同比增长四成左右，管理层表示数据智能平台的企业采用率上升是主要驱动力。',
+        links: [U],
+        score: 8.5,
+      },
+    ]);
+    expect(out).toHaveLength(2);
+    expect(out.find(e => e.title.includes('Databricks'))?.source_count).toBe(2);
+  });
+
+  it('keeps matching against earlier wordings after the winner is replaced', () => {
+    const out = deduplicateEvents([
+      {
+        title: 'Groq 发布新一代 LPU 推理芯片',
+        description: 'Groq 发布新一代 LPU 推理芯片，主打超低延迟推理，官方称长上下文场景下每秒输出词元数较上一代提升一倍，2026 年内向云客户开放。',
+        links: [],
+        score: 7,
+      },
+      {
+        // Higher score, so this wording takes over as the displayed winner —
+        // and its title carries no latin tokens, so nothing fuzzy-matches it.
+        title: '新一代推理芯片正式亮相，延迟大幅下降',
+        description: 'Groq 的新一代 LPU 推理芯片正式亮相，主打低延迟推理，官方数据称长上下文场景下每秒输出词元数较上一代提升一倍，2026 年面向云客户开放。',
+        links: [],
+        score: 9,
+      },
+      {
+        // Fuzzy-equivalent to the *first* title only; its description is too
+        // short for the similarity fallbacks. Matching the retired wording is
+        // the only route into the bucket.
+        title: 'Groq 发布新一代 LPU 推理芯片产品',
+        description: '该产品面向推理服务市场。',
+        links: [],
+        score: 6,
       },
     ]);
     expect(out).toHaveLength(1);

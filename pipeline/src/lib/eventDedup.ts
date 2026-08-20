@@ -350,16 +350,45 @@ const CONTAINER_URL_MIN_DISTINCT_EVENTS = 3;
 const URL_CORROBORATION_MIN_SHARED_TOKENS = 2;
 
 /**
- * How many distinct events a set of entries describes. Entries that corroborate
- * each other collapse into one, so a single article ingested under three
- * paraphrased headlines counts as one event rather than three.
+ * A lower bound on how many *mutually unrelated* stories a set of entries
+ * covers: the size of an independent set in the corroboration graph, found by
+ * repeatedly taking the least-connected entry and discarding everything it
+ * corroborates.
+ *
+ * Counting corroboration clusters greedily instead would be order-dependent and
+ * defeatable by a single broad entry: a digest that also yields a "今日汇总"
+ * summary line corroborates each of its own children, so a first-come cluster
+ * walk collapses the whole digest to one representative and the URL escapes
+ * container classification — reinstating the very collapse this guards against.
+ * An independent set ignores that hub, because the children remain mutually
+ * unrelated. Ties break on input order, so the result does not depend on how
+ * the entries arrived.
  */
-function countDistinctEvents(entries: readonly RawEvent[]): number {
-  const representatives: RawEvent[] = [];
-  for (const e of entries) {
-    if (!representatives.some((r) => urlMatchCorroborated(r, e))) representatives.push(e);
+function countUnrelatedEntries(entries: readonly RawEvent[]): number {
+  const n = entries.length;
+  const related: boolean[][] = Array.from({ length: n }, () => new Array<boolean>(n).fill(false));
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const a = entries[i], b = entries[j];
+      if (a && b && urlMatchCorroborated(a, b)) related[i]![j] = related[j]![i] = true;
+    }
   }
-  return representatives.length;
+  const removed = new Array<boolean>(n).fill(false);
+  let count = 0;
+  for (;;) {
+    let pick = -1;
+    let pickDegree = Infinity;
+    for (let i = 0; i < n; i++) {
+      if (removed[i]) continue;
+      let degree = 0;
+      for (let j = 0; j < n; j++) if (!removed[j] && related[i]![j]) degree++;
+      if (degree < pickDegree) { pick = i; pickDegree = degree; }
+    }
+    if (pick === -1) return count;
+    count++;
+    removed[pick] = true;
+    for (let j = 0; j < n; j++) if (related[pick]![j]) removed[j] = true;
+  }
 }
 
 /**
@@ -384,7 +413,7 @@ export function findContainerUrls(events: readonly RawEvent[]): Set<string> {
   const containers = new Set<string>();
   for (const [url, entries] of entriesByUrl) {
     if (entries.length < CONTAINER_URL_MIN_DISTINCT_EVENTS) continue; // cheap pre-filter
-    if (countDistinctEvents(entries) >= CONTAINER_URL_MIN_DISTINCT_EVENTS) containers.add(url);
+    if (countUnrelatedEntries(entries) >= CONTAINER_URL_MIN_DISTINCT_EVENTS) containers.add(url);
   }
   return containers;
 }
@@ -426,19 +455,35 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
     links: string[];
     score: number;
     source_count: number;
+    // Every entry merged so far. Matching runs against all of them, not just
+    // the displayed winner: when a higher-scoring duplicate takes over the
+    // title and description, the earlier wording must keep participating or a
+    // third report matching only that wording lands in its own card.
+    members: { title: string; description: string }[];
   }
   const buckets: Bucket[] = [];
   const titleIdx = new Map<string, number>();
-  const urlIdx = new Map<string, number>();
+  // URL -> every bucket carrying it. A single slot let a mis-attributed event
+  // claim the URL and hide the genuine bucket behind it from later reports.
+  const urlIdx = new Map<string, number[]>();
   const containerUrls = findContainerUrls(events);
 
   const indexUrl = (u: string, bIdx: number) => {
     if (containerUrls.has(u)) return;
-    if (!urlIdx.has(u)) urlIdx.set(u, bIdx);
+    const owners = urlIdx.get(u);
+    if (!owners) urlIdx.set(u, [bIdx]);
+    else if (!owners.includes(bIdx)) owners.push(bIdx);
   };
+
+  const matchesBucket = (
+    e: RawEvent,
+    b: Bucket,
+    predicate: (m: { title: string; description: string }) => boolean,
+  ) => b.members.some(predicate);
 
   function mergeInto(b: Bucket, bIdx: number, e: RawEvent) {
     b.source_count += 1;
+    b.members.push({ title: e.title, description: e.description });
     // Title, description and score all come from whichever source event wins —
     // never title from one and description from another.
     if (
@@ -461,22 +506,23 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
     if (target === undefined) {
       for (const u of e.links) {
         if (containerUrls.has(u)) continue;
-        const hit = urlIdx.get(u);
-        const b = hit !== undefined ? buckets[hit] : undefined;
-        if (hit !== undefined && b && urlMatchCorroborated(
-          { title: e.title, description: e.description },
-          { title: b.title, description: b.description },
-        )) {
-          target = hit;
-          break;
+        for (const hit of urlIdx.get(u) ?? []) {
+          const b = buckets[hit];
+          if (b && matchesBucket(e, b, (m) => urlMatchCorroborated(
+            { title: e.title, description: e.description }, m,
+          ))) {
+            target = hit;
+            break;
+          }
         }
+        if (target !== undefined) break;
       }
     }
     if (target === undefined) {
       // Fuzzy fallback: scan existing buckets for a near-duplicate title.
       for (let i = 0; i < buckets.length; i++) {
         const b = buckets[i];
-        if (b && fuzzyEquivalent(e.title, b.title)) {
+        if (b && matchesBucket(e, b, (m) => fuzzyEquivalent(e.title, m.title))) {
           target = i;
           break;
         }
@@ -490,10 +536,9 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
       // company name.
       for (let i = 0; i < buckets.length; i++) {
         const b = buckets[i];
-        if (b && descriptionsLikelySameEvent(
-          { title: e.title, description: e.description },
-          { title: b.title, description: b.description },
-        )) {
+        if (b && matchesBucket(e, b, (m) => descriptionsLikelySameEvent(
+          { title: e.title, description: e.description }, m,
+        ))) {
           target = i;
           break;
         }
@@ -514,6 +559,7 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
       links: [...e.links],
       score: e.score,
       source_count: 1,
+      members: [{ title: e.title, description: e.description }],
     };
     buckets.push(b);
     const idx = buckets.length - 1;
