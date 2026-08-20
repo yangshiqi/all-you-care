@@ -385,6 +385,27 @@ describe('deduplicateEvents', () => {
     ]);
     expect(out).toHaveLength(2);
   });
+  it('merges on the shared URL alone when similarity is below the standalone bar', () => {
+    // Isolates the corroborated-URL path: these two share exactly two latin
+    // tokens (`databricks`, `2026`), which clears the URL-corroborated floor
+    // but not the stricter standalone description fallback. Their titles are
+    // neither equal nor fuzzy-equivalent, so the URL is the only thing that
+    // can merge them — and removing it must split them again.
+    const b = {
+      title: 'Databricks 2026 第三季度营收同比增长四成',
+      description: 'Databricks 公布 2026 年第三季度业绩，营收同比增长约四成，管理层将增长归因于数据智能平台的企业采用率提升以及大客户续约。',
+      score: 8,
+    };
+    const c = {
+      title: 'Databricks 2026 财报显示营收增长强劲',
+      description: 'Databricks 最新财报显示 2026 年第三季度营收同比增长四成左右，管理层表示数据智能平台的企业采用率上升是主要驱动力。',
+      score: 8.5,
+    };
+    const U = 'https://news.example/databricks-q3';
+    expect(deduplicateEvents([{ ...b, links: [U] }, { ...c, links: [U] }])).toHaveLength(1);
+    expect(deduplicateEvents([{ ...b, links: [] }, { ...c, links: [] }])).toHaveLength(2);
+  });
+
   // ── digest / roundup articles ───────────────────────────────────────────
   //
   // Regression: issue 135 (2026-08-20). A 极客早知道 daily roundup
