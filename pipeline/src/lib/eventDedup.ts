@@ -338,11 +338,10 @@ export function descriptionsLikelySameEvent(
 // card silently dropped an unrelated story entirely. So a URL match now only
 // *corroborates* — it still has to be backed by title or description similarity.
 
-// A URL cited by this many events with pairwise-distinct titles describes a
-// container, not an event; it is dropped from URL matching outright. Two
-// distinct titles is the ordinary same-story-two-wordings case, so the floor
-// starts at three.
-const CONTAINER_URL_MIN_DISTINCT_TITLES = 3;
+// A URL behind this many *distinct events* describes a container, not an event;
+// it is dropped from URL matching outright. Two distinct events is the ordinary
+// same-story-two-wordings case, so the floor starts at three.
+const CONTAINER_URL_MIN_DISTINCT_EVENTS = 3;
 
 // Shared-entity floor for a URL-corroborated description match. Lower than the
 // standalone FUZZY_DESC_MIN_SHARED_TOKENS because the shared URL is itself
@@ -351,26 +350,41 @@ const CONTAINER_URL_MIN_DISTINCT_TITLES = 3;
 const URL_CORROBORATION_MIN_SHARED_TOKENS = 2;
 
 /**
- * URLs that appear under CONTAINER_URL_MIN_DISTINCT_TITLES or more distinct
- * normalised titles. These identify a container article rather than an event
- * and must not be used as identity.
+ * How many distinct events a set of entries describes. Entries that corroborate
+ * each other collapse into one, so a single article ingested under three
+ * paraphrased headlines counts as one event rather than three.
+ */
+function countDistinctEvents(entries: readonly RawEvent[]): number {
+  const representatives: RawEvent[] = [];
+  for (const e of entries) {
+    if (!representatives.some((r) => urlMatchCorroborated(r, e))) representatives.push(e);
+  }
+  return representatives.length;
+}
+
+/**
+ * URLs behind CONTAINER_URL_MIN_DISTINCT_EVENTS or more distinct events. These
+ * identify a container article rather than an event and must not be used as
+ * identity. Counting *events* rather than raw titles matters: a real article
+ * reported three times under different headlines would otherwise be mistaken
+ * for a digest, which disables URL corroboration and splits it into three cards.
  */
 export function findContainerUrls(events: readonly RawEvent[]): Set<string> {
-  const titlesByUrl = new Map<string, Set<string>>();
+  const entriesByUrl = new Map<string, RawEvent[]>();
   for (const e of events) {
-    const key = normalizeTitle(e.title);
     for (const u of new Set(e.links)) {
-      let titles = titlesByUrl.get(u);
-      if (!titles) {
-        titles = new Set<string>();
-        titlesByUrl.set(u, titles);
+      let entries = entriesByUrl.get(u);
+      if (!entries) {
+        entries = [];
+        entriesByUrl.set(u, entries);
       }
-      titles.add(key);
+      entries.push(e);
     }
   }
   const containers = new Set<string>();
-  for (const [url, titles] of titlesByUrl) {
-    if (titles.size >= CONTAINER_URL_MIN_DISTINCT_TITLES) containers.add(url);
+  for (const [url, entries] of entriesByUrl) {
+    if (entries.length < CONTAINER_URL_MIN_DISTINCT_EVENTS) continue; // cheap pre-filter
+    if (countDistinctEvents(entries) >= CONTAINER_URL_MIN_DISTINCT_EVENTS) containers.add(url);
   }
   return containers;
 }

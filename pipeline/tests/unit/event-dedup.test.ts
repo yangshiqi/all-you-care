@@ -439,6 +439,35 @@ describe('deduplicateEvents', () => {
     expect(out).toHaveLength(2);
   });
 
+  it('does not mistake one article reported under three headlines for a digest', () => {
+    // The container heuristic counts distinct *events*, not raw titles: three
+    // paraphrases of one story collapse to one, so URL corroboration stays on
+    // and they merge instead of shipping as three near-identical cards.
+    const U = 'https://openai.com/index/new-model';
+    const out = deduplicateEvents([
+      {
+        title: 'OpenAI 公布新一代 GPT 模型路线图',
+        description: 'OpenAI 今日公布全新的 GPT 模型路线图，强调推理能力和开发者工具升级，并将在未来几周逐步向用户开放。',
+        links: [U],
+        score: 8,
+      },
+      {
+        title: '新模型即将上线：OpenAI 更新产品计划',
+        description: 'OpenAI 更新了产品计划，新一代 GPT 将增强推理能力与开发工具，相关功能预计未来几周分阶段向用户推出。',
+        links: [U],
+        score: 8,
+      },
+      {
+        title: 'GPT 迎来能力升级，开发工具同步改版',
+        description: '新一代 GPT 将重点提升推理能力，OpenAI 也会同步改进开发工具，并计划在接下来的数周内陆续开放新功能。',
+        links: [U],
+        score: 8,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.source_count).toBe(3);
+  });
+
   // ── field provenance ────────────────────────────────────────────────────
 
   it('keeps title, description and score from the same source event', () => {
