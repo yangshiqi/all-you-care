@@ -278,6 +278,17 @@ function splitVersion(token: string): { prefix: string; ver: string; suffix: str
   return { prefix: m[1], ver: m[2] ?? '', suffix: m[3] ?? '' };
 }
 
+/**
+ * Whether two titles look like different releases of the same product
+ * ("GPT-5" vs "GPT-6"), which must never be merged.
+ */
+export function titlesConflictOnVersion(titleA: string, titleB: string): boolean {
+  return hasVersionConflict(
+    new Set(extractLatinTokensFromRaw(titleA)),
+    new Set(extractLatinTokensFromRaw(titleB)),
+  );
+}
+
 function hasVersionConflict(tokensA: Set<string>, tokensB: Set<string>): boolean {
   const uniqueA = [...tokensA].filter(t => !tokensB.has(t) && /\d/.test(t));
   const uniqueB = [...tokensB].filter(t => !tokensA.has(t) && /\d/.test(t));
@@ -294,6 +305,7 @@ function hasVersionConflict(tokensA: Set<string>, tokensB: Set<string>): boolean
 export function descriptionsLikelySameEvent(
   a: { title: string; description: string },
   b: { title: string; description: string },
+  minSharedTokens: number = FUZZY_DESC_MIN_SHARED_TOKENS,
 ): boolean {
   if (!a.description || !b.description) return false;
   if (a.description.length < FUZZY_DESC_MIN_LEN) return false;
@@ -310,7 +322,7 @@ export function descriptionsLikelySameEvent(
 
   const tokensA = combinedLatinTokenSet(a.title, a.description);
   const tokensB = combinedLatinTokenSet(b.title, b.description);
-  if (setIntersectionSize(tokensA, tokensB) < FUZZY_DESC_MIN_SHARED_TOKENS) return false;
+  if (setIntersectionSize(tokensA, tokensB) < minSharedTokens) return false;
 
   const nA = normalizeForFuzzy(a.description);
   const nB = normalizeForFuzzy(b.description);
@@ -320,16 +332,132 @@ export function descriptionsLikelySameEvent(
   return true;
 }
 
+// ---- URL as a dedup signal ------------------------------------------------
+
+// A shared URL means a shared *source article*, which is not the same thing as
+// a shared *event*. Two ways that breaks:
+//
+//   1. Digest articles. compress splits one roundup ("极客早知道", a newsletter
+//      issue) into a dozen unrelated news items that all carry the roundup's
+//      link.
+//   2. Mis-attribution. compress occasionally hands an item its neighbour's
+//      link.
+//
+// Treating the URL as identity let the first bucket holding such a link swallow
+// every other story behind it: issue 135 shipped a card titled "OpenAI 第二季度
+// 营收增速放缓" whose body described a HoverAir drone camera, and a neighbouring
+// card silently dropped an unrelated story entirely. So a URL match now only
+// *corroborates* — it still has to be backed by title or description similarity.
+
+// A URL behind this many *distinct events* describes a container, not an event;
+// it is dropped from URL matching outright. Two distinct events is the ordinary
+// same-story-two-wordings case, so the floor starts at three.
+const CONTAINER_URL_MIN_DISTINCT_EVENTS = 3;
+
+// Shared-entity floor for a URL-corroborated description match. Lower than the
+// standalone FUZZY_DESC_MIN_SHARED_TOKENS because the shared URL is itself
+// evidence, but not zero — a lone incidental token (a year, a percentage)
+// matched two unrelated quarterly-earnings stories in the issue-135 batch.
+const URL_CORROBORATION_MIN_SHARED_TOKENS = 2;
+
+/**
+ * Whether the entries contain `size` that are pairwise unrelated — i.e. an
+ * independent set of that size in the corroboration graph.
+ *
+ * Exact rather than greedy, and therefore independent of the order the entries
+ * arrived in. A greedy walk is both order-dependent and defeatable: a digest
+ * that also yields a broad "今日汇总" line has that line corroborate each of
+ * its own children, so a first-come walk collapses the digest to one
+ * representative and the URL escapes container classification — reinstating the
+ * collapse this guards against. An independent set ignores such a hub, because
+ * the children remain mutually unrelated.
+ *
+ * Exhaustive search is only tractable because `size` is a small constant and a
+ * single URL carries at most a few dozen entries; raising
+ * CONTAINER_URL_MIN_DISTINCT_EVENTS materially would need a different approach.
+ */
+function hasUnrelatedSubset(entries: readonly RawEvent[], size: number): boolean {
+  const n = entries.length;
+  if (size <= 0) return true;
+  if (n < size) return false;
+  const related: boolean[][] = Array.from({ length: n }, () => new Array<boolean>(n).fill(false));
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const a = entries[i], b = entries[j];
+      if (a && b && urlMatchCorroborated(a, b)) related[i]![j] = related[j]![i] = true;
+    }
+  }
+  const chosen: number[] = [];
+  const search = (from: number): boolean => {
+    if (chosen.length === size) return true;
+    // Prune: not enough entries left to reach `size`.
+    if (n - from < size - chosen.length) return false;
+    for (let i = from; i < n; i++) {
+      if (chosen.some((c) => related[c]![i])) continue;
+      chosen.push(i);
+      if (search(i + 1)) return true;
+      chosen.pop();
+    }
+    return false;
+  };
+  return search(0);
+}
+
+/**
+ * URLs behind CONTAINER_URL_MIN_DISTINCT_EVENTS or more distinct events. These
+ * identify a container article rather than an event and must not be used as
+ * identity. Counting *events* rather than raw titles matters: a real article
+ * reported three times under different headlines would otherwise be mistaken
+ * for a digest, which disables URL corroboration and splits it into three cards.
+ */
+export function findContainerUrls(events: readonly RawEvent[]): Set<string> {
+  const entriesByUrl = new Map<string, RawEvent[]>();
+  for (const e of events) {
+    for (const u of new Set(e.links)) {
+      let entries = entriesByUrl.get(u);
+      if (!entries) {
+        entries = [];
+        entriesByUrl.set(u, entries);
+      }
+      entries.push(e);
+    }
+  }
+  const containers = new Set<string>();
+  for (const [url, entries] of entriesByUrl) {
+    if (entries.length < CONTAINER_URL_MIN_DISTINCT_EVENTS) continue; // cheap pre-filter
+    if (hasUnrelatedSubset(entries, CONTAINER_URL_MIN_DISTINCT_EVENTS)) containers.add(url);
+  }
+  return containers;
+}
+
+/**
+ * Whether a shared (non-container) URL is backed by enough title/description
+ * similarity to conclude the two entries describe the same event.
+ */
+export function urlMatchCorroborated(
+  a: { title: string; description: string },
+  b: { title: string; description: string },
+): boolean {
+  if (normalizeTitle(a.title) === normalizeTitle(b.title)) return true;
+  if (fuzzyEquivalent(a.title, b.title)) return true;
+  return descriptionsLikelySameEvent(a, b, URL_CORROBORATION_MIN_SHARED_TOKENS);
+}
+
 // ---- dedup ----------------------------------------------------------------
 
 /**
  * Two events are considered duplicates when:
  *  - their normalised titles match, OR
- *  - they share at least one URL.
+ *  - they share a non-container URL *and* that match is corroborated by title
+ *    or description similarity, OR
+ *  - their titles are fuzzy-equivalent, OR
+ *  - their descriptions describe the same event.
  *
- * When duplicates are merged, we keep the highest score, the longest
- * description, and the union of links. Events are returned with sequential
- * 1..N ids.
+ * When duplicates are merged the links are unioned, and title, description and
+ * score are all taken from a single representative event — the highest-scoring
+ * one, breaking ties on description length. Mixing fields across source events
+ * is what produced cards whose headline and body were about different stories.
+ * Events are returned with sequential 1..N ids.
  */
 export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
   interface Bucket {
@@ -339,23 +467,54 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
     links: string[];
     score: number;
     source_count: number;
+    // Every entry merged so far. Matching runs against all of them, not just
+    // the displayed winner: when a higher-scoring duplicate takes over the
+    // title and description, the earlier wording must keep participating or a
+    // third report matching only that wording lands in its own card.
+    members: { title: string; description: string }[];
   }
   const buckets: Bucket[] = [];
   const titleIdx = new Map<string, number>();
-  const urlIdx = new Map<string, number>();
+  // URL -> every bucket carrying it. A single slot let a mis-attributed event
+  // claim the URL and hide the genuine bucket behind it from later reports.
+  const urlIdx = new Map<string, number[]>();
+  const containerUrls = findContainerUrls(events);
+
+  const indexUrl = (u: string, bIdx: number) => {
+    if (containerUrls.has(u)) return;
+    const owners = urlIdx.get(u);
+    if (!owners) urlIdx.set(u, [bIdx]);
+    else if (!owners.includes(bIdx)) owners.push(bIdx);
+  };
+
+  // A positive match against one member is not enough: a versionless report can
+  // bridge two releases, so "GPT-5" and "GPT-6" would merge through it and the
+  // version guard inside descriptionsLikelySameEvent would never see the
+  // conflicting pair. Any conflicting member vetoes the whole bucket.
+  const matchesBucket = (
+    e: RawEvent,
+    b: Bucket,
+    predicate: (m: { title: string; description: string }) => boolean,
+  ) => !b.members.some((m) => titlesConflictOnVersion(e.title, m.title))
+    && b.members.some(predicate);
 
   function mergeInto(b: Bucket, bIdx: number, e: RawEvent) {
     b.source_count += 1;
-    if (e.score > b.score) b.score = e.score;
-    if (e.description.length > b.description.length) {
+    b.members.push({ title: e.title, description: e.description });
+    // Title, description and score all come from whichever source event wins —
+    // never title from one and description from another.
+    if (
+      e.score > b.score ||
+      (e.score === b.score && e.description.length > b.description.length)
+    ) {
+      b.title = e.title;
       b.description = e.description;
+      b.score = e.score;
     }
     for (const u of e.links) {
       if (!b.links.includes(u)) b.links.push(u);
     }
-    for (const u of b.links) {
-      if (!urlIdx.has(u)) urlIdx.set(u, bIdx);
-    }
+    for (const u of b.links) indexUrl(u, bIdx);
   }
 
   for (const e of events) {
@@ -363,18 +522,24 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
     let target: number | undefined = key.length > 0 ? titleIdx.get(key) : undefined;
     if (target === undefined) {
       for (const u of e.links) {
-        const hit = urlIdx.get(u);
-        if (hit !== undefined) {
-          target = hit;
-          break;
+        if (containerUrls.has(u)) continue;
+        for (const hit of urlIdx.get(u) ?? []) {
+          const b = buckets[hit];
+          if (b && matchesBucket(e, b, (m) => urlMatchCorroborated(
+            { title: e.title, description: e.description }, m,
+          ))) {
+            target = hit;
+            break;
+          }
         }
+        if (target !== undefined) break;
       }
     }
     if (target === undefined) {
       // Fuzzy fallback: scan existing buckets for a near-duplicate title.
       for (let i = 0; i < buckets.length; i++) {
         const b = buckets[i];
-        if (b && fuzzyEquivalent(e.title, b.title)) {
+        if (b && matchesBucket(e, b, (m) => fuzzyEquivalent(e.title, m.title))) {
           target = i;
           break;
         }
@@ -388,10 +553,9 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
       // company name.
       for (let i = 0; i < buckets.length; i++) {
         const b = buckets[i];
-        if (b && descriptionsLikelySameEvent(
-          { title: e.title, description: e.description },
-          { title: b.title, description: b.description },
-        )) {
+        if (b && matchesBucket(e, b, (m) => descriptionsLikelySameEvent(
+          { title: e.title, description: e.description }, m,
+        ))) {
           target = i;
           break;
         }
@@ -412,13 +576,12 @@ export function deduplicateEvents(events: RawEvent[]): MergedEvent[] {
       links: [...e.links],
       score: e.score,
       source_count: 1,
+      members: [{ title: e.title, description: e.description }],
     };
     buckets.push(b);
     const idx = buckets.length - 1;
     if (key.length > 0) titleIdx.set(key, idx);
-    for (const u of e.links) {
-      if (!urlIdx.has(u)) urlIdx.set(u, idx);
-    }
+    for (const u of e.links) indexUrl(u, idx);
   }
 
   return buckets.map((b, i) => ({
