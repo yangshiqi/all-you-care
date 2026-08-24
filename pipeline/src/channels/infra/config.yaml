@@ -8,18 +8,26 @@ sources:
     - { url: "https://github.com/sgl-project/sglang/releases.atom",                         enabled: true }
     - { url: "https://github.com/NVIDIA/TensorRT-LLM/releases.atom",                        enabled: true }
     - { url: "https://github.com/huggingface/text-generation-inference/releases.atom",      enabled: true }
+    - { url: "https://github.com/huggingface/text-embeddings-inference/releases.atom",      enabled: true }
     - { url: "https://github.com/ggml-org/llama.cpp/releases.atom",                         enabled: true }
     - { url: "https://github.com/ollama/ollama/releases.atom",                              enabled: true }
     - { url: "https://github.com/triton-inference-server/server/releases.atom",             enabled: true }
     - { url: "https://github.com/InternLM/lmdeploy/releases.atom",                          enabled: true }
     - { url: "https://github.com/kvcache-ai/ktransformers/releases.atom",                   enabled: true }
     - { url: "https://github.com/xorbitsai/inference/releases.atom",                        enabled: true }
+    - { url: "https://github.com/mlc-ai/mlc-llm/releases.atom",                             enabled: true }
+    - { url: "https://github.com/ModelTC/lightllm/releases.atom",                           enabled: true }
     # 推理编排 / 网关 / 平台（ai_native）
     - { url: "https://github.com/llm-d/llm-d/releases.atom",                                 enabled: true }
     - { url: "https://github.com/kserve/kserve/releases.atom",                              enabled: true }
     - { url: "https://github.com/vllm-project/aibrix/releases.atom",                        enabled: true }
+    - { url: "https://github.com/ome-projects/ome/releases.atom",                           enabled: true }
+    - { url: "https://github.com/volcano-sh/kthena/releases.atom",                          enabled: true }
+    - { url: "https://github.com/ai-dynamo/grove/releases.atom",                            enabled: true }
+    - { url: "https://github.com/bentoml/BentoML/releases.atom",                            enabled: true }
     - { url: "https://github.com/ai-dynamo/dynamo/releases.atom",                           enabled: true }
     - { url: "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases.atom", enabled: true }
+    - { url: "https://github.com/kubernetes-sigs/inference-perf/releases.atom",             enabled: true }
     - { url: "https://github.com/BerriAI/litellm/releases.atom",                            enabled: true }
     - { url: "https://github.com/envoyproxy/ai-gateway/releases.atom",                      enabled: true }
     - { url: "https://github.com/alibaba/higress/releases.atom",                            enabled: true }
@@ -31,10 +39,12 @@ sources:
     # KV / 显存
     - { url: "https://github.com/LMCache/LMCache/releases.atom",                            enabled: true }
     - { url: "https://github.com/kvcache-ai/Mooncake/releases.atom",                        enabled: true }
+    - { url: "https://github.com/ai-dynamo/nixl/releases.atom",                             enabled: true }
     # 容器与调度（k8s）
     - { url: "https://github.com/kubernetes/kubernetes/releases.atom",                      enabled: true }
     - { url: "https://github.com/kubernetes-sigs/kueue/releases.atom",                      enabled: true }
     - { url: "https://github.com/volcano-sh/volcano/releases.atom",                         enabled: true }
+    - { url: "https://github.com/koordinator-sh/koordinator/releases.atom",                 enabled: true }
     - { url: "https://github.com/ray-project/ray/releases.atom",                            enabled: true }
     - { url: "https://github.com/ray-project/kuberay/releases.atom",                        enabled: true }
     - { url: "https://github.com/kubernetes-sigs/jobset/releases.atom",                     enabled: true }
@@ -52,6 +62,10 @@ sources:
     - { url: "https://github.com/NVIDIA/gpu-operator/releases.atom",                        enabled: true }
     - { url: "https://github.com/NVIDIA/k8s-dra-driver-gpu/releases.atom",                  enabled: true }
     - { url: "https://github.com/NVIDIA/dcgm-exporter/releases.atom",                       enabled: true }
+    - { url: "https://github.com/NVIDIA/nccl/releases.atom",                                enabled: true }
+    # AMD ROCm（K8s 部署面；补 NVIDIA + 国产卡之外的 AMD 缺口）
+    - { url: "https://github.com/ROCm/gpu-operator/releases.atom",                          enabled: true }
+    - { url: "https://github.com/ROCm/k8s-device-plugin/releases.atom",                     enabled: true }
     # 可观测（mesh_obs）
     - { url: "https://github.com/open-telemetry/opentelemetry-collector-contrib/releases.atom", enabled: true }
     - { url: "https://github.com/langfuse/langfuse/releases.atom",                          enabled: true }
@@ -59,6 +73,7 @@ sources:
     - { url: "https://github.com/traceloop/openllmetry/releases.atom",                      enabled: true }
     # Serverless / 存储 / 分发（serverless_storage）
     - { url: "https://github.com/dragonflyoss/dragonfly/releases.atom",                     enabled: true }
+    - { url: "https://github.com/run-ai/runai-model-streamer/releases.atom",                enabled: true }
     - { url: "https://github.com/knative/serving/releases.atom",                            enabled: true }
     - { url: "https://github.com/juicedata/juicefs/releases.atom",                          enabled: true }
     - { url: "https://github.com/deepseek-ai/3FS/releases.atom",                            enabled: true }
@@ -104,6 +119,7 @@ sources:
     - { url: "https://github.com/vllm-project/production-stack/releases.atom",               enabled: true }
     - { url: "https://github.com/vllm-project/semantic-router/releases.atom",                enabled: true }
     - { url: "https://github.com/vllm-project/llm-compressor/releases.atom",                 enabled: true }
+    - { url: "https://github.com/NVIDIA/TensorRT-Model-Optimizer/releases.atom",             enabled: true }
     - { url: "https://github.com/vllm-project/guidellm/releases.atom",                       enabled: true }
     # 异构硬件后端（非 NVIDIA；与 vllm-ascend 同类）
     - { url: "https://github.com/vllm-project/vllm-gaudi/releases.atom",                     enabled: true }   # Intel Gaudi
