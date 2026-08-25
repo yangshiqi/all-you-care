@@ -9,6 +9,23 @@
 - **内容必须包含具体数字 / 公司名 / 产品名 / 时间**——不是简单改写标题。
   - 反例（差）：'OpenAI 推出新模型，性能提升'
   - 正例（好）：'OpenAI 推出 GPT-5.5 mini，参数 7B、推理速度比 GPT-5 快 2.4×、定价 $0.15/M tokens'
+- **公司名硬规则（禁止猜测）**：
+  - 公司/产品的归属**只能来自原文**，禁止凭"常识"补全。原文没写是谁发布的，就不写公司名。
+  - 首次提及公司用 `中文名（English Name）` 格式，括号内英文必须**逐字出现在原文里**。
+  - 中文名只按下表翻译；**不在表内或拿不准的公司一律保留英文原名**，禁止自创或猜测译名：
+    | English | 中文名 | 代表产品 |
+    |---|---|---|
+    | Moonshot AI | 月之暗面 | Kimi 系列 |
+    | StepFun | 阶跃星辰 | Step 系列 |
+    | Zhipu / Z.ai | 智谱 | GLM 系列 |
+    | DeepSeek | 深度求索 | DeepSeek 系列 |
+    | 01.AI | 零一万物 | Yi 系列 |
+    | ModelBest | 面壁智能 | MiniCPM |
+    | Baichuan | 百川智能 | Baichuan 系列 |
+    | MiniMax | MiniMax | 海螺 / abab |
+    | Alibaba | 阿里巴巴 | Qwen / 通义 |
+    | ByteDance | 字节跳动 | 豆包 / Seed 系列 |
+    | Tencent | 腾讯 | 混元 |
 
 # 输出 Markdown 模板
 ```

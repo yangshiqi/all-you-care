@@ -2,6 +2,7 @@
 import type { StepContext, StepResult } from '../cli.js';
 import { resolveLlm } from '../channels/types.js';
 import { claim, commit, markFailed } from '../lib/db.js';
+import { lintEntityBindings } from '../lib/entityLint.js';
 import { callLlm } from '../lib/llm.js';
 import { loadPrompt, wrapUntrustedItems } from '../lib/prompt.js';
 import { trackUsage } from '../lib/usage.js';
@@ -41,6 +42,9 @@ export async function run(ctx: StepContext): Promise<StepResult> {
       log,
     });
     await trackUsage(db, { channel: channel.name, step: 'compress', provider: result.provider, model: result.model, input_tokens: result.inputTokens, output_tokens: result.outputTokens }, log);
+    for (const w of lintEntityBindings(result.text)) {
+      log.warn({ event: 'entity_lint', kind: w.kind, snippet: w.snippet, detail: w.detail }, 'possible company/product mix-up in compress output');
+    }
     const newDraftId = await commit.compress(
       db, channel.name, result.text, claimed.map(c => c.id),
     );
