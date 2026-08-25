@@ -243,7 +243,7 @@ async function callGemini(opts: {
     generationConfig: {
       maxOutputTokens: maxTokens,
       temperature,
-      // gemini-3.5-flash is a thinking model and its reasoning tokens count
+      // Gemini flash (3.5/3.7) are thinking models and their reasoning tokens count
       // toward maxOutputTokens. For these extraction/compression/JSON steps we
       // don't want thinking — it silently eats the output budget and trips
       // MAX_TOKENS before the answer is written (observed: reutersImage burned

@@ -25,6 +25,8 @@ const PRICING: Record<string, { input: number; output: number }> = {
   'claude-opus-4-7':          { input: 15.00, output: 75.00 },
   'gemini-embedding-001':     { input: 0.00, output: 0.00 },
   'gemini-3.5-flash':         { input: 1.50, output: 9.00 },
+  // Intro pricing through 2026-12-31; becomes $1.50/$7.50 from 2027-01.
+  'gemini-3.7-flash':         { input: 0.75, output: 3.75 },
   'gemini-2.5-flash':         { input: 0.00, output: 0.00 },
   'gemini-3-flash-preview':   { input: 0.00, output: 0.00 },
 };
