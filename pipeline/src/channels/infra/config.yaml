@@ -185,8 +185,8 @@ llm:
   steps:
     compress:
       chain:
+        - { provider: anthropic, model: claude-opus-4-7 }
         - { provider: gemini, model: gemini-3.7-flash }
-        - { provider: anthropic, model: claude-sonnet-4-6 }
     score:
       chain:
         - { provider: gemini, model: gemini-3.7-flash }
