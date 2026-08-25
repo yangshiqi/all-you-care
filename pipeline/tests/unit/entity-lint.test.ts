@@ -23,6 +23,12 @@ describe('lintEntityBindings — alias_mismatch', () => {
     expect(lintEntityBindings('阶跃星辰（Step 3）跑分公开。')).toEqual([]);
   });
 
+  it('handles digit-leading English aliases like 01.AI', () => {
+    const warnings = lintEntityBindings('月之暗面（01.AI）发布 Yi-Large 2。');
+    expect(warnings.some(w => w.kind === 'alias_mismatch')).toBe(true);
+    expect(lintEntityBindings('零一万物（01.AI）发布 Yi-Large 2。')).toEqual([]);
+  });
+
   it('accepts half-width parentheses', () => {
     const warnings = lintEntityBindings('阶跃星辰(Moonshot AI)推出 Kimi K3。');
     expect(warnings.some(w => w.kind === 'alias_mismatch')).toBe(true);

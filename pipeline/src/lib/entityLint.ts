@@ -52,7 +52,7 @@ function companiesIn(text: string): Company[] {
 // Chinese half must end with one of its known zh names.
 function lintAliasPairs(text: string): EntityLintWarning[] {
   const warnings: EntityLintWarning[] = [];
-  const re = /([一-龥][一-龥A-Za-z0-9·]{1,11})[（(]([A-Za-z][A-Za-z0-9 .\-]{1,29})[）)]/g;
+  const re = /([一-龥][一-龥A-Za-z0-9·]{1,11})[（(]([A-Za-z0-9][A-Za-z0-9 .\-]{1,29})[）)]/g;
   for (const m of text.matchAll(re)) {
     const [full, zhName, enName] = m as unknown as [string, string, string];
     const enCompany = findByEn(enName);
