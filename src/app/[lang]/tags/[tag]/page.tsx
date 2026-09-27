@@ -11,6 +11,16 @@ import { notFound } from "next/navigation";
 import { en } from "@/lib/locales/en";
 import { zh_CN } from "@/lib/locales/zh_CN";
 
+// Workaround for a Next.js 16 bug: during ISR, Next.js writes the decoded
+// route pathname (which may contain non-ASCII characters, e.g. Chinese tag
+// names like "多智能体") into the `x-next-cache-tags`
+// response header. HTTP headers are ASCII-only, so Node throws
+// ERR_INVALID_CHAR ("Invalid character in header content") and every
+// request 500s. Forcing dynamic rendering avoids generating that header
+// for this route entirely.
+// See: https://github.com/vercel/next.js/issues/93142
+export const dynamic = "force-dynamic";
+
 const translations = {
   en: en.translation,
   'zh-CN': zh_CN.translation,
