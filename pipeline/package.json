@@ -31,6 +31,6 @@
     "@types/sanitize-html": "^2.13.0",
     "tsx": "^4.22.4",
     "typescript": "^5.7.2",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.11"
   }
 }
