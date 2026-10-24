@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/i18n-utils";
 
 /**
@@ -16,7 +16,8 @@ import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/i18n-utils";
  * `useTranslation` consumer to repaint with the correct locale.
  */
 export function LangSync({ lang }: { lang: string }) {
-  const { i18n } = useTranslation();
+  // The hook's i18n snapshot changes identity on language changes in v17.
+  // Use the stable instance so the hydration transition runs once per URL lang.
   useEffect(() => {
     if (!isValidLanguage(lang)) return;
     if (i18n.language !== lang) {
@@ -24,6 +25,6 @@ export function LangSync({ lang }: { lang: string }) {
     } else if (lang !== DEFAULT_LANGUAGE) {
       void i18n.changeLanguage(DEFAULT_LANGUAGE).then(() => i18n.changeLanguage(lang));
     }
-  }, [lang, i18n]);
+  }, [lang]);
   return null;
 }

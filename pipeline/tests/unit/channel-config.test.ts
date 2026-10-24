@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseChannelConfig } from '../../src/channels/load.js';
+import { loadChannel, parseChannelConfig } from '../../src/channels/load.js';
 
 const valid = {
   name: 'ai',
@@ -22,8 +22,32 @@ const valid = {
 };
 
 describe('parseChannelConfig', () => {
+  it.each(['ai', 'snow', 'infra'] as const)('loads the real %s channel YAML', async (name) => {
+    const config = await loadChannel(name);
+    expect(config.name).toBe(name);
+    expect(config.llm.model).toBeTruthy();
+    expect(config.deliver.url).toMatch(/^https?:\/\//);
+  });
   it('accepts valid config', () => {
     expect(() => parseChannelConfig(valid)).not.toThrow();
+  });
+  it('accepts partial LLM step overrides without requiring every step', () => {
+    const config = parseChannelConfig({
+      ...valid,
+      llm: { ...valid.llm, steps: { compress: { model: 'gemini-2.5-flash' } } },
+    });
+    expect(config.llm.steps?.compress?.model).toBe('gemini-2.5-flash');
+    expect(config.llm.steps?.score).toBeUndefined();
+  });
+  it('accepts an empty LLM step override map', () => {
+    expect(parseChannelConfig({ ...valid, llm: { ...valid.llm, steps: {} } }).llm.steps)
+      .toEqual({});
+  });
+  it('rejects unknown LLM step override names', () => {
+    expect(() => parseChannelConfig({
+      ...valid,
+      llm: { ...valid.llm, steps: { unknown: { model: 'gemini-2.5-flash' } } },
+    })).toThrow();
   });
   it('rejects bad name', () => {
     expect(() => parseChannelConfig({ ...valid, name: 'banana' }))

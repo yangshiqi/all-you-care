@@ -1,5 +1,7 @@
 # pipeline
 
+Requires Node.js 22.12+ on a supported even-numbered release line (22, 24, or 26+).
+
 > **English** · [中文](./README.zh-CN.md)
 
 A content pipeline for people who've had it with n8n / Dify / Coze. Drag-and-drop workflows are fast to ship and brittle to run — debugging is painful, versioning is chaos, anything mildly complex breaks silently in the middle of the night. We moved the same logic into TypeScript: scheduling lives in cron, state lives in the database, errors live in logs.

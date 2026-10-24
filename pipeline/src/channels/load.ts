@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { ChannelConfigSchema, type ChannelConfig } from './types.js';
 import type { Channel } from '../lib/db.js';
 
@@ -19,6 +19,6 @@ export function parseChannelConfig(raw: unknown): ChannelConfig {
 export async function loadChannel(channel: Channel): Promise<ChannelConfig> {
   const path = join(channelDir(channel), 'config.yaml');
   if (!existsSync(path)) throw new Error(`channel config not found: ${path}`);
-  const raw = yaml.load(await readFile(path, 'utf8'));
+  const raw = load(await readFile(path, 'utf8'));
   return parseChannelConfig(raw);
 }

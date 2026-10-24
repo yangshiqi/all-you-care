@@ -52,7 +52,7 @@ export const ChannelConfigSchema = z.object({
     model: z.string(),
     max_tokens: z.number().int().positive(),
     temperature: z.number().min(0).max(2),
-    steps: z.record(
+    steps: z.partialRecord(
       z.enum(['compress', 'score', 'merge', 'render', 'reutersImage', 'weekly']),
       z.object({
         model: z.string().optional(),

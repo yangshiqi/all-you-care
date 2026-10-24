@@ -12,25 +12,27 @@
     "import-legacy": "tsx scripts/import-legacy-issues.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.96.0",
-    "@supabase/supabase-js": "^2.76.1",
-    "imapflow": "^1.4.3",
-    "js-yaml": "^4.2.0",
-    "juice": "^11.1.1",
-    "mailparser": "^3.9.12",
-    "nodemailer": "^9.0.3",
+    "@anthropic-ai/sdk": "^0.137.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "imapflow": "^2.9.1",
+    "js-yaml": "^5.5.0",
+    "juice": "^12.2.0",
+    "mailparser": "^3.12.4",
+    "nodemailer": "^10.2.1",
     "rss-parser": "^3.13.0",
-    "sanitize-html": "^2.13.0",
-    "zod": "^3.23.8"
+    "sanitize-html": "^2.18.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/mailparser": "^3.4.5",
-    "@types/node": "^22.0.0",
-    "@types/nodemailer": "^8.0.0",
-    "@types/sanitize-html": "^2.13.0",
-    "tsx": "^4.22.4",
+    "@types/mailparser": "^3.9.0",
+    "@types/node": "^22.20.5",
+    "@types/nodemailer": "^8.0.2",
+    "@types/sanitize-html": "^2.16.2",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.2",
-    "vitest": "^4.1.6"
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   }
 }
