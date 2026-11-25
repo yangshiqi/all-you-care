@@ -16,7 +16,7 @@ export function isValidLanguage(lang: string): lang is SupportedLanguage {
 
 /**
  * 从路径中提取语言代码
- * @param path - URL 路径，例如 "/en/issues" 或 "/zh-CN/tags"
+ * @param path - URL 路径，例如 "/en/issues" 或 "/zh-CN/issues"
  * @returns 语言代码或 null
  */
 export function getLanguageFromPath(path: string): SupportedLanguage | null {

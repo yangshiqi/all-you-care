@@ -92,8 +92,6 @@ NEXT_PUBLIC_SITE_URL=https://snapallx.com
 | `/[lang]/` | 首页：最新一期 + 历史卡片 |
 | `/[lang]/issues` | 期刊分页列表 |
 | `/[lang]/issues/[slug]` | 期刊详情（slug = `journal_id`）|
-| `/[lang]/tags` | 标签总览 |
-| `/[lang]/tags/[tag]` | 单标签下的期刊 |
 | `/[lang]/subscribe` | 邮件订阅 |
 | `/admin` | 管理后台（token 鉴权）|
 
