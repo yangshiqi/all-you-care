@@ -33,7 +33,6 @@ The app uses a `[lang]` dynamic segment for i18n routing:
 - `/[lang]/` — homepage with recent issues
 - `/[lang]/issues` — paginated list (channel `ai`); `/[lang]/issues/[slug]` — detail (slug = `journal_id`)
 - `/[lang]/infra` — AI-infra weekly list (channel `infra`); `/[lang]/infra/[slug]` — detail
-- `/[lang]/tags` — tag listing; `/[lang]/tags/[tag]` — per-tag issues
 - `/[lang]/subscribe`, `/[lang]/subscribe/snow` — Brevo subscription; `/[lang]/weekly` — weekly view
 - `/admin/login`, `/admin/issues` + `/api/admin/*` — token-gated admin (`ADMIN_TOKEN`, `force-dynamic`)
 
@@ -45,7 +44,7 @@ All content comes from the Supabase `issues` table (populated externally by n8n 
 
 ### Rendering & caching (gotcha)
 
-Content list pages (`/[lang]`, `/[lang]/issues`, `/[lang]/infra`, `/[lang]/tags`) are SSG with 24h ISR (`export const revalidate = 86400`). **New Supabase content only appears after the ISR window elapses or a redeploy** — before adding ISR, list pages were static-forever and froze between deploys. If content is missing from the live site, check cache headers (`x-vercel-cache`, `age`, `x-nextjs-prerender`) and last-deploy time before suspecting the n8n/Supabase pipeline. Detail pages use `generateStaticParams` with default `dynamicParams=true`, so new slugs render on-demand.
+Content list pages (`/[lang]`, `/[lang]/issues`, `/[lang]/infra`) are SSG with 24h ISR (`export const revalidate = 86400`). **New Supabase content only appears after the ISR window elapses or a redeploy** — before adding ISR, list pages were static-forever and froze between deploys. If content is missing from the live site, check cache headers (`x-vercel-cache`, `age`, `x-nextjs-prerender`) and last-deploy time before suspecting the n8n/Supabase pipeline. Detail pages use `generateStaticParams` with default `dynamicParams=true`, so new slugs render on-demand.
 
 ### API Routes (`src/app/api/`)
 
@@ -55,7 +54,7 @@ Content list pages (`/[lang]`, `/[lang]/issues`, `/[lang]/infra`, `/[lang]/tags`
 
 ### Key Files
 
-- `src/lib/api.ts` — all Supabase queries and data types (`IssueSummary`, `PaginatedResult`, `TagSummary`)
+- `src/lib/api.ts` — all Supabase queries and data types (`IssueSummary`, `PaginatedResult`)
 - `src/lib/i18n.ts` — i18n configuration; translation strings live in `src/lib/locales/{en,zh_CN}.ts`
 - `src/lib/i18n-utils.ts` — i18n helper utilities (`isValidLanguage`, `addLanguageToPath`)
 - `src/components/ui/` — shadcn/ui primitives

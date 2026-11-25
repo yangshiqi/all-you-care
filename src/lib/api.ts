@@ -15,11 +15,6 @@ export interface IssueSummary {
   journal_id: string
 }
 
-export interface TagSummary {
-  name: string
-  total: number
-}
-
 export interface PaginatedResult<T> {
   data: T[]
   total: number
@@ -336,28 +331,6 @@ export function extractTagsFromContent(tags: string | string[] | null | undefine
   }
   return ['ai', 'technology']
 }
-
-export const getAllTags = cache(async (i18nLang?: string): Promise<TagSummary[]> => {
-  try {
-    const dbLang = mapI18nLangToDbLang(i18nLang)
-    let query = supabase
-      .from('tag_counts')
-      .select('name, total')
-      .eq('channel', 'ai')
-    if (dbLang) query = query.eq('lang', dbLang)
-
-    const { data, error } = await query.order('total', { ascending: false })
-    if (error) throw new Error(`Failed to fetch tags: ${error.message}`)
-
-    return (data ?? []).map(r => ({
-      name: String(r.name),
-      total: Number(r.total),
-    }))
-  } catch (error) {
-    console.error('Error in getAllTags:', error)
-    throw error
-  }
-})
 
 /**
  * Get all distinct months (YYYY-MM) that have issues.

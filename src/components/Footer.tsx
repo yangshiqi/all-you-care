@@ -18,7 +18,6 @@ export const Footer = ({ initialLang }: FooterProps = {}) => {
   const navLinks = [
     { href: "/issues", label: t("nav.issues") },
     { href: "/weekly", label: t("nav.weekly", "周报") },
-    { href: "/tags", label: t("nav.tags") },
     { href: "/subscribe", label: t("nav.subscribe") },
   ];
 

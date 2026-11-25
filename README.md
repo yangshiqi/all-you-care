@@ -92,8 +92,6 @@ NEXT_PUBLIC_SITE_URL=https://snapallx.com
 | `/[lang]/` | Homepage: latest issue + history cards |
 | `/[lang]/issues` | Paginated issue list |
 | `/[lang]/issues/[slug]` | Issue detail (slug = `journal_id`) |
-| `/[lang]/tags` | Tag index |
-| `/[lang]/tags/[tag]` | Issues under one tag |
 | `/[lang]/subscribe` | Email subscribe |
 | `/admin` | Admin (token-auth) |
 

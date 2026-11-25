@@ -134,13 +134,12 @@ export const IssueDetailContent = ({ issue, issueId, hasEnVersion, initialLang }
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {category.tags.map((tag, tagIndex) => (
-                      <Link 
-                        key={tagIndex} 
-                        href={addLanguageToPath(`/tags/${encodeURIComponent(tag)}`, lang)} 
-                        className="px-3 py-1 text-sm bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
+                      <span
+                        key={tagIndex}
+                        className="px-3 py-1 text-sm bg-secondary border-2 border-border uppercase tracking-wider"
                       >
                         {tag}
-                      </Link>
+                      </span>
                     ))}
                   </div>
                 </div>

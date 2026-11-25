@@ -134,13 +134,12 @@ export const RecentIssues = () => {
                   
                   <div className="flex flex-wrap gap-2">
                     {issue.tags.map((tag: string) => (
-                      <Link
+                      <span
                         key={tag}
-                        href={addLanguageToPath(`/tags/${encodeURIComponent(tag)}`, lang)}
-                        className="px-3 py-1 text-xs bg-secondary border-2 border-border hover:border-primary hover:text-primary transition-all uppercase tracking-wider"
+                        className="px-3 py-1 text-xs bg-secondary border-2 border-border uppercase tracking-wider"
                       >
                         {tag}
-                      </Link>
+                      </span>
                     ))}
                   </div>
                 </article>
